@@ -71,3 +71,43 @@ function util.shared_buffer(name, max)
 		end
 	}
 end
+
+do
+
+	local gets, sets = {}, {}
+
+	function util.shared_table(name)
+		return setmetatable({}, {
+			__index = function(self, k)
+				local key = tostring(k)
+				local vtype = GetString(string.format("%s.%s.type", name, key))
+				if vtype == "" then return end
+				return gets[vtype](string.format("%s.%s.val", name, key))
+			end,
+			__newindex = function(self, k, v)
+				local vtype = type(v)
+				local handler = sets[vtype]
+				if not handler then return end
+				local key = tostring(k)
+				SetString(string.format("%s.%s.type", name, key), vtype)
+				handler(string.format("%s.%s.val", name, key), v)
+			end,
+		})
+	end
+
+	gets.number = GetFloat
+	gets.boolean = GetBool
+	gets.string = GetString
+	gets.table = util.shared_table
+
+	sets.number = SetFloat
+	sets.boolean = SetBool
+	sets.string = SetString
+	sets.table = function(key, val)
+		local tab = util.shared_table(key)
+		for k, v in pairs(val) do
+			tab[k] = v
+		end
+	end
+
+end
