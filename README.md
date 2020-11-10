@@ -7,7 +7,7 @@ _Note: Thanks to the installation process, this framework should be compatible w
 
 # Installing
 
-- Place all the files of this repository next to teardown.exe (C:\Program Files (x86)\Steam\steamapps\common\Teardown)
+- Place `mods` and `hook_modloader.bat` next to teardown.exe (C:\Program Files (x86)\Steam\steamapps\common\Teardown)
 - Run `hook_modloader.bat` to patch the default scripts
 
 To install a mod, place its folder in the `mods` folder and add the name in `mods/mods.lua`
