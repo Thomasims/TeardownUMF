@@ -9,10 +9,10 @@ local function simple_detour(name)
 	end)
 end
 local detours = {
-	"init",
-	"tick",
-	"update",
-	"handleCommand"
+	"init", -- "base.init" (runs before init())
+	"tick", -- "base.tick" (runs before tick())
+	"update", -- "base.update" (runs before update())
+	"handleCommand" -- "base.handleCommand" (runs before handleCommand())
 }
 for i = 1, #detours do
 	simple_detour(detours[i])
