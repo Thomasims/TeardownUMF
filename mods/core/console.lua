@@ -53,7 +53,7 @@ if REALM_HUD or REALM_MENU then
 	hook.add("base.draw", "console.draw", function()
 		local w, h = UiWidth(), UiHeight()
 		local cw, ch = w / 2 - 220, math.floor(h * 0.75)
-		local visible = bottom and 1 or pauseMenuAlpha
+		local visible = bottom and 1 - (gSandboxScale + gCreateScale + gOptionsScale) or pauseMenuAlpha
 		if not visible or visible == 0 then return end
 		UiPush()
 			if bottom then

@@ -10,6 +10,7 @@ local custom_maps = {
 	{name = "island", printname = "Island level", path = "../../create/island.xml"},
 	{name = "castle", printname = "Castle level", path = "../../create/castle.xml"},
 	{name = "vehicle", printname = "Vehicle level", path = "../../create/vehicle.xml"},
+	{name = "custom", printname = "Custom level", path = "../../create/custom.xml"},
 }
 
 function RegisterMap(name, printname)
@@ -61,7 +62,8 @@ DETOUR("drawCreate", function(original)
 					Command("game.openurl", "http://www.teardowngame.com/create")
 				end
 	
-				UiTranslate(0, 70)
+				local columns = math.ceil(#custom_maps/5)
+				UiTranslate(123 - 123 * columns, 70)
 				UiPush()
 					UiColor(1,1,1)
 					UiFont("font/regular.ttf", 26)
@@ -72,6 +74,9 @@ DETOUR("drawCreate", function(original)
 							Command("game.startlevel", map.path)
 						end
 						UiTranslate(0, 45)
+						if i % 5 == 0 then
+							UiTranslate(246, -225)
+						end
 					end
 				UiPop()
 				UiTranslate(0, 250)
