@@ -15,10 +15,13 @@ do
 	end
 
 	serialize_any = function(val, bck)
-		if type(val) == "table" then
+		local vtype = type(val)
+		if vtype == "table" then
 			return serialize_table(val, bck)
-		elseif type(val) == "string" then
+		elseif vtype == "string" then
 			return string.format("%q", val)
+		elseif vtype == "function" or vtype == "userdata" then
+			return string.format("nil --[[%s]]", tostring(val))
 		else
 			return tostring(val)
 		end
