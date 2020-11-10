@@ -1,0 +1,8 @@
+create/
+data/
+teardown.exe
+
+mods/*
+!mods/core/
+!mods/framework/
+!mods/mods.lua
