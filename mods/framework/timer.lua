@@ -61,7 +61,7 @@ function timer.remove(id)
 	end
 end
 
-hook.add("base.draw", "framework.timer", function(dt)
+hook.add("base.tick", "framework.timer", function(dt)
 	local now = GetTime()
 	while #backlog > 0 do
 		local first = backlog[#backlog]
