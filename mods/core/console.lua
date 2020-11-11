@@ -52,8 +52,8 @@ if REALM_HUD or REALM_MENU then
 	local bottom = not not REALM_MENU
 	hook.add("base.draw", "console.draw", function()
 		local w, h = UiWidth(), UiHeight()
-		local cw, ch = w / 2 - 220, math.floor(h * 0.75)
-		local visible = bottom and 1 - (gSandboxScale + gCreateScale + gOptionsScale) or pauseMenuAlpha
+		local cw, ch = w / 2 - 220, bottom and math.floor(h * 0.75) or h - 40
+		local visible = bottom and 1 - (gSandboxScale + gCreateScale + gOptionsScale) or pauseMenuAlpha - optionsAlpha
 		if not visible or visible == 0 then return end
 		UiPush()
 			if bottom then
