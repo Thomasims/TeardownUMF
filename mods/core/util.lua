@@ -44,6 +44,42 @@ function util.unserialize(dt)
 	end
 end
 
+do
+	local function serialize_any(val, bck)
+		local vtype = type(val)
+		if vtype == "table" then
+			if bck[val] then return "{}" end
+			bck[val] = true
+			local len = 0
+			for k, v in pairs(val) do len = len + 1 end
+			local rt = {}
+			if len == #val then
+				for i = 1, #val do
+					rt[i] = serialize_any(val[i], bck)
+				end
+				return string.format("[%s]",table.concat(rt, ","))
+			else
+				for k, v in pairs(val) do
+					if type(k) == "string" or type(k) == "number" then
+						rt[#rt+1] = string.format("%s: %s", serialize_any(k, bck), serialize_any(v, bck))
+					end
+				end
+				return string.format("{%s}",table.concat(rt, ","))
+			end
+		elseif vtype == "string" then
+			return string.format("%q", val)
+		elseif vtype == "function" or vtype == "userdata" or vtype == "nil" then
+			return "null"
+		else
+			return tostring(val)
+		end
+	end
+
+	function util.serializeJSON(val)
+		return serialize_any(val, {})
+	end
+end
+
 function util.shared_buffer(name, max)
 	return {
 		_pos_name = name .. ".position",
