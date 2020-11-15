@@ -1,4 +1,5 @@
 
+if hook then return end
 
 local hook_table = {}
 local hook_compiled = {}

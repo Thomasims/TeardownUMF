@@ -1,3 +1,4 @@
+if REALM then return end
 REALM = ...
 
 if REALM == "hud" then
@@ -30,10 +31,11 @@ local detoured = {}
 function DETOUR(name, generator)
 	original[name] = _G[name]
 	detoured[name] = generator(function(...) return call_original(name, ...) end)
-	rawset(_G, name, detoured[name])
+	rawset(_G, name, nil)
 end
 
 setmetatable(_G, {
+	__index = detoured,
 	__newindex = function(self, k, v)
 		if detoured[k] then
 			original[k] = v
