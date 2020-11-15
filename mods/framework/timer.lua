@@ -15,9 +15,11 @@ local function sortedinsert(tab, val)
 	tab[1] = val
 end
 
+local diff = GetTime() -- In certain realms, GetTime() is not 0 right away
+
 function timer.simple(time, callback)
 	sortedinsert(backlog, {
-		time = GetTime() + time,
+		time = GetTime() + time - diff,
 		callback = callback
 	})
 end
@@ -25,7 +27,7 @@ end
 function timer.create(id, interval, iterations, callback)
 	sortedinsert(backlog, {
 		id = id,
-		time = GetTime() + interval,
+		time = GetTime() + interval - diff,
 		interval = interval,
 		callback = callback,
 		runsleft = iterations - 1,
