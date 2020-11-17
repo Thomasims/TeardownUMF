@@ -13,13 +13,32 @@ local custom_maps = {
 	{name = "custom", printname = "Custom level", path = "../../create/custom.xml"},
 }
 
-function RegisterMap(name, printname)
+function RegisterMap(name, printname, curmod)
+	curmod = curmod or current_mod()
+	for i = 1, #custom_maps do
+		local map = custom_maps[i]
+		if map.name == name and map.curmod == curmod then
+			if printname then
+				map.printname = printname
+			end
+			return
+		end
+	end
 	table.insert(custom_maps, {
 		name = name,
+		curmod = curmod,
 		printname = printname or name,
-		path = string.format("../../mods/%s/levels/%s.xml", current_mod(), name)
+		path = string.format("../../mods/%s/levels/%s.xml", curmod, name)
 	})
 end
+
+hook.add("api.postload", "framework.levelloader", function(name, mod, data)
+	local levels = file.find(string.format("mods/%s/levels/(*).xml", name))
+	for i = 1, #levels do
+		print("found level " .. levels[i])
+		RegisterMap(levels[i], nil, name)
+	end
+end)
 
 DETOUR("drawCreate", function(original)
 	return function(scale)
