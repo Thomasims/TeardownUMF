@@ -34,6 +34,13 @@ function timer.create(id, interval, iterations, callback)
 	})
 end
 
+function timer.wait(time)
+	local co = coroutine.running()
+	if not co then error("timer.wait() can only be used in a coroutine") end
+	timer.simple(time, function() coroutine.resume( co ) end)
+	return coroutine.yield()
+end
+
 local function find(id)
 	for i = 1, #backlog do
 		if backlog[i].id == id then
@@ -64,6 +71,7 @@ function timer.remove(id)
 end
 
 hook.add("base.tick", "framework.timer", function(dt)
+	diff = 0
 	local now = GetTime()
 	while #backlog > 0 do
 		local first = backlog[#backlog]
