@@ -120,7 +120,6 @@ local mods = {}
 for i = 1, #modnames do
 	local name = modnames[i]
 	if name ~= "core" then
-		curmod = name
 		local func, e = loadfile(string.format("mods/%s/manifest.lua", name))
 		if func then
 			setfenv(func, {})
@@ -154,6 +153,7 @@ local function loadmod(mod)
 	if not mod.parents or next(mod.parents) or mod.loaded then return end
 	mod.loaded = true
 	if canload(mod.manifest) then
+		curmod = mod.name
 		if softassert(pcall(include, string.format("mods/%s/init.lua", mod.name))) then
 			printinfo("Loaded mod: " .. mod.manifest.printname)
 		end
