@@ -1,6 +1,7 @@
 create/
 data/
 teardown.exe
+.mods
 
 mods/*
 !mods/core/

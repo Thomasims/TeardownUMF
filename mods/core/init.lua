@@ -83,9 +83,12 @@ function include(file, ...)
 	return a, b, c, d, e
 end
 
-include("hook.lua")
-include("util.lua")
-include("console.lua")
+include("extension/hook.lua")
+include("extension/util.lua")
+include("extension/console.lua")
+include("extension/file.lua")
+
+file.loadinfo()
 
 if REALM_MENU then
 	-- The menu realm is the first to initialize so we can do 
@@ -98,25 +101,7 @@ print("Initializing modding base for REALM: " .. REALM)
 
 include("default_hooks.lua")
 
-local modnames = {}
-local filesystem_raw = include("mods/mods.lua")
-local root
-local filesystem = {}
-for line in filesystem_raw:gmatch("([^\r\n]+)") do
-	if root then
-		local path = line:sub(#root + 2)
-		filesystem[#filesystem + 1] = path
-		local mod = path:match("([^\\]+)\\manifest.lua")
-		if mod then
-			modnames[#modnames + 1] = mod
-		end
-	else
-		root = line
-	end
-end
-
-local mods = {}
-
+local modnames, mods = file.find("mods/(*)"), {}
 for i = 1, #modnames do
 	local name = modnames[i]
 	if name ~= "core" then
@@ -149,14 +134,23 @@ local function canload(manifest)
 	end
 end
 
+hook.add("api.postload", "api.modloader", function(name, mod, data)
+	printinfo("Loaded mod: " .. mod.manifest.printname)
+end)
+
+hook.add("api.failload", "api.modloader", function(name, mod, error)
+	printerror("Failed to load mod: " .. mod.manifest.printname)
+	printerror(error)
+end)
+
 local function loadmod(mod)
 	if not mod.parents or next(mod.parents) or mod.loaded then return end
 	mod.loaded = true
 	if canload(mod.manifest) then
 		curmod = mod.name
-		if softassert(pcall(include, string.format("mods/%s/init.lua", mod.name))) then
-			printinfo("Loaded mod: " .. mod.manifest.printname)
-		end
+		hook.run("api.preload", mod.name, mod)
+		local success, ret = pcall(include, string.format("mods/%s/init.lua", mod.name))
+		hook.run(success and "api.postload" or "api.failload", mod.name, mod, ret)
 	end
 	for i = 1, #mod.children do
 		local child = mod.children[i]
