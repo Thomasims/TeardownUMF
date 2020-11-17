@@ -1,18 +1,18 @@
 if REALM then return end
 REALM = ...
 
-if REALM == "hud" then
-	REALM_HUD = true
-elseif REALM == "loading" then
-	REALM_LOADING = true
-elseif REALM == "menu" then
-	REALM_MENU = true
-elseif REALM == "splash" then
-	REALM_SPLASH = true
-elseif REALM == "tv" then
-	REALM_TV = true
-elseif REALM == "world" then
-	REALM_WORLD = true
+local realms = {
+	hud = "REALM_HUD",
+	loading = "REALM_LOADING",
+	menu = "REALM_MENU",
+	splash = "REALM_SPLASH",
+	tv = "REALM_TV",
+	world = "REALM_WORLD",
+	heist = "REALM_HEIST"
+}
+
+if realms[REALM] then
+	_G[realms[REALM]] = true
 else
 	REALM_OTHER = true
 end
@@ -98,7 +98,23 @@ print("Initializing modding base for REALM: " .. REALM)
 
 include("default_hooks.lua")
 
-local modnames = include("mods/mods.lua")
+local modnames = {}
+local filesystem_raw = include("mods/mods.lua")
+local root
+local filesystem = {}
+for line in filesystem_raw:gmatch("([^\r\n]+)") do
+	if root then
+		local path = line:sub(#root + 2)
+		filesystem[#filesystem + 1] = path
+		local mod = path:match("([^\\]+)\\manifest.lua")
+		if mod then
+			modnames[#modnames + 1] = mod
+		end
+	else
+		root = line
+	end
+end
+
 local mods = {}
 
 for i = 1, #modnames do
