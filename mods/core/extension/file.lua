@@ -22,14 +22,17 @@ local function findsub(sub, path)
 	return results
 end
 
-function file.find(pattern)
-	return findsub(file._listing, "^" .. pattern:gsub("%*+", function(m)
-		if m == "**" then return ".-" end
-		if m == "*" then return "[^/]-" end
-		return m
-	end) .. "$")
+function file.find(pattern, raw)
+	if not raw then
+		pattern = "^" .. pattern:gsub("%*+", function(m)
+			if m == "**" then return ".-" end
+			if m == "*" then return "[^/]-" end
+			return m
+		end) .. "$"
+	end
+	return findsub(file._listing, pattern)
 end
 
-function file.exists(path)
-	return #file.find(path) > 0
+function file.exists(pattern, raw)
+	return #file.find(pattern, raw) > 0
 end
