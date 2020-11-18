@@ -1,3 +1,5 @@
 
-include("timer.lua")
-include("level_loader.lua")
+include("extension/timer.lua")
+include("extension/tdui.lua")
+include("extension/level_loader.lua")
+include("extension/console.lua")

@@ -35,7 +35,6 @@ end
 hook.add("api.postload", "framework.levelloader", function(name, mod, data)
 	local levels = file.find(string.format("mods/%s/levels/(*).xml", name))
 	for i = 1, #levels do
-		print("found level " .. levels[i])
 		RegisterMap(levels[i], nil, name)
 	end
 end)

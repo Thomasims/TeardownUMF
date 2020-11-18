@@ -85,7 +85,7 @@ end
 
 include("extension/hook.lua")
 include("extension/util.lua")
-include("extension/console.lua")
+include("extension/console_backend.lua")
 include("extension/file.lua")
 
 file.loadinfo()

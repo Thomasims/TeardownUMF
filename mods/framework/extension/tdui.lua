@@ -35,6 +35,29 @@ local window = TDUI.Frame {
 }
 ]]
 
+do
+	local knownFonts, knownFontsMod = {
+		["bold"] = "bold.ttf",
+		["regular"] = "regular.ttf"
+	}, {}
+
+	for i, file in ipairs(file.find("mods/*/font/*.ttf")) do
+		local mod, name = file:match("^mods/([^/]-)/font/([^/]-)%.ttf$")
+		local path = "../../" .. file
+		knownFontsMod[mod] = knownFontsMod[mod] or {}
+		knownFontsMod[mod][name] = path
+		knownFonts[name] = path
+	end
+
+	function Font(name)
+		if current_mod then
+			local modLocal = knownFontsMod[current_mod()]
+			if modLocal and modLocal[name] then return modLocal[name] end
+		end
+		return knownFonts[name] or name
+	end
+end
+
 TDUI = setmetatable({}, {
 	__newindex = function(self, k, v)
 		rawset(self, k, v) -- Is extra processing necessary?
