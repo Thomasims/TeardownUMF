@@ -50,19 +50,37 @@ setmetatable(_G, {
 local curmod = "core"
 local curdir = {"mods/core/"}
 
-function current_mod()
+function current_mod(level)
+	if not curmod or (level and util) then
+		level = (level or 0) + 1
+		local location = util.current_line(level)
+		if location == "[C]:?" then
+			location = util.current_line(level + 1)
+		end
+		local mod = location:match("^mods/([^/]+)/")
+		return mod
+	end
 	return curmod
 end
 
-function current_dir()
+function current_dir(level)
+	if #curdir == 0 or (level and util) then
+		level = (level or 0) + 1
+		local location = util.current_line(level)
+		if location == "[C]:?" then
+			location = util.current_line(level + 1)
+		end
+		local file = location:match("^([^:]+)")
+		return file
+	end
 	return curdir[#curdir]
 end
 
 function include(file, ...)
-	local path = current_dir() .. file
+	local path = current_dir(1) .. file
 	local func, err = loadfile(path)
 	if not func and err:match("[^ ]+ No such file or directory") then
-		path = string.format("mods/%s/%s", current_mod(), file)
+		path = string.format("mods/%s/%s", current_mod(1), file)
 		func, err = loadfile(path)
 		if not func and err:match("[^ ]+ No such file or directory") then
 			path = file
@@ -169,9 +187,7 @@ for name, mod in pairs(mods) do
 	end
 end
 
--- These functions cannot be used after initial load
-current_mod = nil
-current_dir = nil
-include = nil
+curmod = nil
+curdir = {}
 
 hook.run("api.postinit")

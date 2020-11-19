@@ -1,6 +1,6 @@
 if not REALM_MENU then
 	function RegisterMap(name)
-		warning(string.format("[%s] Called RegisterMap() for level %q from realm %q. This function only works from REALM_MENU!", current_mod(), name, REALM))
+		warning(string.format("[%s] Called RegisterMap() for level %q from realm %q. This function only works from REALM_MENU!", current_mod(1), name, REALM))
 	end
 	return
 end
@@ -14,7 +14,7 @@ local custom_maps = {
 }
 
 function RegisterMap(name, printname, curmod)
-	curmod = curmod or current_mod()
+	curmod = curmod or current_mod(1)
 	for i = 1, #custom_maps do
 		local map = custom_maps[i]
 		if map.name == name and map.curmod == curmod then

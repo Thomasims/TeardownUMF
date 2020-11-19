@@ -51,7 +51,7 @@ do
 
 	function Font(name)
 		if current_mod then
-			local modLocal = knownFontsMod[current_mod()]
+			local modLocal = knownFontsMod[current_mod(1)]
 			if modLocal and modLocal[name] then return modLocal[name] end
 		end
 		return knownFonts[name] or name
