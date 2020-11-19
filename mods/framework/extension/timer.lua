@@ -1,4 +1,10 @@
 
+----------------------------------------
+--              WARNING               --
+--   Timers are reset on quickload!   --
+-- Keep this in mind if you use them. --
+----------------------------------------
+
 timer = {}
 timer._backlog = {}
 
