@@ -7,7 +7,7 @@ local realms = {
 	menu = "REALM_MENU",
 	splash = "REALM_SPLASH",
 	tv = "REALM_TV",
-	main = "REALM_WORLD",
+	world = "REALM_WORLD",
 	heist = "REALM_HEIST"
 }
 
