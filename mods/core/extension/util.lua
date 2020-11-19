@@ -258,3 +258,19 @@ do
 	end
 
 end
+
+function util.stacktrace(start)
+	start = (start or 0) + 3
+	local stack, last = {}
+	for i = start, 32 do
+		local _, line = pcall(error, "-", i)
+		if line == "-" then
+			if last == "-" then break end
+		else
+			if last == "-" then stack[#stack + 1] = "[C]:?" end
+			stack[#stack + 1] = line:sub(1,-4)
+		end
+		last = line
+	end
+	return stack
+end
