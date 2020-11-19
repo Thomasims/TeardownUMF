@@ -4,11 +4,10 @@ file = {_listing = {}}
 function file.loadinfo()
 	local filesystem, root = {}
 	for line in dofile(".mods"):gmatch("([^\r\n]+)") do
-		if root then
-			filesystem[#filesystem + 1] = line:sub(#root + 2):gsub("\\", "/")
-		else
-			root = line
+		if not root then
+			root = line:match("^(.-)\\mods\\[^\\]*$")
 		end
+		filesystem[#filesystem + 1] = line:sub(#root + 2):gsub("\\", "/")
 	end
 	file._listing = filesystem
 end
