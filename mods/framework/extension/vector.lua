@@ -1,9 +1,10 @@
 
 local vector_meta = {}
 vector_meta.__index = vector_meta -- I hate doing this but it's useful sometimes
+VECTOR = vector_meta
 
 function IsVector(v)
-    return type(v) == "table" and type(v[1]) == "number" and type(v[2]) == "number" and type(v[3]) == "number"
+    return type(v) == "table" and type(v[1]) == "number" and type(v[2]) == "number" and type(v[3]) == "number" and not v[4]
 end
 
 function MakeVector(v)
@@ -11,8 +12,8 @@ function MakeVector(v)
 end
 
 function Vector(x, y, z)
-    if IsVector(x) then x, y, z = x[1], x[2], x[3]end
-    return MakeVector {x, y, z}
+    if IsVector(x) then x, y, z = x[1], x[2], x[3] end
+    return MakeVector {x or 0, y or 0, z or 0}
 end
 
 function vector_meta:Clone()
@@ -25,7 +26,7 @@ function vector_meta:__tostring()
 end
 
 function vector_meta:__unm()
-    return {-self[1], -self[2], -self[3]}
+    return MakeVector {-self[1], -self[2], -self[3]}
 end
 
 function vector_meta:Add(o)
@@ -69,6 +70,21 @@ function vector_meta:Mul(o)
         self[1] = self[1] * o[1]
         self[2] = self[2] * o[2]
         self[3] = self[3] * o[3]
+    elseif IsQuaternion(o) then
+        -- v2 = v + 2 * r X (s * v + r X v) / quat_meta.LengthSquare(self)
+        --local s, r = o[4], Vector(o[1], o[2], o[3])
+        --self:Add(2 * s * r:Cross(self) + 2 * r:Cross(r:Cross(self)))
+
+        local x1, y1, z1 = self[1], self[2], self[3]
+        local x2, y2, z2, s = o[1], o[2], o[3], o[4]
+
+        local x3 = y2*z1 - z2*y1
+        local y3 = z2*x1 - x2*z1
+        local z3 = x2*y1 - y2*x1
+
+        self[1] = x1 + (x3 * s + y2*z3 - z2*y3) * 2
+        self[2] = y1 + (y3 * s + z2*x3 - x2*z3) * 2
+        self[3] = z1 + (z3 * s + x2*y3 - y2*x3) * 2
     else
         self[1] = self[1] * o
         self[2] = self[2] * o
@@ -171,5 +187,5 @@ function vector_meta:Distance(o)
 end
 
 function vector_meta:LookAt(o)
-    return QuatLookAt(self, o)
+    return MakeQuaternion(QuatLookAt(self, o))
 end
