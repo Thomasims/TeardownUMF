@@ -1,6 +1,6 @@
 if not REALM_MENU then
 	function RegisterMap(name)
-		printwarning(string.format("[%s] Called RegisterMap() for level %q from realm %q. This function only works from REALM_MENU!", current_mod(), name, REALM))
+		warning(string.format("[%s] Called RegisterMap() for level %q from realm %q. This function only works from REALM_MENU!", current_mod(), name, REALM))
 	end
 	return
 end

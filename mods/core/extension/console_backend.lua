@@ -30,9 +30,10 @@ function printinfo(...)
 	printcolor(0, .6, 1, ...)
 end
 
-function printwarning(...)
-	printcolor(1, .7, 0, ...)
+function warning(msg)
+	printcolor(1, .7, 0, "[WARNING] " .. msg .. "\n  " .. table.concat(util.stacktrace(1), "\n  "))
 end
+printwarning = warning
 
 function printerror(...)
 	printcolor(1, .2, 0, ...)
