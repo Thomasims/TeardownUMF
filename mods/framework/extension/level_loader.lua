@@ -5,13 +5,15 @@ if not REALM_MENU then
 	return
 end
 
-local custom_maps = {
-	{name = "basic", printname = "Basic level", path = "../../create/basic.xml"},
-	{name = "island", printname = "Island level", path = "../../create/island.xml"},
-	{name = "castle", printname = "Castle level", path = "../../create/castle.xml"},
-	{name = "vehicle", printname = "Vehicle level", path = "../../create/vehicle.xml"},
-	{name = "custom", printname = "Custom level", path = "../../create/custom.xml"},
-}
+local custom_maps = {}
+
+for i, level in ipairs(file.find("create/(*).xml")) do
+	table.insert(custom_maps, {
+		name = level,
+		printname = string.upper(level:sub(1,1)) .. level:sub(2) .. " level",
+		path = string.format("../../create/%s.xml", level)
+	})
+end
 
 function RegisterMap(name, printname, curmod)
 	curmod = curmod or current_mod(1)
