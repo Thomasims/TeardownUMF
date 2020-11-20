@@ -41,15 +41,17 @@ end
 if REALM_WORLD then
 	local saved = {}
 
-	local function hasfunction(t)
+	local function hasfunction(t, bck)
+		if bck[t] then return end
+		bck[t] = true
 		for k, v in pairs(t) do
 			if type(v) == "function" then return true end
-			if type(v) == "table" and hasfunction(v) then return true end
+			if type(v) == "table" and hasfunction(v, bck) then return true end
 		end
 	end
 
 	for k, v in pairs(_G) do
-		if type(v) == "table" and hasfunction(v) then
+		if type(v) == "table" and hasfunction(v, {}) then
 			saved[k] = v
 		end
 	end
