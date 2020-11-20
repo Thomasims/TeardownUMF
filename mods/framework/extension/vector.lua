@@ -1,7 +1,10 @@
 
 local vector_meta = {}
 vector_meta.__index = vector_meta -- I hate doing this but it's useful sometimes
-VECTOR = vector_meta
+
+function VectorMeta()
+    return vector_meta
+end
 
 function IsVector(v)
     return type(v) == "table" and type(v[1]) == "number" and type(v[2]) == "number" and type(v[3]) == "number" and not v[4]
@@ -15,6 +18,11 @@ function Vector(x, y, z)
     if IsVector(x) then x, y, z = x[1], x[2], x[3] end
     return MakeVector {x or 0, y or 0, z or 0}
 end
+
+VEC_ZERO = Vector()
+VEC_FORWARD = Vector(0, 0, 1)
+VEC_UP = Vector(0, 1, 0)
+VEC_LEFT = Vector(1, 0, 0)
 
 function vector_meta:Clone()
     return MakeVector {self[1], self[2], self[3]}
@@ -44,6 +52,9 @@ end
 
 function vector_meta.__add(a, b)
     if not IsVector(a) then a, b = b, a end
+    if IsTransformation(b) then
+        return Transformation(vector_meta.Add(vector_meta.Clone(a), b.pos), QuaternionMeta().Clone(b.rot))
+    end
     return vector_meta.Add(vector_meta.Clone(a), b)
 end
 

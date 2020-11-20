@@ -1,7 +1,10 @@
 
 local quat_meta = {}
 quat_meta.__index = quat_meta
-QUATERNION = quat_meta
+
+function QuaternionMeta()
+    return quat_meta
+end
 
 function IsQuaternion(q)
     return type(q) == "table" and type(q[1]) == "number" and type(q[2]) == "number" and type(q[3]) == "number" and type(q[4]) == "number"
@@ -15,6 +18,8 @@ function Quaternion(i, j, k, r)
     if IsQuaternion(i) then i, j, k, r = i[1], i[2], i[3], i[4] end
     return MakeQuaternion {i or 0, j or 0, k or 0, r or 1}
 end
+
+QUAT_ZERO = Quaternion()
 
 function quat_meta:Clone()
     return MakeQuaternion {self[1], self[2], self[3], self[4]}
@@ -80,7 +85,8 @@ function quat_meta:Mul(o)
 end
 
 function quat_meta.__mul(a, b)
-    if IsVector(b) then return VECTOR.__mul(b, a) end
+    if IsVector(b) then return VectorMeta().__mul(b, a) end
+    if IsTransformation(b) then return Transformation(VectorMeta().Mul(VectorMeta().Clone(b.pos), a), QuatRotateQuat(b.rot, a)) end
     return MakeQuaternion(QuatRotateQuat(a, b))
 end
 
@@ -99,4 +105,34 @@ end
 local QuatSlerp = QuatSlerp
 function quat_meta:Slerp(o, n)
     return MakeQuaternion(QuatSlerp(self, o, n))
+end
+
+function quat_meta:Left()
+    local x, y, z, s = self[1], self[2], self[3], self[4]
+
+    return Vector(
+        1 - (y^2 + z^2) * 2,
+            (z*s + x*y) * 2,
+            (x*z - y*s) * 2
+    )
+end
+
+function quat_meta:Up()
+    local x, y, z, s = self[1], self[2], self[3], self[4]
+
+    return Vector(
+            (y*x - z*s) * 2,
+        1 - (z^2 + x^2) * 2,
+            (x*s + y*z) * 2
+    )
+end
+
+function quat_meta:Forward()
+    local x, y, z, s = self[1], self[2], self[3], self[4]
+
+    return Vector(
+            (y*s - z*x) * 2,
+            (z*y + x*s) * 2,
+        1 - (x^2 + y^2) * 2
+    )
 end
