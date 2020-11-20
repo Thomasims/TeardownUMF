@@ -1,6 +1,8 @@
 
 if REALM_HUD or REALM_MENU then
 
+	local console_buffer = util.shared_buffer("savegame.console", 128)
+
 	local font = Font("consolas")
 
 	local bottom = not not REALM_MENU

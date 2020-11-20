@@ -27,16 +27,19 @@ DETOUR("draw", function(original)
 	end
 end)
 
+
+local quickloadfix
+DETOUR("handleCommand", function(original)
+	return function(command, ...)
+		if command == "quickload" and quickloadfix then quickloadfix() end
+		softassert(pcall(hook.run, "base.command." .. command, ...))
+		return original(command, ...)
+	end
+end)
+
 ------ QUICKSAVE WORKAROUND -----
 -- Quicksaving stores a copy of the global table without functions, so libraries get corrupted on quickload
 -- This code prevents this by overriding them back
-
-local handleCommandDetour = function(original)
-	return function(...)
-		softassert(pcall(hook.run, "base.handleCommand", ...))
-		return original(...)
-	end
-end
 
 if REALM_WORLD then
 	local saved = {}
@@ -56,17 +59,9 @@ if REALM_WORLD then
 		end
 	end
 
-	handleCommandDetour = function(original)
-		return function(command, ...)
-			if command == "quickload" then
-				for k, v in pairs(saved) do
-					_G[k] = v
-				end
-			end
-			softassert(pcall(hook.run, "base.handleCommand", command, ...))
-			return original(command, ...)
+	quickloadfix = function()
+		for k, v in pairs(saved) do
+			_G[k] = v
 		end
 	end
 end
-
-DETOUR("handleCommand", handleCommandDetour)
