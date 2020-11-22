@@ -104,7 +104,7 @@ local function parsePos(data, w, h, def)
 	if type(data) == "number" then return data end
 	if type(data) ~= "string" then return 0 end
 
-	local n, prc, mod = data:match("^(%d+)(%?)([wh]?)$")
+	local n, prc, mod = data:match("^(-?%d+)(%%?)([wh]?)$")
 	if mod == "w" then
 		return w * tonumber(n) / 100
 	elseif mod == "h" then
@@ -115,27 +115,62 @@ local function parsePos(data, w, h, def)
 	return tonumber(n)
 end
 
+local function parseAlign(data)
+	local alignx, aligny = 1, 1
+	for str in data:gmatch("[^ ]+") do
+		if str == "left" then alignx = 1 break end
+		if str == "center" then alignx = 0 break end
+		if str == "right" then alignx = -1 break end
+		if str == "top" then aligny = 1 break end
+		if str == "middle" then aligny = 0 break end
+		if str == "bottom" then aligny = -1 break end
+	end
+	return alignx, aligny
+end
+
+TDUI.Layout = setmetatable({
+	onlayout = function(self, data, pw, ph, ew, eh)
+		self.__validated = true
+		self.__prevew, self.__preveh = ew, eh
+		local nw, nh = self:ComputeSize(pw, ph)
+		local p1, p2, p3, p4 = self.padding[1], self.padding[2], self.padding[3], self.padding[4]
+		for i = 1, #self do
+			local child = self[i]
+			child:onlayout(child, nw, nh, ew, eh)
+			child:ComputePosition(p4, p1, nw, nh)
+		end
+		return self.__realw + self.margin[4] + self.margin[2], self.__realh + self.margin[1] + self.margin[3]
+	end
+}, TDUI.__PanelMeta)
+
 -- Base Panel,
 TDUI.Panel = setmetatable({
+	__alignx = 1, __aligny = 1,
+	__realx = 0, __realy = 0,
+	__realw = 0, __realh = 0,
 	margin = 0, padding = 0,
+	align = "left top",
 	clip = false,
 
-	Draw = function(self, w, h)
-		UiColor(1, 1, 1)
-		UiTranslate(-40, -40)
-		UiImageBox("common/box-solid-shadow-50.png", w+80, h+81, 50, 50)
-		UiTranslate(40, 40)
+	layout = TDUI.Layout,
+
+	oninit = function(self) end,
+
+	ondraw = function(self, w, h)
+		--UiColor(1, 1, 1)
+		--UiTranslate(-40, -40)
+		--UiImageBox("common/box-solid-shadow-50.png", w+80, h+81, 50, 50)
+		--UiTranslate(40, 40)
 		--UiColor(1, 0, 0, 0.2)
 		--UiRect(w, h)
 	end,
 
-	__PerformDraw = function(self)
+	__Draw = function(self)
 		if not rawget(self, "__validated") then
-			self:__PerformLayout(self:GetParentSize())
+			self:InvalidateLayout(true)
 		end
 		local w, h = self:GetComputedSize()
-		local f = self.Draw
-		if f then f(self, w, h) end
+		self:ondraw(w, h)
 
 		if self.clip then UiPush() UiWindow(w, h, true) end
 
@@ -144,7 +179,7 @@ TDUI.Panel = setmetatable({
 			local child = self[i]
 			local dfx, dfy = child:GetComputedPos()
 			UiTranslate(dfx - x, dfy - y)
-			child:__PerformDraw()
+			child:__Draw()
 			x, y = dfx, dfy
 		end
 		
@@ -154,10 +189,36 @@ TDUI.Panel = setmetatable({
 	__PerformRegister = function(self)
 		self.margin = parseFour(self.margin)
 		self.padding = parseFour(self.padding)
+		self.__alignx, self.__aligny = parseAlign(self.align)
+		self:oninit()
 	end,
 
-	__PerformLayout = function(self, pw, ph)
-		self.__realx = self.x and parsePos(self.x, pw, ph, pw) or 0
+	onlayout = function(self, data, pw, ph, ew, eh)
+		-- onlayout must do 2 things:
+		--  1. Position its children within the available space
+		--  2. Compute its own size for the layout of its parent
+
+		-- TODO: Optimize for static sizes and unchanged bounds
+
+
+		local selflayout = self.layout
+		if selflayout then
+			local f = selflayout.onlayout
+			if f and f ~= self.onlayout then
+				return f(self, selflayout, pw, ph, ew, eh)
+			end
+		end
+		warning("Unable to compute layout")
+		self.__validated = true
+		self:ComputeSize(pw, ph)
+		for i = 1, #self do
+			local child = self[i]
+			child:ComputePosition(0, 0, self.__realw, self.__realh)
+			child:onlayout(child, self.__realw, self.__realh, self.__realw, self.__realh)
+		end
+		return self.__realw, self.__realh
+
+		--[[self.__realx = self.x and parsePos(self.x, pw, ph, pw) or 0
 		self.__realy = self.y and parsePos(self.y, pw, ph, ph) or 0
 		self.__realw = self.width and parsePos(self.width, pw, ph, pw) or 256
 		self.__realh = self.height and parsePos(self.height, pw, ph, ph) or 256
@@ -165,13 +226,60 @@ TDUI.Panel = setmetatable({
 		for i = 1, #self do
 			local child = self[i]
 			child:__PerformLayout(self.__realw, self.__realh)
+		end]]
+	end,
+
+	ComputePosition = function(self, dx, dy, pw, ph)
+		local x = self.x and parsePos(self.x, pw, ph, pw) or 0
+		if self.__alignx == 1 then
+			self.__realx = x + self.margin[4] + dx
+		elseif self.__alignx == 0 then
+			self.__realx = x + (pw - self.__realw) / 2 + dx
+		elseif self.__alignx == -1 then
+			self.__realx = x + pw - self.margin[2] - self.__realw + dx
 		end
+
+		local y = self.y and parsePos(self.y, pw, ph, ph) or 0
+		if self.__aligny == 1 then
+			self.__realy = y + self.margin[1] + dy
+		elseif self.__aligny == 0 then
+			self.__realy = y + (ph - self.__realh) / 2 + dy
+		elseif self.__aligny == -1 then
+			self.__realy = y + ph - self.margin[3] - self.__realh + dy
+		end
+
+		return self.__realx, self.__realy
+	end,
+
+	ComputeSize = function(self, pw, ph)
+		self.__realw = (self.width and parsePos(self.width, pw, ph, pw) or 0)
+		self.__realh = (self.height and parsePos(self.height, pw, ph, ph) or 0)
+		return self.__realw - self.padding[4] - self.padding[2], self.__realh - self.padding[1] - self.padding[3]
 	end,
 
 	InvalidateLayout = function(self, immediate)
-		self.__validated = false
 		if immediate then
-			self:__PerformLayout(self:GetParentSize())
+			local cw, ch = self:GetComputedSize()
+			local pw, ph = self:GetParentSize()
+			self:onlayout(self, pw, ph, self.__prevew or pw, self.__preveh or ph)
+			local nw, nh = self:GetComputedSize()
+			if nw ~= cw or nh ~= ch then
+				self:InvalidateParentLayout(true)
+			end
+		else
+			self.__validated = false
+		end
+	end,
+
+	InvalidateParentLayout = function(self, immediate)
+		local parent = self:GetParent()
+		if parent then
+			return parent:InvalidateLayout(immediate)
+		else
+			local pw, ph = UiWidth(), UiHeight()
+			self:InvalidateLayout(immediate)
+			self.__realx = self.x and parsePos(self.x, pw, ph, pw) or 0
+			self.__realy = self.y and parsePos(self.y, pw, ph, ph) or 0
 		end
 	end,
 
@@ -198,11 +306,11 @@ TDUI.Panel = setmetatable({
 	end,
 
 	GetComputedPos = function(self)
-		return rawget(self, "__realx"), rawget(self, "__realy")
+		return self.__realx, self.__realy
 	end,
 
 	GetComputedSize = function(self)
-		return rawget(self, "__realw"), rawget(self, "__realh")
+		return self.__realw, self.__realh
 	end,
 
 	SetSize = function(self, w, h) self.width, self.height = w, h self:InvalidateLayout() end,
@@ -212,6 +320,18 @@ TDUI.Panel = setmetatable({
 	SetPos = function(self, x, y) self.x, self.y = x, y self:InvalidateLayout() end,
 	SetX = function(self, x) self.x = x self:InvalidateLayout() end,
 	SetY = function(self, y) self.y = y self:InvalidateLayout() end,
+
+	SetMargin = function(self, top, right, bottom, left)
+		if right then top = {top, right, bottom, left} end
+		self.margin = parseFour(top)
+		self:InvalidateLayout()
+	end,
+
+	SetPadding = function(self, top, right, bottom, left)
+		if right then top = {top, right, bottom, left} end
+		self.padding = parseFour(top)
+		self:InvalidateLayout()
+	end,
 
 	GetParentSize = function(self)
 		local parent = self:GetParent()
@@ -223,11 +343,12 @@ TDUI.Panel = setmetatable({
 	end,
 }, TDUI.__PanelMeta)
 
+TDUI.Layout.__super = TDUI.Panel
+
 
 local ScreenPanel = TDUI.Panel {
 	x = 0, y = 0,
-	width = UiWidth(), height = UiHeight(),
-	Draw = function() end
+	width = UiWidth(), height = UiHeight()
 }
 
 function TDUI.Panel:Popup(parent)
@@ -240,6 +361,8 @@ end
 
 hook.add("base.draw", "TDUI.ScreenPanel", function()
 	UiPush()
-	ScreenPanel:__PerformDraw()
+	softassert(pcall(ScreenPanel.__Draw, ScreenPanel))
 	UiPop()
 end)
+
+include("panels/layout.lua")
