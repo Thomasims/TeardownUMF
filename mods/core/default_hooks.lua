@@ -28,40 +28,39 @@ DETOUR("draw", function(original)
 end)
 
 
-local quickloadfix
-DETOUR("handleCommand", function(original)
-	return function(command, ...)
-		if command == "quickload" and quickloadfix then quickloadfix() end
-		softassert(pcall(hook.run, "base.command." .. command, ...))
-		return original(command, ...)
-	end
-end)
-
 ------ QUICKSAVE WORKAROUND -----
 -- Quicksaving stores a copy of the global table without functions, so libraries get corrupted on quickload
 -- This code prevents this by overriding them back
 
-if REALM_WORLD then
-	local saved = {}
+local saved = {}
 
-	local function hasfunction(t, bck)
-		if bck[t] then return end
-		bck[t] = true
-		for k, v in pairs(t) do
-			if type(v) == "function" then return true end
-			if type(v) == "table" and hasfunction(v, bck) then return true end
-		end
+local function hasfunction(t, bck)
+	if bck[t] then return end
+	bck[t] = true
+	for k, v in pairs(t) do
+		if type(v) == "function" then return true end
+		if type(v) == "table" and hasfunction(v, bck) then return true end
 	end
+end
 
+hook.add("api.postinit", "quicksave_workaround", function()
 	for k, v in pairs(_G) do
-		if type(v) == "table" and hasfunction(v, {}) then
+		if k ~= "_G" and type(v) == "table" and hasfunction(v, {}) then
 			saved[k] = v
 		end
 	end
+end)
 
-	quickloadfix = function()
-		for k, v in pairs(saved) do
-			_G[k] = v
-		end
+local quickloadfix = function()
+	for k, v in pairs(saved) do
+		_G[k] = v
 	end
 end
+
+DETOUR("handleCommand", function(original)
+	return function(command, ...)
+		if command == "quickload" then quickloadfix() end
+		softassert(pcall(hook.run, "base.command." .. command, ...))
+		return original(command, ...)
+	end
+end)
