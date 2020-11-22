@@ -15,7 +15,7 @@ To install a mod, place its folder in the `mods` folder and run `hook_modloader.
 # Creating mods
 
 A basic mod is simply a folder in `mods` with 2 files: `manifest.lua` and `init.lua`.
-The manifest is the mod descriptor, it contains the printname, the list of dependencies and the list of realms it can be used in.
+The manifest is the mod descriptor, it contains the printname, the list of dependencies and the list of realms it can be used in. You can see an example manifest in `mods/framework/manifest.lua`.
 The init script is the lua entrypoint for the various realms used by the mod.
 
 ## include()
