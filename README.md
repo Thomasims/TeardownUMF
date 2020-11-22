@@ -33,8 +33,8 @@ Because of how the framework loads files, `#include` will no longer work. you ca
 Hooks are a simple way to avoid overriding the behavior of other mods. To attach a handler to an event, you just need to use `hook.add` with the desired event and an ID unique to your mod:
 
 ```lua
-hook.add("base.handleCommand", "mymod_identifier", function(cmd, arg0, ...)
-	-- The code here will run as if it was placed at the start of handleCommand()
+hook.add("base.command.quickload", "mymod_identifier", function(cmd, arg0, ...)
+	-- The code here will run when handleCommand() receives a quickload command
 end)
 ```
 
@@ -49,7 +49,7 @@ For example, if you wanted your code to run exclusively in the menu, you would n
 
 ```lua
 if REALM_MENU then
-	hook.add("base.draw", function()
+	hook.add("base.draw", "some identifier", function()
 		-- UI Code
 	end)
 end
