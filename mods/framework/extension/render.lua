@@ -9,7 +9,7 @@ if DrawSprite then
 		local r, g, b, a = 1, 1, 1, 1
 		local writeZ, additive = true, false
 		local sprite = default_sprite
-		local target = info and info.target or GetPlayerTransform().pos
+		local target = info and info.target or GetCameraTransform().pos
 
 		if info then
 			width = info.width or width
@@ -37,7 +37,7 @@ if DrawSprite then
 		local r, g, b, a = 1, 1, 1, 1
 		local writeZ, additive = true, false
 		local sprite = image or default_sprite
-		local target = info and info.target or GetPlayerTransform().pos
+		local target = info and info.target or GetCameraTransform().pos
 
 		if info then
 			height = info.height or height
