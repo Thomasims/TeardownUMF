@@ -136,9 +136,11 @@ for i = 1, #modnames do
 				mod.manifest = manifest
 				for i = 1, #manifest.dependencies do
 					local parent = manifest.dependencies[i]
-					mod.parents[parent] = true
-					mods[parent] = mods[parent] or {children = {}}
-					table.insert(mods[parent].children, mod)
+					if parent ~= "core" then
+						mod.parents[parent] = true
+						mods[parent] = mods[parent] or {children = {}}
+						table.insert(mods[parent].children, mod)
+					end
 				end
 				mods[name] = mod
 			end
