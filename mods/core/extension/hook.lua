@@ -18,8 +18,9 @@ hook = {
 
 function hook.add(event, identifier, func)
 	hook_table[event] = hook_table[event] or {}
-	hook_table[event][identifier] = func
+	hook_table[event][identifier] = func or identifier
 	recompile(event)
+	return identifier
 end
 
 function hook.remove(event, identifier)
