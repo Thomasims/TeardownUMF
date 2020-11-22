@@ -182,6 +182,7 @@ TDUI.Panel = setmetatable({
 			child:__Draw()
 			x, y = dfx, dfy
 		end
+		UiTranslate(-x, -y)
 		
 		if self.clip then UiPop() end
 	end,
