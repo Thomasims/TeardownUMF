@@ -71,6 +71,8 @@ function current_dir(level)
 			location = util.current_line(level + 1)
 		end
 		local file = location:match("^([^:]+)")
+		local p = file and file:find("([^/]+)$")
+		if p then file = file:sub(1, p - 1) end
 		return file
 	end
 	return curdir[#curdir]
@@ -94,7 +96,7 @@ function include(file, ...)
 		error(err)
 	end
 
-	curdir[#curdir + 1] = path:match("(.*/)[^/]+$")
+	curdir[#curdir + 1] = path:match("^(.-/)[^/]+$")
 	local s, a, b, c, d, e = pcall(func, ...)
 	curdir[#curdir] = nil
 	if not s then error(a) end
