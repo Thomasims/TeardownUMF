@@ -17,6 +17,13 @@ hook = {
 }
 
 function hook.add(event, identifier, func)
+	assert(type(event) == "string", "Event must be a string")
+	if func then
+		assert(identifier ~= nil, "Identifier must not be nil")
+		assert(type(func) == "function", "Callback must be a function")
+	else
+		assert(type(identifier) == "function", "Callback must be a function")
+	end
 	hook_table[event] = hook_table[event] or {}
 	hook_table[event][identifier] = func or identifier
 	recompile(event)
@@ -24,6 +31,8 @@ function hook.add(event, identifier, func)
 end
 
 function hook.remove(event, identifier)
+	assert(type(event) == "string", "Event must be a string")
+	assert(identifier ~= nil, "Identifier must not be nil")
 	if hook_table[event] then
 		hook_table[event][identifier] = nil
 		recompile(event)
