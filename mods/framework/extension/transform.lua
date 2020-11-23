@@ -20,6 +20,17 @@ function Transformation(pos, rot)
     return MakeTransformation { pos = pos, rot = rot }
 end
 
+transform_meta.__type = "transformation"
+
+util.register_unserializer(transform_meta.__type, function(data)
+    local x, y, z, i, j, k, r = data:match("([-0-9.]*);([-0-9.]*);([-0-9.]*);([-0-9.]*);([-0-9.]*);([-0-9.]*);([-0-9.]*)")
+    return Transformation({tonumber(x), tonumber(y), tonumber(z)}, {tonumber(i), tonumber(j), tonumber(k), tonumber(r)})
+end)
+
+function transform_meta:__serialize()
+    return table.concat(self.pos, ";") .. ";" .. table.concat(self.rot, ";")
+end
+
 function transform_meta:Clone()
     return MakeTransformation {pos = VectorMeta().Clone(self.pos), rot = QuaternionMeta().Clone(self.rot)}
 end

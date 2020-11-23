@@ -19,6 +19,17 @@ function Quaternion(i, j, k, r)
     return MakeQuaternion {i or 0, j or 0, k or 0, r or 1}
 end
 
+quat_meta.__type = "quaternion"
+
+util.register_unserializer(quat_meta.__type, function(data)
+    local i, j, k, r = data:match("([-0-9.]*);([-0-9.]*);([-0-9.]*);([-0-9.]*)")
+    return Quaternion(tonumber(i), tonumber(j), tonumber(k), tonumber(r))
+end)
+
+function quat_meta:__serialize()
+    return table.concat(self, ";")
+end
+
 QUAT_ZERO = Quaternion()
 
 function quat_meta:Clone()

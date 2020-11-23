@@ -223,6 +223,12 @@ do
 
 	local gets, sets = {}, {}
 
+	function util.register_unserializer(type, callback)
+		gets[type] = function(key)
+			return callback(GetString(key))
+		end
+	end
+
 	function util.shared_table(name)
 		return setmetatable({}, {
 			__index = function(self, k)
@@ -236,6 +242,14 @@ do
 				local handler = sets[vtype]
 				if not handler then return end
 				local key = tostring(k)
+				if vtype == "table" then
+					local meta = getmetatable(v)
+					if meta and meta.__serialize and meta.__type then
+						vtype = meta.__type
+						v = meta.__serialize(v)
+						handler = sets.string
+					end
+				end
 				SetString(string.format("%s.%s.type", name, key), vtype)
 				handler(string.format("%s.%s.val", name, key), v)
 			end,

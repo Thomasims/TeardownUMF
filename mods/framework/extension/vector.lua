@@ -19,6 +19,17 @@ function Vector(x, y, z)
     return MakeVector {x or 0, y or 0, z or 0}
 end
 
+vector_meta.__type = "vector"
+
+util.register_unserializer(vector_meta.__type, function(data)
+    local x, y, z = data:match("([-0-9.]*);([-0-9.]*);([-0-9.]*)")
+    return Vector(tonumber(x), tonumber(y), tonumber(z))
+end)
+
+function vector_meta:__serialize()
+    return table.concat(self, ";")
+end
+
 VEC_ZERO = Vector()
 VEC_FORWARD = Vector(0, 0, 1)
 VEC_UP = Vector(0, 1, 0)
