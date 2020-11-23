@@ -36,8 +36,8 @@ local window = TDUI.Frame {
 ]]
 
 Font = AssetType("mods/*/font/*.ttf", "^mods/([^/]-)/font/([^/]-)%.ttf$", "../../", {
-	["bold"] = "bold.ttf",
-	["regular"] = "regular.ttf"
+	["bold"] = "ui/font/bold.ttf",
+	["regular"] = "ui/font/regular.ttf"
 })
 
 TDUI = setmetatable({}, {
