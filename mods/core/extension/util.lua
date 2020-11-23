@@ -229,8 +229,8 @@ do
 		end
 	end
 
-	function util.shared_table(name)
-		return setmetatable({}, {
+	function util.shared_table(name, base)
+		return setmetatable(base or {}, {
 			__index = function(self, k)
 				local key = tostring(k)
 				local vtype = GetString(string.format("%s.%s.type", name, key))
