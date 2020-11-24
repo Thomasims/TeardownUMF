@@ -8,5 +8,8 @@ include("extension/render.lua")
 include("extension/timer.lua")
 include("extension/tdui.lua")
 
+include("extension/added_hooks.lua")
+
 include("extension/level_loader.lua")
+include("extension/tool_loader.lua")
 include("extension/console.lua")
