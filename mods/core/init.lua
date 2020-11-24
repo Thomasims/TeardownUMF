@@ -149,6 +149,7 @@ for i = 1, #modnames do
 end
 
 local function canload(manifest)
+	if manifest.disabled then return end
 	for i = 1, #manifest.realms do
 		if manifest.realms[i] == "*" or manifest.realms[i] == REALM then
 			return true
