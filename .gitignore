@@ -1,8 +1,11 @@
-create/
-data/
-teardown.exe
-.mods
+/*
 
-mods/*
-!mods/core/
-!mods/framework/
+!/.gitignore
+!/hook_modloader.bat
+!/README.md
+
+!/mods/
+/mods/*
+!/mods/core/
+!/mods/framework/
+!/mods/example/
