@@ -37,6 +37,17 @@ function RegisterTool(id, data)
 	sortedinsert(toolslist, data)
 end
 
+function GetToolList()
+	return extra_tools
+end
+
+function UpdateToolsOrder()
+	toolslist = {}
+	for id, tool in pairs(extra_tools) do
+		sortedinsert(toolslist, tool)
+	end
+end
+
 local function ammodisplay(tool)
 	local key = "game.tool."..tool..".ammo"
 	local realkey = "game.tool."..tool..".savedammo"
@@ -195,6 +206,10 @@ hook.add("api.player.switch_tool", "api.tool_loader", function(new_tool, old_too
 	end
 end)
 
+local function istoolactive()
+	return not GetBool("game.player.grabbing") and not GetBool("game.player.usescreen") and not GetBool("game.player.usevehicle") and not GetBool("game.map.enabled") and not GetBool("game.paused") and GetString("level.state") == ""
+end
+
 function drawTool()
 	UiPush()
 		UiTranslate(0, UiHeight()-60)
@@ -255,7 +270,7 @@ function drawTool()
 	UiPop()
 
 	local tooldata = extra_tools[CurrentTool]
-	if tooldata.Draw then
+	if tooldata.Draw and istoolactive() then
 		pcall(tooldata.Draw, tooldata)
 	end
 end
@@ -289,18 +304,14 @@ end)
 
 hook.add("api.mouse.pressed", "api.tool_loader", function()
 	local tool = extra_tools[CurrentTool]
-	if tool and tool.LeftClick and
-		not IsPlayerInVehicle() and
-		not GetBool("game.player.grabbing") then
+	if tool and tool.LeftClick and istoolactive() then
 		pcall(tool.LeftClick, tool)
 	end
 end)
 
 hook.add("api.mouse.released", "api.tool_loader", function()
 	local tool = extra_tools[CurrentTool]
-	if tool and tool.LeftClickReleased and
-		not IsPlayerInVehicle() and
-		not GetBool("game.player.grabbing") then
+	if tool and tool.LeftClickReleased and istoolactive() then
 		pcall(tool.LeftClickReleased, tool)
 	end
 end)
