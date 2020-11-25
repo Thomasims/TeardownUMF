@@ -82,10 +82,11 @@ function transform_meta:ToGlobalDir(o)
     return MakeVector(TransformToParentVec(self, o))
 end
 
-function transform_meta:Raycast(dist)
+function transform_meta:Raycast(dist, mul)
     local dir = TransformToParentVec(self, VEC_FORWARD)
-    local hit, dist = Raycast(self.pos, dir, dist)
     local vector_meta = VectorMeta()
+    if mul then vector_meta.Mul(dir, mul) end
+    local hit, dist = Raycast(self.pos, dir, dist)
     return {
         hit = hit,
         dist = dist,
