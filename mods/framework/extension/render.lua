@@ -3,6 +3,8 @@ render = {}
 
 if DrawSprite then
 	local default_sprite = LoadSprite(Asset("image/white.png"))
+	local frame_sprite = LoadSprite(Asset("image/frame.png"))
+	local grid_sprite = LoadSprite(Asset("image/grid.png"))
 
 	function render.drawline(source, destination, info)
 		local width = 0.03
@@ -59,5 +61,46 @@ if DrawSprite then
 		render.drawline(transform.pos, transform:ToGlobal(VEC_LEFT), {r = 1, g = 0, b = 0})
 		render.drawline(transform.pos, transform:ToGlobal(VEC_UP), {r = 0, g = 1, b = 0})
 		render.drawline(transform.pos, transform:ToGlobal(VEC_FORWARD), {r = 0, g = 0, b = 1})
+	end
+
+	local QUAT_LEFT = MakeQuaternion(QuatEuler(0, 90, 90))
+	local QUAT_UP = MakeQuaternion(QuatEuler(90, 0, 0))
+	function render.drawbox(transform, min, max, sprite)
+		sprite = sprite or frame_sprite
+		MakeTransformation(transform)
+		MakeVector(min)
+		local mid = (min + max) / 2
+		DrawSprite(sprite,
+			transform:ToGlobal(Transform(Vec(mid[1], mid[2], min[3]), QUAT_ZERO)),
+			max[1] - min[1], max[2] - min[2],
+			1, 1, 1, 1, true, false)
+		DrawSprite(sprite,
+			transform:ToGlobal(Transform(Vec(mid[1], mid[2], max[3]), QUAT_ZERO)),
+			max[1] - min[1], max[2] - min[2],
+			1, 1, 1, 1, true, false)
+		DrawSprite(sprite,
+			transform:ToGlobal(Transform(Vec(mid[1], min[2], mid[3]), QUAT_UP)),
+			max[1] - min[1], max[3] - min[3],
+			1, 1, 1, 1, true, false)
+		DrawSprite(sprite,
+			transform:ToGlobal(Transform(Vec(mid[1], max[2], mid[3]), QUAT_UP)),
+			max[1] - min[1], max[3] - min[3],
+			1, 1, 1, 1, true, false)
+		DrawSprite(sprite,
+			transform:ToGlobal(Transform(Vec(min[1], mid[2], mid[3]), QUAT_LEFT)),
+			max[2] - min[2], max[3] - min[3],
+			1, 1, 1, 1, true, false)
+		DrawSprite(sprite,
+			transform:ToGlobal(Transform(Vec(max[1], mid[2], mid[3]), QUAT_LEFT)),
+			max[2] - min[2], max[3] - min[3],
+			1, 1, 1, 1, true, false)
+	end
+
+	function render.drawgrid(transform, x, y, sx, sy)
+		for ix = (sx or 0) + 1, x do
+			for iy = (sy or 0) + 1, y do
+				DrawSprite(grid_sprite, MakeTransformation(transform) + Vector(ix-.5, iy-.5, 0), 1, 1, 1, 1, 1, 1, true, false)
+			end
+		end
 	end
 end
