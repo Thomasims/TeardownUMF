@@ -147,3 +147,29 @@ function quat_meta:Forward()
         1 - (x^2 + y^2) * 2
     )
 end
+
+function quat_meta:ToEuler()
+    local x, y, z, w = self[1], self[2], self[3], self[4]
+    -- Credit to https://www.euclideanspace.com/maths/geometry/rotations/conversions/quaternionToEuler/index.htm
+
+    -- TODO: Figure out roll gimbal lock
+
+    local bank, heading, attitude
+
+    local s = 2*x*y + 2*z*w
+    if s >= 1 then
+        heading = 2 * math.atan2(x,w)
+        bank = 0
+        attitude = math.pi / 2
+    elseif s <= -1 then
+        heading = -2 * math.atan2(x,w)
+        bank = 0
+        attitude = math.pi / -2
+    else
+        bank = math.atan2(2*x*w-2*y*z , 1 - 2*x^2 - 2*z^2)
+        heading = math.atan2(2*y*w-2*x*z , 1 - 2*y^2 - 2*z^2)
+        attitude = math.asin(s)
+    end
+
+    return math.deg( bank ), math.deg( heading ), math.deg( attitude )
+end
