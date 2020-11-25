@@ -33,6 +33,7 @@ end
 
 function RegisterTool(id, data)
 	data.id = id
+	data.base = data.base or "none"
 	extra_tools[id] = data
 	sortedinsert(toolslist, data)
 end
@@ -271,7 +272,7 @@ function drawTool()
 
 	local tooldata = extra_tools[CurrentTool]
 	if tooldata.Draw and istoolactive() then
-		pcall(tooldata.Draw, tooldata)
+		softassert(pcall(tooldata.Draw, tooldata))
 	end
 end
 
@@ -292,26 +293,26 @@ function tick()
 		SetInt("game.tool."..CurrentTool..".ammo", 99)
 	end
 	local tool = extra_tools[CurrentTool]
-	if tool and tool.Tick then pcall(tool.Tick, tool) end
+	if tool and tool.Tick then softassert(pcall(tool.Tick, tool)) end
 end
 
 hook.add("base.init", "api.tool_loader", function()
 	for i = 1, #toolslist do
 		local tool = toolslist[i]
-		if tool.Initialize then pcall(tool.Initialize, tool) end
+		if tool.Initialize then softassert(pcall(tool.Initialize, tool)) end
 	end
 end)
 
 hook.add("api.mouse.pressed", "api.tool_loader", function()
 	local tool = extra_tools[CurrentTool]
 	if tool and tool.LeftClick and istoolactive() then
-		pcall(tool.LeftClick, tool)
+		softassert(pcall(tool.LeftClick, tool))
 	end
 end)
 
 hook.add("api.mouse.released", "api.tool_loader", function()
 	local tool = extra_tools[CurrentTool]
 	if tool and tool.LeftClickReleased and istoolactive() then
-		pcall(tool.LeftClickReleased, tool)
+		softassert(pcall(tool.LeftClickReleased, tool))
 	end
 end)
