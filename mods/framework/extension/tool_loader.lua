@@ -1,6 +1,22 @@
 
 if not REALM_HUD then return end
 
+--[[ Warning, not all tools are good as bases, if you supress default behaviour or if the player runs out of ammo for them, some start behaving weirdly.
+
+- <invalid>     : Good       note: No view model
+- sledge        : OK         note: Will always swing when clicking
+- spraycan      : OK         note: Will always spray when clicking
+- extinguisher  : OK         note: Will always spray when clicking
+- blowtorch     : Glitched   note: Viewmodel jitters when its ammo is 0
+- shotgun       : Good
+- plank         : OK         note: Viewmodel is offset when its ammo is 0
+- pipebomb      : Poor       note: Viewmodel is off-screen when its ammo is 0
+- gun           : Good
+- bomb          : Poor       note: Viewmodel is off-screen when its ammo is 0
+- rocket        : Good
+
+]]
+
 local extra_tools = {}
 local toolslist = {}
 
@@ -22,8 +38,12 @@ function RegisterTool(id, data)
 end
 
 local function ammodisplay(tool)
-	local str = "game.tool."..tool..".ammo"
-	return function() return GetInt(str) end
+	local key = "game.tool."..tool..".ammo"
+	local realkey = "game.tool."..tool..".savedammo"
+	return function()
+		if gUnlimited then return "" end
+		return math.floor(GetFloat(HasKey(realkey) and realkey or key)*10)/10
+	end
 end
 
 local function isenabled(tool)
@@ -56,7 +76,7 @@ RegisterTool("blowtorch", {
 	base = "blowtorch",
 	printname = "Blowtorch",
 	order = 3.5,
-	GetAmmoString = function() return math.floor(GetFloat("game.tool.blowtorch.ammo")*10)/10 end,
+	GetAmmoString = ammodisplay("blowtorch"),
 	IsEnabled = isenabled("blowtorch"),
 })
 
@@ -120,7 +140,24 @@ function GetActiveTools()
 end
 
 CurrentTool = GetString("game.player.tool")
-local actual_tool = CurrentTool
+CurrentToolBase = CurrentTool
+
+local function updateammo()
+	local key = "game.tool."..CurrentToolBase..".ammo"
+	local realkey = "game.tool."..CurrentToolBase..".savedammo"
+	if CurrentTool == CurrentToolBase then
+		if HasKey(realkey) then
+			SetFloat(key, GetFloat(realkey))
+			ClearKey(realkey)
+		end
+	else
+		local tool = extra_tools[CurrentTool]
+		if tool.suppress_default and not HasKey(realkey) then
+			SetFloat(realkey, GetFloat(key))
+			SetFloat(key, 0)
+		end
+	end
+end
 
 local scrolling
 hook.add("api.mouse.wheel", "api.tool_loader", function(ds)
@@ -132,12 +169,13 @@ hook.add("api.mouse.wheel", "api.tool_loader", function(ds)
 			local newtool = enabledTools[math.min(math.max(i - ds, 1), #enabledTools)]
 			local tool = extra_tools[CurrentTool]
 			CurrentTool = newtool.id
-			actual_tool = newtool.base
-			SetString("game.player.tool", actual_tool)
+			CurrentToolBase = newtool.base
+			SetString("game.player.tool", CurrentToolBase)
 			if tool.id ~= newtool.id then
 				if tool.Holster then tool:Holster() end
 				if newtool.Deploy then newtool:Deploy() end
 			end
+			updateammo()
 			break
 		end
 	end
@@ -146,12 +184,13 @@ end)
 hook.add("api.player.switch_tool", "api.tool_loader", function(new_tool, old_tool)
 	if CurrentTool ~= new_tool then
 		if scrolling == GetTime() then
-			SetString("game.player.tool", actual_tool)
+			SetString("game.player.tool", CurrentToolBase)
 		else
 			local tool = extra_tools[CurrentTool]
 			if tool.Holster then tool:Holster() end
 			CurrentTool = new_tool
-			actual_tool = new_tool
+			CurrentToolBase = new_tool
+			updateammo()
 		end
 	end
 end)
@@ -207,7 +246,7 @@ function drawTool()
 
 				UiTranslate(0, -24)
 				if w == t.id then UiScale(1.6) end
-				if not gUnlimited and t.GetAmmoString then
+				if t.GetAmmoString then
 					UiText(t:GetAmmoString())
 				end
 			UiPop()
@@ -216,12 +255,29 @@ function drawTool()
 	UiPop()
 
 	local tooldata = extra_tools[CurrentTool]
-	if tooldata.hide_default then
-		SetCameraTransform(GetPlayerTransform(), GetInt("options.gfx.fov"))
-	end
 	if tooldata.Draw then
 		pcall(tooldata.Draw, tooldata)
 	end
+end
+
+-- Override default tick() to replace the unlimited ammo feature
+function tick()
+	--Start recording when alarm goes off
+	if not gAlarm and GetBool("level.alarm") then
+		gAlarm = true
+		startRecording()
+	end
+
+	--Stop recording if play state changes
+	if gAlarm and GetString("level.state")~="" then
+		stopRecording()
+	end
+
+	if gUnlimited then
+		SetInt("game.tool."..CurrentTool..".ammo", 99)
+	end
+	local tool = extra_tools[CurrentTool]
+	if tool and tool.Tick then pcall(tool.Tick, tool) end
 end
 
 hook.add("base.init", "api.tool_loader", function()
@@ -231,16 +287,20 @@ hook.add("base.init", "api.tool_loader", function()
 	end
 end)
 
-hook.add("base.tick", "api.tool_loader", function()
-	local tool = extra_tools[CurrentTool]
-	if tool and tool.Tick then pcall(tool.Tick, tool) end
-end)
-
 hook.add("api.mouse.pressed", "api.tool_loader", function()
 	local tool = extra_tools[CurrentTool]
 	if tool and tool.LeftClick and
 		not IsPlayerInVehicle() and
 		not GetBool("game.player.grabbing") then
 		pcall(tool.LeftClick, tool)
+	end
+end)
+
+hook.add("api.mouse.released", "api.tool_loader", function()
+	local tool = extra_tools[CurrentTool]
+	if tool and tool.LeftClickReleased and
+		not IsPlayerInVehicle() and
+		not GetBool("game.player.grabbing") then
+		pcall(tool.LeftClickReleased, tool)
 	end
 end)

@@ -1,12 +1,12 @@
 
 local TOOL = {}
 
-TOOL.base = "none"
+TOOL.base = "gun"
 
 TOOL.printname = "Grappling Hook"
 TOOL.order = 3
 
-TOOL.hide_default = false
+TOOL.suppress_default = true
 
 local STATE_READY = 0
 local STATE_THROWN = 1
