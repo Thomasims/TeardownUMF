@@ -238,5 +238,9 @@ end)
 
 hook.add("api.mouse.pressed", "api.tool_loader", function()
 	local tool = extra_tools[CurrentTool]
-	if tool and tool.LeftClick then pcall(tool.LeftClick, tool) end
+	if tool and tool.LeftClick and
+		not IsPlayerInVehicle() and
+		not GetBool("game.player.grabbing") then
+		pcall(tool.LeftClick, tool)
+	end
 end)
