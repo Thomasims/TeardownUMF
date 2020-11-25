@@ -142,8 +142,8 @@ function quat_meta:Forward()
     local x, y, z, s = self[1], self[2], self[3], self[4]
 
     return Vector(
-            (y*s - z*x) * 2,
-            (z*y + x*s) * 2,
+            (y*s + z*x) * 2,
+            (z*y - x*s) * 2,
         1 - (x^2 + y^2) * 2
     )
 end
