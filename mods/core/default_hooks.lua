@@ -20,7 +20,7 @@ for i = 1, #detours do
 end
 
 function shoulddraw(kind)
-	return hook.saferun("api.shouddraw", "none") ~= false
+	return hook.saferun("api.shouddraw", kind) ~= false
 end
 
 DETOUR("draw", function(original)
