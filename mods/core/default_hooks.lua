@@ -5,7 +5,7 @@ local function simple_detour(name)
 	local event = "base." .. name
 	DETOUR(name, function(original)
 		return function(...)
-			softassert(pcall(hook.run, event, ...))
+			hook.saferun(event, ...)
 			return original(...)
 		end
 	end)
@@ -19,11 +19,19 @@ for i = 1, #detours do
 	simple_detour(detours[i])
 end
 
+function shoulddraw(kind)
+	return hook.saferun("api.shouddraw", "none") ~= false
+end
+
 DETOUR("draw", function(original)
 	return function()
-		softassert(pcall(hook.run, "base.predraw"))
-		original()
-		softassert(pcall(hook.run, "base.draw"))
+		if shoulddraw("all") then
+			hook.saferun("base.predraw")
+			if shoulddraw("original") then
+				original()
+			end
+			hook.saferun("base.draw")
+		end
 	end
 end)
 
@@ -60,7 +68,7 @@ end
 DETOUR("handleCommand", function(original)
 	return function(command, ...)
 		if command == "quickload" then quickloadfix() end
-		softassert(pcall(hook.run, "base.command." .. command, ...))
+		hook.saferun("base.command." .. command, ...)
 		return original(command, ...)
 	end
 end)

@@ -47,3 +47,12 @@ function hook.run(event, ...)
 		if a then return a, b, c, d, e end
 	end
 end
+
+function hook.saferun(event, ...)
+	local hooks = hook_compiled[event]
+	if not hooks then return end
+	for i = 1, #hooks do
+		local s, a, b, c, d, e = softassert(pcall(hooks[i], ...))
+		if s and a then return a, b, c, d, e end
+	end
+end

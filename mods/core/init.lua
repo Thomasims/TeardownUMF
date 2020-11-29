@@ -171,9 +171,9 @@ local function loadmod(mod)
 	mod.loaded = true
 	if canload(mod.manifest) then
 		curmod = mod.name
-		hook.run("api.preload", mod.name, mod)
+		hook.saferun("api.preload", mod.name, mod)
 		local success, ret = pcall(include, string.format("mods/%s/init.lua", mod.name))
-		hook.run(success and "api.postload" or "api.failload", mod.name, mod, ret)
+		hook.saferun(success and "api.postload" or "api.failload", mod.name, mod, ret)
 	end
 	for i = 1, #mod.children do
 		local child = mod.children[i]
@@ -195,4 +195,4 @@ end
 curmod = nil
 curdir = {}
 
-hook.run("api.postinit")
+hook.saferun("api.postinit")
