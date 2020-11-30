@@ -86,10 +86,10 @@ function transform_meta:Raycast(dist, mul)
     local dir = TransformToParentVec(self, VEC_FORWARD)
     local vector_meta = VectorMeta()
     if mul then vector_meta.Mul(dir, mul) end
-    local hit, dist = Raycast(self.pos, dir, dist)
+    local hit, dist2 = Raycast(self.pos, dir, dist)
     return {
         hit = hit,
-        dist = dist,
-        hitpos = hit and vector_meta.__add(self.pos, vector_meta.Mul(dir, dist))
+        dist = dist2,
+        hitpos = vector_meta.__add(self.pos, vector_meta.Mul(dir, hit and dist2 or dist))
     }
 end
