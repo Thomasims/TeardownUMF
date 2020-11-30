@@ -171,8 +171,13 @@ local function updateammo()
 	end
 end
 
+local function istoolactive()
+	return not GetBool("game.player.grabbing") and not GetBool("game.player.usescreen") and not GetBool("game.player.usevehicle") and not GetBool("game.map.enabled") and not GetBool("game.paused") and GetString("level.state") == ""
+end
+
 local scrolling
 hook.add("api.mouse.wheel", "api.tool_loader", function(ds)
+	if not istoolactive() then return end
 	scrolling = GetTime()
 	local enabledTools = GetActiveTools()
 	for i = 1, #enabledTools do
@@ -206,10 +211,6 @@ hook.add("api.player.switch_tool", "api.tool_loader", function(new_tool, old_too
 		end
 	end
 end)
-
-local function istoolactive()
-	return not GetBool("game.player.grabbing") and not GetBool("game.player.usescreen") and not GetBool("game.player.usevehicle") and not GetBool("game.map.enabled") and not GetBool("game.paused") and GetString("level.state") == ""
-end
 
 function drawTool()
 	UiPush()
