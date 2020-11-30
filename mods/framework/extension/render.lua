@@ -54,13 +54,14 @@ if DrawSprite then
 		DrawSprite(sprite, Transform(pos, QuatLookAt(pos, target)), size, height, r, g, b, a, writeZ, additive)
 	end
 
-	function render.drawaxis(transform, rot)
+	function render.drawaxis(transform, rot, mul)
+		mul = mul or 1
 		if not transform.pos then transform = Transform(transform, rot or QUAT_ZERO) end
 		MakeTransformation(transform)
 
-		render.drawline(transform.pos, transform:ToGlobal(VEC_LEFT), {r = 1, g = 0, b = 0})
-		render.drawline(transform.pos, transform:ToGlobal(VEC_UP), {r = 0, g = 1, b = 0})
-		render.drawline(transform.pos, transform:ToGlobal(VEC_FORWARD), {r = 0, g = 0, b = 1})
+		render.drawline(transform.pos, transform:ToGlobal(VEC_LEFT * mul), {r = 1, g = 0, b = 0})
+		render.drawline(transform.pos, transform:ToGlobal(VEC_UP * mul), {r = 0, g = 1, b = 0})
+		render.drawline(transform.pos, transform:ToGlobal(VEC_FORWARD * mul), {r = 0, g = 0, b = 1})
 	end
 
 	local QUAT_LEFT = MakeQuaternion(QuatEuler(0, 90, 90))
