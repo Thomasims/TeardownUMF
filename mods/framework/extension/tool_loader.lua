@@ -151,8 +151,9 @@ function GetActiveTools()
 	return enabledTools
 end
 
-CurrentTool = GetString("game.player.tool")
-CurrentToolBase = CurrentTool
+CurrentTool = HasKey("game.player.customtool") and GetString("game.player.customtool") or GetString("game.player.tool")
+CurrentToolBase = GetString("game.player.tool")
+print(CurrentTool, CurrentToolBase)
 
 local function updateammo()
 	local key = "game.tool."..CurrentToolBase..".ammo"
@@ -187,6 +188,7 @@ hook.add("api.mouse.wheel", "api.tool_loader", function(ds)
 			local tool = extra_tools[CurrentTool]
 			CurrentTool = newtool.id
 			CurrentToolBase = newtool.base
+			SetString("game.player.customtool", CurrentTool)
 			SetString("game.player.tool", CurrentToolBase)
 			if tool.id ~= newtool.id then
 				if tool.Holster then tool:Holster() end
@@ -207,6 +209,7 @@ hook.add("api.player.switch_tool", "api.tool_loader", function(new_tool, old_too
 			if tool.Holster then tool:Holster() end
 			CurrentTool = new_tool
 			CurrentToolBase = new_tool
+			SetString("game.player.customtool", CurrentTool)
 			updateammo()
 		end
 	end
