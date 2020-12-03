@@ -1,10 +1,6 @@
 
-local vector_meta = {}
-vector_meta.__index = vector_meta -- I hate doing this but it's useful sometimes
-
-function VectorMeta()
-    return vector_meta
-end
+local vector_meta = global_metatable("vector")
+local quat_meta = global_metatable("quaternion")
 
 function IsVector(v)
     return type(v) == "table" and type(v[1]) == "number" and type(v[2]) == "number" and type(v[3]) == "number" and not v[4]
@@ -64,7 +60,7 @@ end
 function vector_meta.__add(a, b)
     if not IsVector(a) then a, b = b, a end
     if IsTransformation(b) then
-        return Transformation(vector_meta.Add(vector_meta.Clone(a), b.pos), QuaternionMeta().Clone(b.rot))
+        return Transformation(vector_meta.Add(vector_meta.Clone(a), b.pos), quat_meta.Clone(b.rot))
     end
     return vector_meta.Add(vector_meta.Clone(a), b)
 end

@@ -107,6 +107,9 @@ include("extension/hook.lua")
 include("extension/util.lua")
 include("extension/console_backend.lua")
 include("extension/file.lua")
+include("extension/meta.lua")
+
+GLOBAL_CHANNEL = util.shared_channel("game.umf_global_channel", 128)
 
 file.loadinfo()
 

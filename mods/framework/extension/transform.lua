@@ -1,18 +1,14 @@
-
-local transform_meta = {}
-transform_meta.__index = transform_meta -- I hate doing this but it's useful sometimes
-
-function TransformationMeta()
-    return transform_meta
-end
+local vector_meta = global_metatable("vector")
+local quat_meta = global_metatable("quaternion")
+local transform_meta = global_metatable("transformation")
 
 function IsTransformation(v)
     return type(v) == "table" and v.pos and v.rot
 end
 
 function MakeTransformation(t)
-    setmetatable(t.pos, VectorMeta())
-    setmetatable(t.rot, QuaternionMeta())
+    setmetatable(t.pos, vector_meta)
+    setmetatable(t.rot, quat_meta)
     return setmetatable(t, transform_meta)
 end
 
@@ -32,7 +28,7 @@ function transform_meta:__serialize()
 end
 
 function transform_meta:Clone()
-    return MakeTransformation {pos = VectorMeta().Clone(self.pos), rot = QuaternionMeta().Clone(self.rot)}
+    return MakeTransformation {pos = vector_meta.Clone(self.pos), rot = quat_meta.Clone(self.rot)}
 end
 
 local TransformStr = TransformStr
@@ -84,7 +80,6 @@ end
 
 function transform_meta:Raycast(dist, mul)
     local dir = TransformToParentVec(self, VEC_FORWARD)
-    local vector_meta = VectorMeta()
     if mul then vector_meta.Mul(dir, mul) end
     local hit, dist2 = Raycast(self.pos, dir, dist)
     return {

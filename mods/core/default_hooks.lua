@@ -72,3 +72,17 @@ DETOUR("handleCommand", function(original)
 		return original(command, ...)
 	end
 end)
+
+--------------------------------
+
+if REALM_HUD then
+	hook.add("base.command.quicksave", "api.broadcast_quicksave", function()
+		GLOBAL_CHANNEL:broadcast("quicksave")
+	end)
+else
+	GLOBAL_CHANNEL:listen(function(channel, type)
+		if type == "quicksave" then
+			hook.saferun("base.command.quicksave")
+		end
+	end)
+end

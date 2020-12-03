@@ -1,10 +1,5 @@
-
-local quat_meta = {}
-quat_meta.__index = quat_meta
-
-function QuaternionMeta()
-    return quat_meta
-end
+local vector_meta = global_metatable("vector")
+local quat_meta = global_metatable("quaternion")
 
 function IsQuaternion(q)
     return type(q) == "table" and type(q[1]) == "number" and type(q[2]) == "number" and type(q[3]) == "number" and type(q[4]) == "number"
@@ -96,8 +91,8 @@ function quat_meta:Mul(o)
 end
 
 function quat_meta.__mul(a, b)
-    if IsVector(b) then return VectorMeta().__mul(b, a) end
-    if IsTransformation(b) then return Transformation(VectorMeta().Mul(VectorMeta().Clone(b.pos), a), QuatRotateQuat(b.rot, a)) end
+    if IsVector(b) then return vector_meta.__mul(b, a) end
+    if IsTransformation(b) then return Transformation(vector_meta.Mul(vector_meta.Clone(b.pos), a), QuatRotateQuat(b.rot, a)) end
     return MakeQuaternion(QuatRotateQuat(a, b))
 end
 
