@@ -43,7 +43,7 @@ function TOOL:LeftClick()
 	end
 end
 
-local offset = Vector(0.4,-0.2,-0.8)
+local offset = Vector(0.375,-0.425,-1.4)
 function TOOL:Draw()
 	if self.state >= STATE_THROWN then
 		-- draw rope between hand and hook
