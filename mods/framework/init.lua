@@ -1,7 +1,7 @@
 
-include("extension/vector.lua")
-include("extension/quat.lua")
-include("extension/transform.lua")
+include("extension/meta/vector.lua")
+include("extension/meta/quat.lua")
+include("extension/meta/transform.lua")
 
 include("extension/assets.lua")
 include("extension/render.lua")
