@@ -153,7 +153,6 @@ end
 
 CurrentTool = HasKey("game.player.customtool") and GetString("game.player.customtool") or GetString("game.player.tool")
 CurrentToolBase = GetString("game.player.tool")
-print(CurrentTool, CurrentToolBase)
 
 local function updateammo()
 	local key = "game.tool."..CurrentToolBase..".ammo"
