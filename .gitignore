@@ -3,6 +3,7 @@
 !/.gitignore
 !/hook_modloader.bat
 !/README.md
+!/UNLICENSE
 
 !/mods/
 /mods/*
