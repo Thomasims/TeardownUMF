@@ -9,13 +9,23 @@ function global_metatable(name, parent)
 	else
 		meta = {}
 		meta.__index = meta
+		meta.__type = name
+		registered_meta[name] = meta
+		reverse_meta[meta] = name
+		hook.saferun("api.newmeta", name, meta)
 	end
 	if parent then
 		setmetatable(meta, global_metatable(parent))
 	end
-	registered_meta[name] = meta
-	reverse_meta[meta] = name
 	return meta
+end
+
+function find_global_metatable(name)
+	if not name then return end
+	if type(name) == "table" then
+		return reverse_meta[name]
+	end
+	return registered_meta[name]
 end
 
 local function findmeta(src, found)
