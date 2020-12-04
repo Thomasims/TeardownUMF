@@ -15,12 +15,13 @@ function Vector(x, y, z)
     return MakeVector {x or 0, y or 0, z or 0}
 end
 
-vector_meta.__type = "vector"
-
-util.register_unserializer(vector_meta.__type, function(data)
+function vector_meta:__unserialize(data)
     local x, y, z = data:match("([-0-9.]*);([-0-9.]*);([-0-9.]*)")
-    return Vector(tonumber(x), tonumber(y), tonumber(z))
-end)
+    self[1] = tonumber(x)
+    self[2] = tonumber(y)
+    self[3] = tonumber(z)
+    return self
+end
 
 function vector_meta:__serialize()
     return table.concat(self, ";")
