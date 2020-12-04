@@ -229,6 +229,12 @@ do
 		end
 	end
 
+	hook.add("api.newmeta", "api.createunserializer", function(name, meta)
+		gets[name] = function(key)
+			return setmetatable({}, meta):__unserialize(GetString(key))
+		end
+	end)
+
 	function util.shared_table(name, base)
 		return setmetatable(base or {}, {
 			__index = function(self, k)
