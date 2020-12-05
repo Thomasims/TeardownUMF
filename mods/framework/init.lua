@@ -3,6 +3,9 @@ include("extension/meta/vector.lua")
 include("extension/meta/quat.lua")
 include("extension/meta/transform.lua")
 
+include("extension/meta/entity.lua")
+include("extension/meta/body.lua")
+
 include("extension/assets.lua")
 include("extension/render.lua")
 include("extension/timer.lua")
