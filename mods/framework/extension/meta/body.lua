@@ -89,7 +89,9 @@ end
 
 function body_meta:GetShapes()
     assert(self:IsValid())
-    return GetBodyShapes(self.handle) -- TODO: Apply shapes meta
+    local shapes = GetBodyShapes(self.handle)
+    for i = 1, #shapes do shapes[i] = Shape(shapes[i]) end
+    return shapes
 end
 
 function body_meta:GetVehicle()
@@ -99,7 +101,8 @@ end
 
 function body_meta:GetWorldBounds()
     assert(self:IsValid())
-    return GetBodyBounds(self.handle)
+    local min, max = GetBodyBounds(self.handle)
+    return MakeVector(min), MakeVector(max)
 end
 
 
@@ -114,8 +117,7 @@ function body_meta:IsVisible(maxdist)
 end
 
 function body_meta:IsBroken()
-    assert(self:IsValid())
-    return IsBodyBroken(self.handle)
+    return not self:IsValid() or IsBodyBroken(self.handle)
 end
 
 function body_meta:IsJointedToStatic()
