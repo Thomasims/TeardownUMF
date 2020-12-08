@@ -28,7 +28,7 @@ function TOOL:LeftClick()
 	local ply_transform = GetPlayerTransform()
 	if self.state == STATE_READY then
 		self.hookpos = MakeVector(TransformToParentPoint(ply_transform, Vector(0,0,0.5)))
-		self.hookvel = ply_transform.rot * VEC_FORWARD * -0.3
+		self.hookvel = ply_transform.rot * VEC_FORWARD * -25
 		self.state = STATE_THROWN
 	elseif self.state == STATE_THROWN then
 		self.state = STATE_READY
@@ -54,10 +54,10 @@ function TOOL:Draw()
 	end
 end
 
-local air_drag = 0.999
-local gravity = Vector(0, -0.1, 0)
+local air_drag = 0.05
+local gravity = Vector(0, -10, 0) -- measured value
 local reel_speed = 10
-function TOOL:Tick()
+function TOOL:Tick(dt)
 	if self.state == STATE_THROWN then
 		-- Hook physics
 		local hit, dist = Raycast(self.hookpos, self.hookvel, self.hookvel:Length())
@@ -78,8 +78,8 @@ function TOOL:Tick()
 			self.hookvel = nil
 			self.state = STATE_ATTACHED
 		else
-			self.hookpos = self.hookpos + self.hookvel
-			self.hookvel = self.hookvel * air_drag + gravity * GetTimeStep()
+			self.hookpos = self.hookpos + self.hookvel * dt
+			self.hookvel = self.hookvel * (1 - air_drag * dt) + gravity * dt
 		end
 	elseif self.state == STATE_REELING then
 		local ply_transform = GetPlayerTransform()

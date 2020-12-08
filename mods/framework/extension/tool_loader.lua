@@ -280,7 +280,7 @@ function drawTool()
 end
 
 -- Override default tick() to replace the unlimited ammo feature
-function tick()
+function tick(dt)
 	--Start recording when alarm goes off
 	if not gAlarm and GetBool("level.alarm") then
 		gAlarm = true
@@ -296,7 +296,7 @@ function tick()
 		SetInt("game.tool."..CurrentTool..".ammo", 99)
 	end
 	local tool = extra_tools[CurrentTool]
-	if tool and tool.Tick then softassert(pcall(tool.Tick, tool)) end
+	if tool and tool.Tick then softassert(pcall(tool.Tick, tool, dt)) end
 end
 
 hook.add("base.init", "api.tool_loader", function()
