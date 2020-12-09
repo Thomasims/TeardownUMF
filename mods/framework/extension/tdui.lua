@@ -1,13 +1,9 @@
 
 
-Font = AssetType("mods/*/font/*.ttf", "^mods/([^/]-)/font/([^/]-)%.ttf$", "../../", {
-	["bold"] = "ui/font/bold.ttf",
-	["regular"] = "ui/font/regular.ttf"
+Font = AssetType("mods/*/font/*.ttf", "^mods/([^/]-)/font/([^/]-)%.ttf$", "../../../", {
+	["bold"] = "bold.ttf",
+	["regular"] = "regular.ttf"
 })
-
--- TODO: Figure out why this didn't work
-
-if not UiWidth then return end
 
 --[[
 -- prototype code (desired outcome)
@@ -331,10 +327,9 @@ TDUI.Panel = setmetatable({
 
 TDUI.Layout.__super = TDUI.Panel
 
-
 local ScreenPanel = TDUI.Panel {
 	x = 0, y = 0,
-	width = UiWidth(), height = UiHeight()
+	width = 0, height = 0
 }
 
 function TDUI.Panel:Popup(parent)
@@ -345,7 +340,11 @@ function TDUI.Panel:Close()
 	self:SetParent()
 end
 
-hook.add("base.draw", "TDUI.ScreenPanel", function()
+hook.add("base.init", "api.tdui.init", function()
+	ScreenPanel:SetSize(UiWidth(), UiHeight())
+end)
+
+hook.add("base.draw", "api.tdui.ScreenPanel", function()
 	UiPush()
 	softassert(pcall(ScreenPanel.__Draw, ScreenPanel))
 	UiPop()
