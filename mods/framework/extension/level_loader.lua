@@ -1,4 +1,5 @@
-if not REALM_MENU then
+
+if true then -- TODO: deprecate properly (use the new modding system for this)
 	function RegisterMap(name)
 		warning(string.format("[%s] Called RegisterMap() for level %q from realm %q. This function only works from REALM_MENU!", current_mod(1), name, REALM))
 	end

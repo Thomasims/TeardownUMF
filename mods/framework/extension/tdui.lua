@@ -1,4 +1,12 @@
 
+
+Font = AssetType("mods/*/font/*.ttf", "^mods/([^/]-)/font/([^/]-)%.ttf$", "../../", {
+	["bold"] = "ui/font/bold.ttf",
+	["regular"] = "ui/font/regular.ttf"
+})
+
+-- TODO: Figure out why this didn't work
+
 if not UiWidth then return end
 
 --[[
@@ -34,11 +42,6 @@ local window = TDUI.Frame {
 	}
 }
 ]]
-
-Font = AssetType("mods/*/font/*.ttf", "^mods/([^/]-)/font/([^/]-)%.ttf$", "../../", {
-	["bold"] = "ui/font/bold.ttf",
-	["regular"] = "ui/font/regular.ttf"
-})
 
 TDUI = setmetatable({}, {
 	__newindex = function(self, k, v)

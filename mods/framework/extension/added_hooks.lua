@@ -7,10 +7,12 @@ local tool = GetString("game.player.tool")
 local invehicle = IsPlayerInVehicle()
 
 hook.add("base.tick", "api.default_hooks", function()
-	if UiIsMousePressed then
-		if UiIsMousePressed() then hook.saferun("api.mouse.pressed") end
-		if UiIsMouseReleased() then hook.saferun("api.mouse.released") end
-		local wheel = UiGetMouseWheel()
+	if InputPressed then
+		if InputPressed("lmb") then hook.saferun("api.mouse.pressed", "lmb") end
+		if InputPressed("rmb") then hook.saferun("api.mouse.pressed", "rmb") end
+		if InputReleased("lmb") then hook.saferun("api.mouse.released", "lmb") end
+		if InputReleased("rmb") then hook.saferun("api.mouse.released", "rmb") end
+		local wheel = InputValue("mousewheel")
 		if wheel and wheel ~= 0 then hook.saferun("api.mouse.wheel", wheel) end
 	end
 

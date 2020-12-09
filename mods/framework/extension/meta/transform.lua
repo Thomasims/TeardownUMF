@@ -78,13 +78,15 @@ function transform_meta:ToGlobalDir(o)
     return MakeVector(TransformToParentVec(self, o))
 end
 
-function transform_meta:Raycast(dist, mul)
+function transform_meta:Raycast(dist, mul, radius, rejectTransparent)
     local dir = TransformToParentVec(self, VEC_FORWARD)
     if mul then vector_meta.Mul(dir, mul) end
-    local hit, dist2 = Raycast(self.pos, dir, dist)
+    local hit, dist2, normal, shape = QueryRaycast(self.pos, dir, dist, radius, rejectTransparent)
     return {
         hit = hit,
         dist = dist2,
+        normal = normal,
+        shape = shape,
         hitpos = vector_meta.__add(self.pos, vector_meta.Mul(dir, hit and dist2 or dist))
     }
 end
