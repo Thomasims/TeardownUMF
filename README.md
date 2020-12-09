@@ -1,3 +1,7 @@
+## **_Teardown 0.5.0 support is currently being reworked_**
+
+---
+
 # Teardown Unofficial Modding Framework
 
 The purpose of this framework is to create an environment where multiple mods can co-exist easily.

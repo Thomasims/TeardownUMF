@@ -2,9 +2,9 @@
 render = {}
 
 if DrawSprite then
-	local default_sprite = LoadSprite(Asset("image/white.png"))
-	local frame_sprite = LoadSprite(Asset("image/frame.png"))
-	local grid_sprite = LoadSprite(Asset("image/grid.png"))
+	local default_sprite = LoadSprite("../../mods/umf/assets/image/white.png")
+	local frame_sprite = LoadSprite("../../mods/umf/assets/image/frame.png")
+	local grid_sprite = LoadSprite("../../mods/umf/assets/image/grid.png")
 
 	function render.drawline(source, destination, info)
 		local width = 0.03

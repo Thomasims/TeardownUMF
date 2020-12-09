@@ -3,8 +3,6 @@ if REALM_HUD or REALM_MENU then
 
 	local console_buffer = util.shared_buffer("savegame.console", 128)
 
-	local font = Font("consolas")
-
 	local bottom = not not REALM_MENU
 	hook.add("base.draw", "console.draw", function()
 		local w, h = UiWidth(), UiHeight()
@@ -24,7 +22,7 @@ if REALM_HUD or REALM_MENU then
 			UiImageBox("common/box-solid-shadow-50.png", cw, ch, -50, -50)
 			UiWindow(cw, ch, true)
 			UiColor(1,0,0,1)
-			UiFont(font, 24)
+			UiFont("../../mods/umf/assets/font/consolas.ttf", 24)
 			UiAlign("left bottom")
 			UiTranslate(0,ch)
 			local len = console_buffer:len() - 1

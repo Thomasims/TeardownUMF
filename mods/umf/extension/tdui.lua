@@ -1,10 +1,5 @@
 
 
-Font = AssetType("mods/*/font/*.ttf", "^mods/([^/]-)/font/([^/]-)%.ttf$", "../../../", {
-	["bold"] = "bold.ttf",
-	["regular"] = "regular.ttf"
-})
-
 --[[
 -- prototype code (desired outcome)
 TDUI.Label = TDUI.Panel {
