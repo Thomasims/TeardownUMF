@@ -17,6 +17,7 @@ find /c "mods/core/init.lua" data\ui\tv.lua  || ( echo|set /p=";loadfile "mods/c
 echo Installing in Level-related realms...
 find /c "mods/core/init.lua" data\script\main.lua  || ( echo|set /p=";loadfile "mods/core/init.lua" "world"" >> data\script\main.lua )
 find /c "mods/core/init.lua" data\script\heist.lua  || ( echo|set /p=";loadfile "mods/core/init.lua" "heist"" >> data\script\heist.lua )
+find /c "mods/core/init.lua" data\script\sandbox.lua  || ( echo|set /p=";loadfile "mods/core/init.lua" "sandbox"" >> data\script\sandbox.lua )
 
 :: mods.lua creation
 echo Generating mods filesystem...
