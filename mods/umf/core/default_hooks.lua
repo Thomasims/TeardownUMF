@@ -86,3 +86,20 @@ else
 		end
 	end)
 end
+
+if REALM_SANDBOX then
+	SetBool("game.unlimitedammo", pUnlimited)
+
+	function tick(dt)
+		--Fade to black and respawn when dead
+		if GetFloat("game.player.health") == 0 then
+			if dieFade == 0 then
+				SetValue("dieFade", 1, "linear", 4)
+			end
+			if dieFade == 1 then
+				RespawnPlayer()
+				SetValue("dieFade", 0, "linear", 1)
+			end	
+		end
+	end
+end

@@ -17,6 +17,8 @@ if not REALM_HUD then return end
 
 ]]
 
+local unlimited = GetBool("game.unlimitedammo")
+
 local extra_tools = {}
 local toolslist = {}
 
@@ -53,7 +55,7 @@ local function ammodisplay(tool)
 	local key = "game.tool."..tool..".ammo"
 	local realkey = "game.tool."..tool..".savedammo"
 	return function()
-		if gUnlimited then return "" end
+		if unlimited then return "" end
 		return math.floor(GetFloat(HasKey(realkey) and realkey or key)*10)/10
 	end
 end
@@ -292,8 +294,8 @@ function tick(dt)
 		stopRecording()
 	end
 
-	if gUnlimited then
-		SetInt("game.tool."..CurrentTool..".ammo", 99)
+	if unlimited then
+		SetInt("game.tool."..CurrentTool..".ammo", 999)
 	end
 	local tool = extra_tools[CurrentTool]
 	if tool and tool.Tick then softassert(pcall(tool.Tick, tool, dt)) end
@@ -306,16 +308,18 @@ hook.add("base.init", "api.tool_loader", function()
 	end
 end)
 
-hook.add("api.mouse.pressed", "api.tool_loader", function()
+hook.add("api.mouse.pressed", "api.tool_loader", function(button)
 	local tool = extra_tools[CurrentTool]
-	if tool and tool.LeftClick and istoolactive() then
-		softassert(pcall(tool.LeftClick, tool))
+	local event = button == "lmb" and "LeftClick" or "RightClick"
+	if tool and tool[event] and istoolactive() then
+		softassert(pcall(tool[event], tool))
 	end
 end)
 
-hook.add("api.mouse.released", "api.tool_loader", function()
+hook.add("api.mouse.released", "api.tool_loader", function(button)
 	local tool = extra_tools[CurrentTool]
-	if tool and tool.LeftClickReleased and istoolactive() then
-		softassert(pcall(tool.LeftClickReleased, tool))
+	local event = button == "lmb" and "LeftClickReleased" or "RightClickReleased"
+	if tool and tool[event] and istoolactive() then
+		softassert(pcall(tool[event], tool))
 	end
 end)
