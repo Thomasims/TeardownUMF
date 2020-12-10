@@ -93,16 +93,20 @@ function current_dir(level)
 	return file
 end
 
+local function unknownfile(err)
+	return err:match("[^ ]+ No such file or directory") or err:match("[^ ]+ Invalid argument")
+end
+
 function include(file, ...)
 	local path = current_dir(1) .. file
 	local func, err = loadfile(path)
-	if not func and err:match("[^ ]+ No such file or directory") then
+	if not func and unknownfile(err) then
 		path = string.format("mods/%s/%s", current_mod(1), file)
 		func, err = loadfile(path)
-		if not func and err:match("[^ ]+ No such file or directory") then
+		if not func and unknownfile(err) then
 			path = file
 			func, err = loadfile(path)
-			if not func and err:match("[^ ]+ No such file or directory") then
+			if not func and unknownfile(err) then
 				error("File not found: " .. file)
 			end
 		end
@@ -125,12 +129,43 @@ include("init.lua")
 
 if REALM_MENU then
 	-- The menu realm is the first to initialize so we can do 
+	Command("mods.refresh")
 	clearconsole()
 	printinfo("-- GAME STARTED --")
 	printinfo(_VERSION)
 end
 
 print("Initializing modding base for REALM: " .. REALM)
+
+if not UMF_NOMODS then
+	local function canload(manifest)
+		if manifest.disabled then return end
+		for i = 1, #manifest.realms do
+			if manifest.realms[i] == "*" or manifest.realms[i] == REALM then
+				return true
+			end
+		end
+	end
+
+	local function loadmod(modname, path, manifest)
+		if not canload(manifest) then return end
+		local init, err = loadfile(path .. "/init.lua")
+		if not init then
+			if not unknownfile(err) then printerror(err) end
+			return
+		end
+		-- TODO: dependencies support
+		init()
+	end
+
+	for i, modname in ipairs(ListKeys("mods.available")) do
+		local path = GetString(string.format("mods.available.%s.path", modname))
+		local success, manifest = pcall(dofile, path .. "/manifest.lua")
+		if success then
+			pcall(loadmod, modname, path, manifest)
+		end
+	end
+end
 
 hook.saferun("api.postinit")
 
