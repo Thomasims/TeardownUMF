@@ -34,26 +34,21 @@ local window = TDUI.Frame {
 }
 ]]
 
+local function createchild(self, def)
+	setmetatable(def, {
+		__index = self,
+		__call = createchild,
+	})
+	def:__PerformRegister()
+	return def
+end
+
 TDUI = setmetatable({}, {
 	__newindex = function(self, k, v)
 		rawset(self, k, v) -- Is extra processing necessary?
-	end
-})
-
-TDUI.__PanelMeta = {
-	__index = function(self, k)
-		local __super = rawget(self, "__super")
-		if __super then
-			return __super[k]
-		end
 	end,
-	__call = function(self, def)
-		def.__super = self
-		setmetatable(def, TDUI.__PanelMeta)
-		def:__PerformRegister()
-		return def
-	end
-}
+	__call = function(self, def, parent) return createchild(parent, def) end,
+})
 
 local function parseFour(data)
 	local dtype = type(data)
@@ -104,23 +99,8 @@ local function parseAlign(data)
 	return alignx, aligny
 end
 
-TDUI.Layout = setmetatable({
-	onlayout = function(self, data, pw, ph, ew, eh)
-		self.__validated = true
-		self.__prevew, self.__preveh = ew, eh
-		local nw, nh = self:ComputeSize(pw, ph)
-		local p1, p2, p3, p4 = self.padding[1], self.padding[2], self.padding[3], self.padding[4]
-		for i = 1, #self do
-			local child = self[i]
-			child:onlayout(child, nw, nh, ew, eh)
-			child:ComputePosition(p4, p1, nw, nh)
-		end
-		return self.__realw + self.margin[4] + self.margin[2], self.__realh + self.margin[1] + self.margin[3]
-	end
-}, TDUI.__PanelMeta)
-
 -- Base Panel,
-TDUI.Panel = setmetatable({
+TDUI.Panel = TDUI {
 	__alignx = 1, __aligny = 1,
 	__realx = 0, __realy = 0,
 	__realw = 0, __realh = 0,
@@ -318,9 +298,24 @@ TDUI.Panel = setmetatable({
 			return UiWidth(), UiHeight()
 		end
 	end,
-}, TDUI.__PanelMeta)
+}
 
-TDUI.Layout.__super = TDUI.Panel
+TDUI.Layout = TDUI.Panel {
+	onlayout = function(self, data, pw, ph, ew, eh)
+		self.__validated = true
+		self.__prevew, self.__preveh = ew, eh
+		local nw, nh = self:ComputeSize(pw, ph)
+		local p1, p2, p3, p4 = self.padding[1], self.padding[2], self.padding[3], self.padding[4]
+		for i = 1, #self do
+			local child = self[i]
+			child:onlayout(child, nw, nh, ew, eh)
+			child:ComputePosition(p4, p1, nw, nh)
+		end
+		return self.__realw + self.margin[4] + self.margin[2], self.__realh + self.margin[1] + self.margin[3]
+	end
+}
+
+TDUI.Panel.layout = TDUI.Layout
 
 local ScreenPanel = TDUI.Panel {
 	x = 0, y = 0,
