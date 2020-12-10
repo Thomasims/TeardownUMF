@@ -1,6 +1,6 @@
 
 if REALM then return end
-local REALM = ...
+REALM = ...
 
 local s, e = pcall(function()
 
