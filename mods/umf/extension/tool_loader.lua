@@ -181,16 +181,15 @@ local scrolling
 hook.add("api.mouse.wheel", "api.tool_loader", function(ds)
 	if not istoolactive() then return end
 	scrolling = GetTime()
+	local tool = extra_tools[CurrentTool]
+	if tool and tool.MouseWheel and tool:MouseWheel(ds) then return end
 	local enabledTools = GetActiveTools()
 	for i = 1, #enabledTools do
 		if enabledTools[i].id == CurrentTool then
-			scrolling = GetTime()
 			local newtool = enabledTools[math.min(math.max(i - ds, 1), #enabledTools)]
-			local tool = extra_tools[CurrentTool]
 			CurrentTool = newtool.id
 			CurrentToolBase = newtool.base
 			SetString("game.player.customtool", CurrentTool)
-			SetString("game.player.tool", CurrentToolBase)
 			if tool.id ~= newtool.id then
 				if tool.Holster then tool:Holster() end
 				if newtool.Deploy then newtool:Deploy() end
@@ -202,17 +201,13 @@ hook.add("api.mouse.wheel", "api.tool_loader", function(ds)
 end)
 
 hook.add("api.player.switch_tool", "api.tool_loader", function(new_tool, old_tool)
-	if CurrentTool ~= new_tool then
-		if scrolling == GetTime() then
-			SetString("game.player.tool", CurrentToolBase)
-		else
-			local tool = extra_tools[CurrentTool]
-			if tool.Holster then tool:Holster() end
-			CurrentTool = new_tool
-			CurrentToolBase = new_tool
-			SetString("game.player.customtool", CurrentTool)
-			updateammo()
-		end
+	if CurrentToolBase ~= new_tool and scrolling ~= GetTime() then
+		local tool = extra_tools[CurrentTool]
+		if tool.Holster then tool:Holster() end
+		CurrentTool = new_tool
+		CurrentToolBase = new_tool
+		SetString("game.player.customtool", CurrentTool)
+		updateammo()
 	end
 end)
 
@@ -276,7 +271,7 @@ function drawTool()
 	UiPop()
 
 	local tooldata = extra_tools[CurrentTool]
-	if tooldata.Draw and istoolactive() then
+	if tooldata and tooldata.Draw and istoolactive() then
 		softassert(pcall(tooldata.Draw, tooldata))
 	end
 end
@@ -297,6 +292,7 @@ function tick(dt)
 	if unlimited then
 		SetInt("game.tool."..CurrentTool..".ammo", 999)
 	end
+	SetString("game.player.tool", CurrentToolBase)
 	local tool = extra_tools[CurrentTool]
 	if tool and tool.Tick then softassert(pcall(tool.Tick, tool, dt)) end
 end
