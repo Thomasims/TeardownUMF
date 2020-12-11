@@ -60,7 +60,6 @@ file = {exists = FileExists}
 
 local knownroots = {}
 local function fixpath(path)
-	if path:sub(1,1) == "/" then path = path:sub(2) end
 	local max, maxs = 0
 	for i = 1, #knownroots do
 		local root = knownroots[i]
@@ -71,7 +70,7 @@ local function fixpath(path)
 			if st then
 				if se - st > max then
 					max = st - se
-					maxs = root:sub(1, s + st - 1) .. path:sub(st)
+					maxs = root:sub(1, s) .. path:sub(st)
 				end
 				break
 			end
