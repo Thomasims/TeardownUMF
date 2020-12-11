@@ -88,6 +88,7 @@ else
 end
 
 if REALM_SANDBOX then
+	SetBool("game.sandbox", true)
 	SetBool("game.unlimitedammo", pUnlimited)
 
 	function tick(dt)
