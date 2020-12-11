@@ -191,7 +191,7 @@ hook.add("api.mouse.wheel", "api.tool_loader", function(ds)
 			CurrentToolBase = newtool.base
 			SetString("game.player.customtool", CurrentTool)
 			if tool.id ~= newtool.id then
-				if tool.Holster then tool:Holster() end
+				if tool and tool.Holster then tool:Holster() end
 				if newtool.Deploy then newtool:Deploy() end
 			end
 			updateammo()
@@ -203,7 +203,7 @@ end)
 hook.add("api.player.switch_tool", "api.tool_loader", function(new_tool, old_tool)
 	if CurrentToolBase ~= new_tool and scrolling ~= GetTime() then
 		local tool = extra_tools[CurrentTool]
-		if tool.Holster then tool:Holster() end
+		if tool and tool.Holster then tool:Holster() end
 		CurrentTool = new_tool
 		CurrentToolBase = new_tool
 		SetString("game.player.customtool", CurrentTool)
@@ -222,8 +222,6 @@ function drawTool()
 		if not oldTool then 
 			toolX = UiCenter()
 			toolAlpha = 0
-			oldTool = currentTool
-			previousTool = oldTool
 		end
 
 		if currentTool ~= oldTool then
