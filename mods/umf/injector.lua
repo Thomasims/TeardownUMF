@@ -60,6 +60,7 @@ file = {exists = FileExists}
 
 local knownroots = {}
 local function fixpath(path)
+	if path:sub(1,1) == "/" then path = path:sub(2) end
 	local max, maxs = 0
 	for i = 1, #knownroots do
 		local root = knownroots[i]
@@ -188,7 +189,7 @@ for i, modname in ipairs(ListKeys("mods.available")) do
 	if not UMF_NOMODS then
 		local success, manifest = pcall(dofile, path .. "/manifest.lua")
 		if success then
-			pcall(loadmod, modname, path, manifest)
+			softassert(pcall(loadmod, modname, path, manifest))
 		end
 	end
 end
