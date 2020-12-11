@@ -180,6 +180,7 @@ local function loadmod(modname, path, manifest)
 	end
 	-- TODO: dependencies support
 	init()
+	printinfo("Loaded mod: " .. modname)
 end
 
 for i, modname in ipairs(ListKeys("mods.available")) do
