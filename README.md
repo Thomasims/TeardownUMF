@@ -11,6 +11,8 @@ _Note: Thanks to the installation process, this framework should be compatible w
 
 # Installing
 
+***You can find a step-by-step guide [here](https://github.com/Thomasims/TeardownUMF-Examples/wiki/Installation-Guide).***
+
 - Place `mods` and `hook_modloader.bat` next to teardown.exe (C:\Program Files (x86)\Steam\steamapps\common\Teardown)
 - Run `hook_modloader.bat` to patch the default scripts
 
