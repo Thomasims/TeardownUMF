@@ -1,8 +1,10 @@
 
 if REALM then return end
-REALM = ...
+REALM = ... or "other"
 
 local s, e = pcall(function()
+
+SetBool("game.umf." .. REALM, true)
 
 local realms = {
 	hud = "REALM_HUD",
