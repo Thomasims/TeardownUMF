@@ -153,11 +153,23 @@ include("core/meta.lua")
 include("core/default_hooks.lua")
 
 if REALM_MENU then
-	-- The menu realm is the first to initialize so we can do 
-	Command("mods.refresh")
+	-- The menu realm is the first to initialize so we can do
 	clearconsole()
 	printinfo("-- GAME STARTED --")
 	printinfo(_VERSION)
+
+	hook.add("base.postcmd", "api.markumf", function(cmd)
+		if cmd ~= "mods.refresh" then return end
+		for i, modname in ipairs(ListKeys("mods.available")) do
+			local modkey = string.format("mods.available.%s", modname)
+			local path = GetString(modkey .. ".path")
+			local success, manifest = pcall(dofile, path .. "/manifest.lua")
+			if success then 
+				SetBool(modkey .. ".override", true)
+			end
+		end
+	end)
+	updateMods()
 end
 
 print("Initializing modding base for REALM: " .. REALM)
@@ -189,10 +201,9 @@ for i, modname in ipairs(ListKeys("mods.available")) do
 	local modkey = string.format("mods.available.%s", modname)
 	local path = GetString(modkey .. ".path")
 	knownroots[#knownroots + 1] = path
-	SetBool(modkey .. ".override", true)
-	if not UMF_NOMODS and GetBool(modkey .. ".active") then
+	if not UMF_NOMODS then
 		local success, manifest = pcall(dofile, path .. "/manifest.lua")
-		if success then
+		if success and GetBool(modkey .. ".active") then
 			softassert(pcall(loadmod, modname, path, manifest))
 		end
 	end

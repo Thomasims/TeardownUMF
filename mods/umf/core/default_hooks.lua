@@ -35,6 +35,13 @@ DETOUR("draw", function(original)
 	end
 end)
 
+DETOUR("Command", function(original)
+	return function(cmd, ...)
+		hook.saferun("base.precmd", cmd, {...})
+		local a, b, c, d, e, f = original(cmd, ...)
+		hook.saferun("base.postcmd", cmd, {...}, {a, b, c, d, e, f})
+	end
+end)
 
 ------ QUICKSAVE WORKAROUND -----
 -- Quicksaving stores a copy of the global table without functions, so libraries get corrupted on quickload
