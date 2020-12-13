@@ -2,15 +2,16 @@
 render = {}
 
 if DrawSprite then
-	local default_sprite = LoadSprite("../../mods/umf/assets/image/white.png")
-	local frame_sprite = LoadSprite("../../mods/umf/assets/image/frame.png")
-	local grid_sprite = LoadSprite("../../mods/umf/assets/image/grid.png")
+	render.white_sprite = LoadSprite("../../mods/umf/assets/image/white.png")
+	render.white_fade_sprite = LoadSprite("../../mods/umf/assets/image/white_fade.png")
+	render.frame_sprite = LoadSprite("../../mods/umf/assets/image/frame.png")
+	render.grid_sprite = LoadSprite("../../mods/umf/assets/image/grid.png")
 
 	function render.drawline(source, destination, info)
 		local width = 0.03
 		local r, g, b, a = 1, 1, 1, 1
 		local writeZ, additive = true, false
-		local sprite = default_sprite
+		local sprite = render.white_sprite
 		local target = info and info.target or GetCameraTransform().pos
 
 		if info then
@@ -38,7 +39,7 @@ if DrawSprite then
 		local height = size
 		local r, g, b, a = 1, 1, 1, 1
 		local writeZ, additive = true, false
-		local sprite = image or default_sprite
+		local sprite = image or render.white_sprite
 		local target = info and info.target or GetCameraTransform().pos
 
 		if info then
@@ -67,7 +68,7 @@ if DrawSprite then
 	local QUAT_LEFT = MakeQuaternion(QuatEuler(0, 90, 90))
 	local QUAT_UP = MakeQuaternion(QuatEuler(90, 0, 0))
 	function render.drawbox(transform, min, max, sprite)
-		sprite = sprite or frame_sprite
+		sprite = sprite or render.frame_sprite
 		MakeTransformation(transform)
 		MakeVector(min)
 		local mid = (min + max) / 2
@@ -100,7 +101,7 @@ if DrawSprite then
 	function render.drawgrid(transform, x, y, sx, sy)
 		for ix = (sx or 0) + 1, x do
 			for iy = (sy or 0) + 1, y do
-				DrawSprite(grid_sprite, MakeTransformation(transform) + Vector(ix-.5, iy-.5, 0), 1, 1, 1, 1, 1, 1, true, false)
+				DrawSprite(render.grid_sprite, MakeTransformation(transform) + Vector(ix-.5, iy-.5, 0), 1, 1, 1, 1, 1, 1, true, false)
 			end
 		end
 	end
