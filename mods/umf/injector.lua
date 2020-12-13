@@ -151,8 +151,6 @@ GLOBAL_CHANNEL = util.shared_channel("game.umf_global_channel", 128)
 include("core/console_backend.lua")
 include("core/meta.lua")
 include("core/default_hooks.lua")
-include("init.lua")
-
 
 if REALM_MENU then
 	-- The menu realm is the first to initialize so we can do 
@@ -163,6 +161,8 @@ if REALM_MENU then
 end
 
 print("Initializing modding base for REALM: " .. REALM)
+
+include("init.lua")
 
 local function canload(manifest)
 	if manifest.disabled then return end
@@ -186,9 +186,11 @@ local function loadmod(modname, path, manifest)
 end
 
 for i, modname in ipairs(ListKeys("mods.available")) do
-	local path = GetString(string.format("mods.available.%s.path", modname))
+	local modkey = string.format("mods.available.%s", modname)
+	local path = GetString(modkey .. ".path")
 	knownroots[#knownroots + 1] = path
-	if not UMF_NOMODS then
+	SetBool(modkey .. ".override", true)
+	if not UMF_NOMODS and GetBool(modkey .. ".active") then
 		local success, manifest = pcall(dofile, path .. "/manifest.lua")
 		if success then
 			softassert(pcall(loadmod, modname, path, manifest))
