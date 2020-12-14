@@ -169,7 +169,7 @@ if REALM_MENU then
 			end
 		end
 	end)
-	updateMods()
+	Command("mods.refresh")
 end
 
 print("Initializing modding base for REALM: " .. REALM)
