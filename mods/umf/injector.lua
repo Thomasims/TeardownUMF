@@ -204,7 +204,7 @@ for i, modname in ipairs(ListKeys("mods.available")) do
 	knownroots[#knownroots + 1] = path
 	if not UMF_NOMODS then
 		local success, manifest = pcall(dofile, path .. "/manifest.lua")
-		if success and (GetBool(modkey .. ".active") or not runningMod or runningMod == path:match("mods/([^/]+)/?$")) then
+		if success and (GetBool(modkey .. ".active") or GetString("game.levelpath") == "" or runningMod == path:match("mods/([^/]+)/?$")) then
 			softassert(pcall(loadmod, modname, path, manifest))
 		end
 	end
