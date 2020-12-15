@@ -197,13 +197,14 @@ local function loadmod(modname, path, manifest)
 	printinfo("Loaded mod: " .. modname)
 end
 
+local runningMod = GetString("game.levelpath"):match("mods/([^/]+)/main.xml$")
 for i, modname in ipairs(ListKeys("mods.available")) do
 	local modkey = string.format("mods.available.%s", modname)
 	local path = GetString(modkey .. ".path")
 	knownroots[#knownroots + 1] = path
 	if not UMF_NOMODS then
 		local success, manifest = pcall(dofile, path .. "/manifest.lua")
-		if success and GetBool(modkey .. ".active") then
+		if success and (GetBool(modkey .. ".active") or not runningMod or runningMod == path:match("mods/([^/]+)/?$")) then
 			softassert(pcall(loadmod, modname, path, manifest))
 		end
 	end
