@@ -35,9 +35,9 @@ function body_meta:ApplyLocalImpulse(pos, vel) -- Only available in 0.5+
     return self:ApplyImpulse(transform:ToGlobal(pos), transform:ToGlobalDir(vel))
 end
 
-function body_meta:DrawOutline(r, g, b, a)
+function body_meta:DrawOutline(r, ...)
     assert(self:IsValid())
-    return DrawBodyOutline(self.handle, r, g, b, a)
+    return DrawBodyOutline(self.handle, r, ...)
 end
 
 function body_meta:DrawHighlight(amount)

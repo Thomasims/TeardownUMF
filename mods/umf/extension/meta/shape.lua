@@ -25,9 +25,9 @@ function shape_meta:__tostring()
 end
 
 
-function shape_meta:DrawOutline(r, g, b, a)
+function shape_meta:DrawOutline(r, ...)
     assert(self:IsValid())
-    return DrawShapeOutline(self.handle, r, g, b, a)
+    return DrawShapeOutline(self.handle, r, ...)
 end
 
 function shape_meta:DrawHighlight(amount)

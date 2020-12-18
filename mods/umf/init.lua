@@ -5,6 +5,7 @@ include("extension/meta/transform.lua")
 
 include("extension/meta/entity.lua")
 include("extension/meta/body.lua")
+include("extension/meta/shape.lua")
 
 include("extension/render.lua")
 include("extension/timer.lua")
