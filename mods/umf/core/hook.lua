@@ -35,7 +35,12 @@ function hook.remove(event, identifier)
 	assert(identifier ~= nil, "Identifier must not be nil")
 	if hook_table[event] then
 		hook_table[event][identifier] = nil
-		recompile(event)
+		if next(hook_table[event]) == nil then
+			hook_table[event] = nil
+			hook_compiled[event] = nil
+		else
+			recompile(event)
+		end
 	end
 end
 
@@ -55,4 +60,8 @@ function hook.saferun(event, ...)
 		local s, a, b, c, d, e = softassert(pcall(hooks[i], ...))
 		if s and a then return a, b, c, d, e end
 	end
+end
+
+function hook.used(event)
+	return hook_table[event]
 end
