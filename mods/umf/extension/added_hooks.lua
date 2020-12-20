@@ -6,14 +6,30 @@ end
 local tool = GetString("game.player.tool")
 local invehicle = IsPlayerInVehicle()
 
+local keyboardkeys = {"esc", "up", "down", "left", "right", "space", "interact", "return"}
+for i = 97, 97 + 25 do keyboardkeys[#keyboardkeys + 1] = string.char(i) end
+local mousekeys = {"lmb", "rmb"}
+local function checkkeys(func, mousehook, keyhook)
+	if hook.used(keyhook) and func("any") then
+		for i = 1, #keyboardkeys do
+			if func(keyboardkeys[i]) then hook.saferun(keyhook, keyboardkeys[i]) end
+		end
+	end
+	if hook.used(mousehook) then
+		if func("lmb") then hook.saferun(mousehook, "lmb") end
+		if func("rmb") then hook.saferun(mousehook, "rmb") end
+	end
+end
+
 hook.add("base.tick", "api.default_hooks", function()
 	if InputPressed then
-		if InputPressed("lmb") then hook.saferun("api.mouse.pressed", "lmb") end
-		if InputPressed("rmb") then hook.saferun("api.mouse.pressed", "rmb") end
-		if InputReleased("lmb") then hook.saferun("api.mouse.released", "lmb") end
-		if InputReleased("rmb") then hook.saferun("api.mouse.released", "rmb") end
+		checkkeys(InputPressed, "api.mouse.pressed", "api.key.pressed")
+		checkkeys(InputReleased, "api.mouse.released", "api.key.released")
 		local wheel = InputValue("mousewheel")
-		if wheel and wheel ~= 0 then hook.saferun("api.mouse.wheel", wheel) end
+		if wheel ~= 0 then hook.saferun("api.mouse.wheel", wheel) end
+		local mousedx = InputValue("mousedx")
+		local mousedy = InputValue("mousedy")
+		if mousedx ~= 0 or mousedy ~= 0 then hook.saferun("api.mouse.move", mousedx, mousedy) end
 	end
 
 	local n_invehicle = IsPlayerInVehicle()
