@@ -1,4 +1,11 @@
 @echo off
+
+find /c "InputPressed" data\ui\menu.lua > nul
+if %errorlevel% equ 1 goto found
+echo ERROR: This version of UMF is meant for Teardown version 0.4.6
+exit 0
+:found
+
 :: Inject the mod loader in various realms so mods can use whichever they need
 
 :: Menu-related realms
