@@ -1,12 +1,17 @@
 
 local hook = hook
 
+local function checkoriginal(b, ...)
+	if not b then printerror(...) return end
+	return ...
+end
+
 local function simple_detour(name)
 	local event = "base." .. name
 	DETOUR(name, function(original)
 		return function(...)
 			hook.saferun(event, ...)
-			return original(...)
+			return checkoriginal(pcall(original, ...))
 		end
 	end)
 end
@@ -28,7 +33,7 @@ DETOUR("draw", function(original)
 		if shoulddraw("all") then
 			hook.saferun("base.predraw")
 			if shoulddraw("original") then
-				original()
+				checkoriginal(pcall(original))
 			end
 			hook.saferun("base.draw")
 		end
