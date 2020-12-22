@@ -159,17 +159,6 @@ if REALM_MENU then
 	printinfo("-- GAME STARTED --")
 	printinfo(_VERSION)
 
-	hook.add("base.postcmd", "api.markumf", function(cmd)
-		if cmd ~= "mods.refresh" then return end
-		for i, modname in ipairs(ListKeys("mods.available")) do
-			local modkey = string.format("mods.available.%s", modname)
-			local path = GetString(modkey .. ".path")
-			local success, manifest = pcall(dofile, path .. "/manifest.lua")
-			if success then 
-				SetBool(modkey .. ".override", true)
-			end
-		end
-	end)
 	Command("mods.refresh")
 end
 
