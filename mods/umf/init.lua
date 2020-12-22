@@ -12,6 +12,7 @@ include("extension/meta/light.lua")
 include("extension/meta/trigger.lua")
 include("extension/meta/screen.lua")
 include("extension/meta/vehicle.lua")
+include("extension/meta/player.lua")
 
 include("extension/render.lua")
 include("extension/timer.lua")
