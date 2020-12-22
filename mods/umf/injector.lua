@@ -62,7 +62,7 @@ file = {exists = FileExists}
 
 local knownroots = {}
 local function fixpath(path)
-	local max, maxs = 0
+	local max, maxs = 0, path
 	for i = 1, #knownroots do
 		local root = knownroots[i]
 		local s = root:find("/", 1, true)
@@ -79,7 +79,7 @@ local function fixpath(path)
 			s = root:find("/", s + 1, true)
 		end
 	end
-	return maxs or path
+	return maxs
 end
 
 function current_line(level)

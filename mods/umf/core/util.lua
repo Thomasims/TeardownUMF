@@ -303,13 +303,13 @@ do
 	end
 
 	gets.number = GetFloat
-	gets.integer = GetInteger
+	gets.integer = GetInt
 	gets.boolean = GetBool
 	gets.string = GetString
 	gets.table = util.shared_table
 
 	sets.number = SetFloat
-	sets.integer = SetInteger
+	sets.integer = SetInt
 	sets.boolean = SetBool
 	sets.string = SetString
 	sets.table = function(key, val)
@@ -336,7 +336,7 @@ end
 
 function util.stacktrace(start)
 	start = (start or 0) + 3
-	local stack, last = {}
+	local stack, last = {}, nil
 	for i = start, 32 do
 		local _, line = pcall(error, "-", i)
 		if line == "-" then
