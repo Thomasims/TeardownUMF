@@ -4,7 +4,7 @@ if REALM_HUD or REALM_MENU then
 	local console_buffer = util.shared_buffer("savegame.console", 128)
 
 	local bottom = not not REALM_MENU
-	hook.add("base.draw", "console.draw", function()
+	local function console()
 		local w, h = UiWidth(), UiHeight()
 		local cw, ch = w / 2 - 220, bottom and math.floor(h * 0.75) or h - 40
 		local visible = bottom and 1 - (gSandboxScale + gCreateScale + gOptionsScale + (gChallengesScale or 0)) or pauseMenuAlpha - optionsAlpha
@@ -36,6 +36,18 @@ if REALM_HUD or REALM_MENU then
 				end
 			end
 		UiPop()
+	end
+
+	if UMF_CONFIG.devmode then
+		hook.add("base.draw", "console.draw", console)
+	end
+
+	hook.add("base.command.activate", "console.updateconfig", function()
+		if UMF_CONFIG.devmode then
+			hook.add("base.draw", "console.draw", console)
+		else
+			hook.remove("base.draw", "console.draw")
+		end
 	end)
 
 end
