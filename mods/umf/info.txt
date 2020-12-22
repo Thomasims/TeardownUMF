@@ -1,0 +1,3 @@
+name = Unofficial Modding Framework
+author = Thomasims
+description = Extended loader for Teardown mods.

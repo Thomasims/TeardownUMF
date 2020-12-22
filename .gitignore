@@ -7,6 +7,4 @@
 
 !/mods/
 /mods/*
-!/mods/core/
-!/mods/framework/
-!/mods/example/
+!/mods/umf/

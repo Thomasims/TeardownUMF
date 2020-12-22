@@ -1,3 +1,7 @@
+## **_Teardown 0.5.0 support is currently being reworked_**
+
+---
+
 # Teardown Unofficial Modding Framework
 
 The purpose of this framework is to create an environment where multiple mods can co-exist easily.
@@ -6,6 +10,8 @@ It also aims at providing mods more utilities and helper functions through the "
 _Note: Thanks to the installation process, this framework should be compatible with most other mods and loaders as long as you run `hook_modloader.bat` after installing them._
 
 # Installing
+
+***You can find a step-by-step guide [here](https://github.com/Thomasims/TeardownUMF-Examples/wiki/Installation-Guide).***
 
 - Place `mods` and `hook_modloader.bat` next to teardown.exe (C:\Program Files (x86)\Steam\steamapps\common\Teardown)
 - Run `hook_modloader.bat` to patch the default scripts
