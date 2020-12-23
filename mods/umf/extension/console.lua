@@ -1,5 +1,3 @@
--- Use table.concat() instead
-
 commands = {
 	named = {
 		-- Commands that can be found by name are added here.
@@ -8,7 +6,6 @@ commands = {
 		-- Command names can be found by index here.
 	}
 }
-
 function commands.register(identifier, description, function_variable)
 	assert(identifier ~= nil, "Identifier must not be nil")
 	commands["named"][string.upper(identifier)] = {description, function_variable}
@@ -33,10 +30,9 @@ local function draw_information(label, data)
 	UiTranslate(-(w + 5), 0)
 end
 local function draw_line(dx, dy)
-	-- Needs optimization and correction.
 	local k = dy / dx
 	for i = 1, dx, 1 do
-		UiText(".")
+		UiText(".") -- This is a very inefficient way to draw a 2D line.
 		UiTranslate(1, k)
 	end
 end
@@ -44,7 +40,7 @@ end
 local function get_object_count()
 	local shapes = 0
 	local bodies = 0
-	for i = 1, 8192 do -- This should be optimized.
+	for i = 1, 8192 do -- This should be optimized to only run the amount of iterations needed.
 		shapes = shapes + #GetBodyShapes(i)
 		if #GetBodyShapes(i) > 0 then
 			bodies = bodies + 1
@@ -95,15 +91,6 @@ if REALM_HUD or REALM_MENU then
 	commands.register("value", "Returns all possible values at a key path.", value)
 	commands.register("exec", "Executes code passed as arguments.", exec)
 
-<<<<<<< Updated upstream:mods/framework/extension/console.lua
-	local font = Font("consolas")
-
-	local bottom = not not REALM_MENU
-	hook.add("base.draw", "console.draw", function()
-		local w, h = UiWidth(), UiHeight()
-		local cw, ch = w / 2 - 220, bottom and math.floor(h * 0.75) or h - 40
-		local visible = bottom and 1 - (gSandboxScale + gCreateScale + gOptionsScale) or pauseMenuAlpha - optionsAlpha
-=======
 	hook.add("base.draw", "console.draw", function()
 		local w, h = UiWidth(), UiHeight()
 		local cw, ch = UiCenter(), UiMiddle()
@@ -143,36 +130,10 @@ if REALM_HUD or REALM_MENU then
 			textbox_text = ""
 		end
 
->>>>>>> Stashed changes:mods/umf/extension/console.lua
 		if not visible or visible == 0 then return end
 
 		UiMakeInteractive()
 		UiPush()
-<<<<<<< Updated upstream:mods/framework/extension/console.lua
-			if bottom then
-				UiTranslate(w - 20, h - 20)
-				UiAlign("right bottom")
-			else
-				UiTranslate(w - 20, 20)
-				UiAlign("right top")
-			end
-			UiWordWrap(cw)
-			UiColor(.0, .0, .0, 0.7 * visible)
-			UiImageBox("common/box-solid-shadow-50.png", cw, ch, -50, -50)
-			UiWindow(cw, ch, true)
-			UiColor(1,0,0,1)
-			UiFont(font, 24)
-			UiAlign("left bottom")
-			UiTranslate(0,ch)
-			local len = console_buffer:len() - 1
-			for i = len, 0, -1 do
-				local data = console_buffer:get(i)
-				local r, g, b, text = data:match("([^;]+);([^;]+);([^;]+);(.*)")
-				if text then -- if this is nil, something went horribly wrong!
-					UiColor(tonumber(r), tonumber(g), tonumber(b), 1 * visible)
-					local w, h = UiText(#text == 0 and " " or text, false)
-					UiTranslate(0,-math.max(h, 24))
-=======
 			-- Draw the gray background box for the console.
 			UiColor(.0, .0, .0, 0.95)
 			UiImageBox("common/box-solid-shadow-50.png", w, h, -50, -50)
@@ -209,7 +170,6 @@ if REALM_HUD or REALM_MENU then
 						local tw, th = UiText(#text == 0 and " " or text, false)
 						UiTranslate(0,-math.max(th, text_size))
 					end
->>>>>>> Stashed changes:mods/umf/extension/console.lua
 				end
 			UiPop()
 
@@ -238,8 +198,8 @@ if REALM_HUD or REALM_MENU then
 			local bodies_and_shapes = get_object_count()
 			local camera_transform = MakeTransformation(GetCameraTransform());
 			local camera_raycast = Transformation(camera_transform.pos, camera_transform.rot * QuatEuler(180, 0, 0)):Raycast(dist, 1, radius, rejectTransparent);
-			camera_pitch, camera_yaw, camera_roll = MakeQuaternion(GetCameraTransform().rot):ToEuler()
-			player_pitch, player_yaw, player_roll = MakeQuaternion(GetPlayerTransform().rot):ToEuler()
+			local camera_pitch, camera_yaw, camera_roll = MakeQuaternion(GetCameraTransform().rot):ToEuler()
+			local player_pitch, player_yaw, player_roll = MakeQuaternion(GetPlayerTransform().rot):ToEuler()
 
 			local information = {
 				game = {

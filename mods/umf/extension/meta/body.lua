@@ -26,18 +26,18 @@ function body_meta:__tostring()
 end
 
 
-function body_meta:ApplyImpulse(pos, vel) -- Only available in 0.5+
+function body_meta:ApplyImpulse(pos, vel)
     assert(self:IsValid())
     return ApplyBodyImpulse(self.handle, pos, vel)
 end
 
-function body_meta:ApplyLocalImpulse(pos, vel) -- Only available in 0.5+
+function body_meta:ApplyLocalImpulse(pos, vel)
     return self:ApplyImpulse(transform:ToGlobal(pos), transform:ToGlobalDir(vel))
 end
 
-function body_meta:DrawOutline(r, g, b, a)
+function body_meta:DrawOutline(r, ...)
     assert(self:IsValid())
-    return DrawBodyOutline(self.handle, r, g, b, a)
+    return DrawBodyOutline(self.handle, r, ...)
 end
 
 function body_meta:DrawHighlight(amount)
@@ -61,7 +61,7 @@ function body_meta:SetVelocity(vel)
     return SetBodyVelocity(self.handle, vel)
 end
 
-function body_meta:SetAngularVelocity(avel) -- Only available in 0.5+
+function body_meta:SetAngularVelocity(avel)
     assert(self:IsValid())
     return SetBodyAngularVelocity(self.handle, avel)
 end
@@ -77,12 +77,12 @@ function body_meta:GetMass()
     return GetBodyMass(self.handle)
 end
 
-function body_meta:GetVelocity() -- Only available in 0.5+
+function body_meta:GetVelocity()
     assert(self:IsValid())
     return MakeVector(GetBodyVelocity(self.handle))
 end
 
-function body_meta:GetAngularVelocity() -- Only available in 0.5+
+function body_meta:GetAngularVelocity()
     assert(self:IsValid())
     return MakeVector(GetBodyAngularVelocity(self.handle))
 end
@@ -96,7 +96,7 @@ end
 
 function body_meta:GetVehicle()
     assert(self:IsValid())
-    return GetBodyVehicle(self.handle) -- TODO: Apply vehicle meta
+    return Vehicle(GetBodyVehicle(self.handle))
 end
 
 function body_meta:GetWorldBounds()

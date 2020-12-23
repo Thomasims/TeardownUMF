@@ -1,13 +1,23 @@
 
 local entity_meta = global_metatable("entity")
 
+function GetEntityHandle(e)
+    if IsEntity(e) then return e.handle end
+    return e
+end
+
+function IsValid(e)
+    if type(e) == "table" and e.IsValid then return e:IsValid() end
+    return false
+end
+
 function IsEntity(e)
     return type(e) == "table" and type(e.handle) == "number"
 end
 
 function Entity(handle)
     if handle > 0 then
-        return setmetatable({handle = handle}, entity_meta)
+        return setmetatable({handle = handle, type = "unknown"}, entity_meta)
     end
 end
 
@@ -22,6 +32,10 @@ end
 
 function entity_meta:__tostring()
     return string.format("Entity[%d]", self.handle)
+end
+
+function entity_meta:GetType()
+    return self.type
 end
 
 local IsHandleValid = IsHandleValid

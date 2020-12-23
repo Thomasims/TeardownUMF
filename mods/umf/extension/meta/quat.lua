@@ -42,6 +42,10 @@ function quat_meta:__unm()
     return MakeQuaternion {-self[1], -self[2], -self[3], -self[4]}
 end
 
+function quat_meta:Conjugate()
+    return MakeQuaternion {-self[1], -self[2], -self[3], self[4]}
+end
+
 function quat_meta:Add(o)
     if IsQuaternion(o) then
         self[1] = self[1] + o[1]

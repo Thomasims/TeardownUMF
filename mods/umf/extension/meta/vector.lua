@@ -181,6 +181,10 @@ function vector_meta:Length()
     return VecLength(self)
 end
 
+function vector_meta:Volume()
+    return math.abs(self[1] * self[2] * self[3])
+end
+
 local VecLerp = VecLerp
 function vector_meta:Lerp(o, n)
     return MakeVector(VecLerp(self, o, n))

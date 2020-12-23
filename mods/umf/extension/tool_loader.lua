@@ -17,6 +17,8 @@ if not REALM_HUD then return end
 
 ]]
 
+local unlimited = GetBool("game.unlimitedammo")
+
 local extra_tools = {}
 local toolslist = {}
 
@@ -53,7 +55,7 @@ local function ammodisplay(tool)
 	local key = "game.tool."..tool..".ammo"
 	local realkey = "game.tool."..tool..".savedammo"
 	return function()
-		if gUnlimited then return "" end
+		if unlimited then return "" end
 		return math.floor(GetFloat(HasKey(realkey) and realkey or key)*10)/10
 	end
 end
@@ -179,18 +181,17 @@ local scrolling
 hook.add("api.mouse.wheel", "api.tool_loader", function(ds)
 	if not istoolactive() then return end
 	scrolling = GetTime()
+	local tool = extra_tools[CurrentTool]
+	if tool and tool.MouseWheel and tool:MouseWheel(ds) then return end
 	local enabledTools = GetActiveTools()
 	for i = 1, #enabledTools do
 		if enabledTools[i].id == CurrentTool then
-			scrolling = GetTime()
 			local newtool = enabledTools[math.min(math.max(i - ds, 1), #enabledTools)]
-			local tool = extra_tools[CurrentTool]
 			CurrentTool = newtool.id
 			CurrentToolBase = newtool.base
 			SetString("game.player.customtool", CurrentTool)
-			SetString("game.player.tool", CurrentToolBase)
 			if tool.id ~= newtool.id then
-				if tool.Holster then tool:Holster() end
+				if tool and tool.Holster then tool:Holster() end
 				if newtool.Deploy then newtool:Deploy() end
 			end
 			updateammo()
@@ -200,17 +201,13 @@ hook.add("api.mouse.wheel", "api.tool_loader", function(ds)
 end)
 
 hook.add("api.player.switch_tool", "api.tool_loader", function(new_tool, old_tool)
-	if CurrentTool ~= new_tool then
-		if scrolling == GetTime() then
-			SetString("game.player.tool", CurrentToolBase)
-		else
-			local tool = extra_tools[CurrentTool]
-			if tool.Holster then tool:Holster() end
-			CurrentTool = new_tool
-			CurrentToolBase = new_tool
-			SetString("game.player.customtool", CurrentTool)
-			updateammo()
-		end
+	if CurrentToolBase ~= new_tool and scrolling ~= GetTime() then
+		local tool = extra_tools[CurrentTool]
+		if tool and tool.Holster then tool:Holster() end
+		CurrentTool = new_tool
+		CurrentToolBase = new_tool
+		SetString("game.player.customtool", CurrentTool)
+		updateammo()
 	end
 end)
 
@@ -225,8 +222,6 @@ function drawTool()
 		if not oldTool then 
 			toolX = UiCenter()
 			toolAlpha = 0
-			oldTool = currentTool
-			previousTool = oldTool
 		end
 
 		if currentTool ~= oldTool then
@@ -274,7 +269,7 @@ function drawTool()
 	UiPop()
 
 	local tooldata = extra_tools[CurrentTool]
-	if tooldata.Draw and istoolactive() then
+	if tooldata and tooldata.Draw and istoolactive() then
 		softassert(pcall(tooldata.Draw, tooldata))
 	end
 end
@@ -292,9 +287,10 @@ function tick(dt)
 		stopRecording()
 	end
 
-	if gUnlimited then
-		SetInt("game.tool."..CurrentTool..".ammo", 99)
+	if unlimited then
+		SetInt("game.tool."..CurrentTool..".ammo", 999)
 	end
+	SetString("game.player.tool", CurrentToolBase)
 	local tool = extra_tools[CurrentTool]
 	if tool and tool.Tick then softassert(pcall(tool.Tick, tool, dt)) end
 end
@@ -306,16 +302,18 @@ hook.add("base.init", "api.tool_loader", function()
 	end
 end)
 
-hook.add("api.mouse.pressed", "api.tool_loader", function()
+hook.add("api.mouse.pressed", "api.tool_loader", function(button)
 	local tool = extra_tools[CurrentTool]
-	if tool and tool.LeftClick and istoolactive() then
-		softassert(pcall(tool.LeftClick, tool))
+	local event = button == "lmb" and "LeftClick" or "RightClick"
+	if tool and tool[event] and istoolactive() then
+		softassert(pcall(tool[event], tool))
 	end
 end)
 
-hook.add("api.mouse.released", "api.tool_loader", function()
+hook.add("api.mouse.released", "api.tool_loader", function(button)
 	local tool = extra_tools[CurrentTool]
-	if tool and tool.LeftClickReleased and istoolactive() then
-		softassert(pcall(tool.LeftClickReleased, tool))
+	local event = button == "lmb" and "LeftClickReleased" or "RightClickReleased"
+	if tool and tool[event] and istoolactive() then
+		softassert(pcall(tool[event], tool))
 	end
 end)
