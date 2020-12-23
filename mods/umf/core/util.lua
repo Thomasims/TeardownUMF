@@ -233,6 +233,9 @@ do
 		gets[name] = function(key)
 			return setmetatable({}, meta):__unserialize(GetString(key))
 		end
+		sets[name] = function(key, value)
+			return SetString(key, meta.__serialize(value))
+		end
 	end)
 
 	function util.shared_table(name, base)
@@ -262,12 +265,51 @@ do
 		})
 	end
 
+	function util.structured_table(name, base)
+		local function generate(base)
+			local root = {}
+			local keys = {}
+			for k, v in pairs(base) do
+				local key = name .. "." .. tostring(k)
+				if type(v) == "table" then
+					root[k] = util.structured_table(key, v)
+				elseif type(v) == "string" then
+					keys[k] = {
+						type = v,
+						key = key
+					}
+				else
+					root[k] = v
+				end
+			end
+			return setmetatable(root, {
+				__index = function(self, k)
+					local entry = keys[k]
+					if entry and gets[entry.type] then
+						return gets[entry.type](entry.key)
+					end
+				end,
+				__newindex = function(self, k, v)
+					local entry = keys[k]
+					if entry and sets[entry.type] then
+						return sets[entry.type](entry.key, v)
+					end
+				end,
+			})
+		end
+		print("setup")
+		if type(base) == "table" then return generate(base) end
+		return generate
+	end
+
 	gets.number = GetFloat
+	gets.integer = GetInt
 	gets.boolean = GetBool
 	gets.string = GetString
 	gets.table = util.shared_table
 
 	sets.number = SetFloat
+	sets.integer = SetInt
 	sets.boolean = SetBool
 	sets.string = SetString
 	sets.table = function(key, val)
@@ -294,7 +336,7 @@ end
 
 function util.stacktrace(start)
 	start = (start or 0) + 3
-	local stack, last = {}
+	local stack, last = {}, nil
 	for i = start, 32 do
 		local _, line = pcall(error, "-", i)
 		if line == "-" then

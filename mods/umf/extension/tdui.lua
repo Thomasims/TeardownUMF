@@ -330,11 +330,10 @@ function TDUI.Panel:Close()
 	self:SetParent()
 end
 
-hook.add("base.init", "api.tdui.init", function()
-	ScreenPanel:SetSize(UiWidth(), UiHeight())
-end)
-
 hook.add("base.draw", "api.tdui.ScreenPanel", function()
+	if ScreenPanel.width == 0 then
+		ScreenPanel:SetSize(UiWidth(), UiHeight())
+	end
 	UiPush()
 	softassert(pcall(ScreenPanel.__Draw, ScreenPanel))
 	UiPop()

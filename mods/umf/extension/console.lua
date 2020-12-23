@@ -310,6 +310,18 @@ if REALM_HUD or REALM_MENU then
 				end
 			UiPop()
 		UiPop()
+	end
+
+	if UMF_CONFIG.devmode then
+		hook.add("base.draw", "console.draw", console)
+	end
+
+	hook.add("base.command.activate", "console.updateconfig", function()
+		if UMF_CONFIG.devmode then
+			hook.add("base.draw", "console.draw", console)
+		else
+			hook.remove("base.draw", "console.draw")
+		end
 	end)
 
 	hook.add("base.tick", "console.tick", function(dt)

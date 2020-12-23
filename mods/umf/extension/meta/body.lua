@@ -32,6 +32,7 @@ function body_meta:ApplyImpulse(pos, vel)
 end
 
 function body_meta:ApplyLocalImpulse(pos, vel)
+    local transform = self:GetTransform()
     return self:ApplyImpulse(transform:ToGlobal(pos), transform:ToGlobalDir(vel))
 end
 

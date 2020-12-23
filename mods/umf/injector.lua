@@ -62,7 +62,7 @@ file = {exists = FileExists}
 
 local knownroots = {}
 local function fixpath(path)
-	local max, maxs = 0
+	local max, maxs = 0, path
 	for i = 1, #knownroots do
 		local root = knownroots[i]
 		local s = root:find("/", 1, true)
@@ -79,7 +79,7 @@ local function fixpath(path)
 			s = root:find("/", s + 1, true)
 		end
 	end
-	return maxs or path
+	return maxs
 end
 
 function current_line(level)
@@ -148,6 +148,7 @@ end
 include("core/hook.lua")
 include("core/util.lua")
 GLOBAL_CHANNEL = util.shared_channel("game.umf_global_channel", 128)
+include("core/config.lua")
 include("core/console_backend.lua")
 include("core/meta.lua")
 include("core/default_hooks.lua")
@@ -157,18 +158,10 @@ if REALM_MENU then
 	clearconsole()
 	printinfo("-- GAME STARTED --")
 	printinfo(_VERSION)
-
-	hook.add("base.postcmd", "api.markumf", function(cmd)
-		if cmd ~= "mods.refresh" then return end
-		for i, modname in ipairs(ListKeys("mods.available")) do
-			local modkey = string.format("mods.available.%s", modname)
-			local path = GetString(modkey .. ".path")
-			local success, manifest = pcall(dofile, path .. "/manifest.lua")
-			if success then 
-				SetBool(modkey .. ".override", true)
-			end
-		end
+	hook.add("api.firsttick", function()
+		print("Running Teardown v" .. GetString("game.version"))
 	end)
+
 	Command("mods.refresh")
 end
 

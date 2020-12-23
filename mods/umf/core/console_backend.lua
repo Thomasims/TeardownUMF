@@ -31,7 +31,7 @@ function printinfo(...)
 end
 
 function warning(msg)
-	printcolor(1, .7, 0, "[WARNING] " .. msg .. "\n  " .. table.concat(util.stacktrace(1), "\n  "))
+	printcolor(1, .7, 0, "[WARNING] " .. tostring(msg) .. "\n  " .. table.concat(util.stacktrace(1), "\n  "))
 end
 printwarning = warning
 
@@ -46,4 +46,13 @@ end
 function softassert(b, ...)
 	if not b then printerror(...) end
 	return b, ...
+end
+
+function assert(b, msg, ...)
+	if not b then
+		local m = msg or "Assertion failed"
+		warning(m)
+		return error(m, ...)
+	end
+	return b, msg, ...
 end
