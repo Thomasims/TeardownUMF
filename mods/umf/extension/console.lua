@@ -21,7 +21,6 @@ function commands.unregister(identifier)
 	end
 end
 
-
 local function draw_information(label, data)
 	UiTextShadow(0.2, 0.2, 0.2, 3, 1)
 	local w, h = UiText(label)
@@ -91,7 +90,7 @@ if REALM_HUD or REALM_MENU then
 	commands.register("value", "Returns all possible values at a key path.", value)
 	commands.register("exec", "Executes code passed as arguments.", exec)
 
-	hook.add("base.draw", "console.draw", function()
+	local function console_draw()
 		local w, h = UiWidth(), UiHeight()
 		local cw, ch = UiCenter(), UiMiddle()
 		local text_size = 18
@@ -155,7 +154,8 @@ if REALM_HUD or REALM_MENU then
 				UiFont("../../mods/umf/assets/font/consolas.ttf", text_size)
 				UiPush()
 					UiAlign("left")
-					UiText(textbox_text)
+					if textbox_text == "" then UiColor(1, 1, 1, 0.2) end
+					UiText(textbox_text == "" and "Start typing to write here, press enter to execute..." or textbox_text)
 				UiPop()
 				
 				-- Draw the history of the console.
@@ -197,7 +197,7 @@ if REALM_HUD or REALM_MENU then
 			-- Declare information variables.
 			local bodies_and_shapes = get_object_count()
 			local camera_transform = MakeTransformation(GetCameraTransform());
-			local camera_raycast = Transformation(camera_transform.pos, camera_transform.rot * QuatEuler(180, 0, 0)):Raycast(dist, 1, radius, rejectTransparent);
+			local camera_raycast = Transformation(camera_transform.pos, camera_transform.rot:Mul(QuatEuler(180, 0, 0))):Raycast(100);
 			local camera_pitch, camera_yaw, camera_roll = MakeQuaternion(GetCameraTransform().rot):ToEuler()
 			local player_pitch, player_yaw, player_roll = MakeQuaternion(GetPlayerTransform().rot):ToEuler()
 
@@ -236,7 +236,7 @@ if REALM_HUD or REALM_MENU then
 				player = {
 					{"CAMERA POSITION (XYZ)", tostring(math.floor(GetCameraTransform().pos[1] * 100) / 100) .. "   " .. tostring(math.floor(GetCameraTransform().pos[2] * 100) / 100) .. "   " .. tostring(math.floor(GetCameraTransform().pos[3] * 100) / 100)},
 					{"CAMERA ROTATION (PYR)", tostring(math.floor(camera_pitch * 100) / 100) .. "   " .. tostring(math.floor(camera_yaw * 100) / 100) .. "   " .. tostring(math.floor(camera_roll * 100) / 100)},
-					{"CAMERA LOOK POSITION (XYZ)", tostring(math.floor(camera_raycast.hit[1] * 100) / 100) .. "   " .. tostring(math.floor(camera_raycast.hit[2] * 100) / 100) .. "   " .. tostring(math.floor(camera_raycast.hit[3] * 100) / 100)},
+					{"CAMERA LOOK POS (XYZ)", tostring(math.floor(camera_raycast.hitpos[1] * 100) / 100) .. "   " .. tostring(math.floor(camera_raycast.hitpos[2] * 100) / 100) .. "   " .. tostring(math.floor(camera_raycast.hitpos[3] * 100) / 100)},
 					{"PLAYER POSITION (XYZ)", tostring(math.floor(GetPlayerTransform().pos[1] * 100) / 100) .. "   " .. tostring(math.floor(GetPlayerTransform().pos[2] * 100) / 100) .. "   " .. tostring(math.floor(GetPlayerTransform().pos[3] * 100) / 100)},
 					{"PLAYER ROTATION (PYR)", tostring(math.floor(player_pitch * 100) / 100) .. "   " .. tostring(math.floor(player_yaw * 100) / 100) .. "   " .. tostring(math.floor(player_roll * 100) / 100)},
 					{"PLAYER HEALTH", tostring(GetPlayerHealth())}
@@ -312,19 +312,8 @@ if REALM_HUD or REALM_MENU then
 		UiPop()
 	end
 
-	if UMF_CONFIG.devmode then
-		hook.add("base.draw", "console.draw", console)
-	end
-
-	hook.add("base.command.activate", "console.updateconfig", function()
-		if UMF_CONFIG.devmode then
-			hook.add("base.draw", "console.draw", console)
-		else
-			hook.remove("base.draw", "console.draw")
-		end
-	end)
-
-	hook.add("base.tick", "console.tick", function(dt)
+	local function console_tick()
+		-- Record tick time per frame and FPS
 		tick_iterations = tick_iterations + 1
 		tick_time = tick_time + GetTimeStep()
 		if tick_iterations % 2 == 0 then
@@ -339,7 +328,7 @@ if REALM_HUD or REALM_MENU then
 		if #tick_time_history >= 119 then
 			table.remove(tick_time_history, 1)
 		end
-	end)
+	end
 
 	hook.add("api.key.pressed", function(key)
 		if visible then
@@ -348,6 +337,21 @@ if REALM_HUD or REALM_MENU then
 			elseif key == "space" then
 				textbox_text = textbox_text .. " "
 			end
+		end
+	end)
+
+	if UMF_CONFIG.devmode then
+		hook.add("base.draw", "console.draw", console_draw)
+		hook.add("base.tick", "console.tick", console_tick)
+	end
+
+	hook.add("base.command.activate", "console.updateconfig", function()
+		if UMF_CONFIG.devmode then
+			hook.add("base.draw", "console.draw", console_draw)
+			hook.add("base.tick", "console.tick", console_tick)
+		else
+			hook.remove("base.draw", "console.draw")
+			hook.remove("base.tick", "console.tick")
 		end
 	end)
 end
