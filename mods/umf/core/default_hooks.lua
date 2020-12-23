@@ -116,3 +116,8 @@ if REALM_SANDBOX then
 		end
 	end
 end
+
+hook.add("base.tick", "api.firsttick", function()
+	hook.remove("base.tick", "api.firsttick")
+	hook.saferun("api.firsttick")
+end)

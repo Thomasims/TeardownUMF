@@ -158,6 +158,9 @@ if REALM_MENU then
 	clearconsole()
 	printinfo("-- GAME STARTED --")
 	printinfo(_VERSION)
+	hook.add("api.firsttick", function()
+		print("Running Teardown v" .. GetString("game.version"))
+	end)
 
 	Command("mods.refresh")
 end
