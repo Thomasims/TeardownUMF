@@ -49,7 +49,7 @@ function hook.run(event, ...)
 	if not hooks then return end
 	for i = 1, #hooks do
 		local a, b, c, d, e = hooks[i](...)
-		if a then return a, b, c, d, e end
+		if a ~= nil then return a, b, c, d, e end
 	end
 end
 
@@ -58,7 +58,7 @@ function hook.saferun(event, ...)
 	if not hooks then return end
 	for i = 1, #hooks do
 		local s, a, b, c, d, e = softassert(pcall(hooks[i], ...))
-		if s and a then return a, b, c, d, e end
+		if s and a ~= nil then return a, b, c, d, e end
 	end
 end
 
