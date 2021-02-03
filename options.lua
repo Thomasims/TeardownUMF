@@ -1,8 +1,8 @@
-
-dofile "mods/umf/injector.lua"
+#include "MODS/umf/injector.lua"
 
 function init()
-	devmode = UMF_CONFIG.devmode
+	config = util.structured_table "savegame.mod"
+	devmode = config.devmode
 end
 
 function draw()
@@ -19,7 +19,7 @@ function draw()
 	UiPush()
 		if UiTextButton("Developer Mode", 240, 40) then
 			devmode = not devmode
-			UMF_CONFIG.devmode = devmode
+			config.devmode = devmode
 		end
 		if devmode then
 			UiColor(0.5, 1, 0.5)

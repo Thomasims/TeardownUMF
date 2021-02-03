@@ -1,28 +1,6 @@
 
-if REALM then return end
-REALM = ... or "other"
-
-local s, e = pcall(function()
-
-SetBool("game.umf." .. REALM, true)
-
-local realms = {
-	hud = "REALM_HUD",
-	loading = "REALM_LOADING",
-	menu = "REALM_MENU",
-	splash = "REALM_SPLASH",
-	tv = "REALM_TV",
-	world = "REALM_WORLD",
-	heist = "REALM_HEIST",
-	sandbox = "REALM_SANDBOX",
-}
-
-if realms[REALM] then
-	_G[realms[REALM]] = true
-else
-	REALM_OTHER = true
-end
-
+if UMF_VERSION then return end
+UMF_VERSION = "0.6.0"
 
 -- Detouring stuff --
 
@@ -53,12 +31,6 @@ setmetatable(_G, {
 })
 
 -- Load helper --
-
-function FileExists(path)
-	local func, err = loadfile(path)
-	return func or err:match("[^ ]+ No such file or directory")
-end
-file = {exists = FileExists}
 
 local knownroots = {}
 local function fixpath(path)
@@ -148,65 +120,38 @@ end
 include("core/hook.lua")
 include("core/util.lua")
 GLOBAL_CHANNEL = util.shared_channel("game.umf_global_channel", 128)
-include("core/config.lua")
 include("core/console_backend.lua")
 include("core/meta.lua")
 include("core/default_hooks.lua")
 
-if REALM_MENU then
-	-- The menu realm is the first to initialize so we can do
-	clearconsole()
-	printinfo("-- GAME STARTED --")
-	printinfo(_VERSION)
-	hook.add("api.firsttick", function()
-		print("Running Teardown v" .. GetString("game.version"))
-	end)
+include("extension/meta/vector.lua")
+include("extension/meta/quat.lua")
+include("extension/meta/transform.lua")
 
-	Command("mods.refresh")
-end
+include("extension/meta/entity.lua")
+include("extension/meta/body.lua")
+include("extension/meta/shape.lua")
+include("extension/meta/location.lua")
+include("extension/meta/joint.lua")
+include("extension/meta/light.lua")
+include("extension/meta/trigger.lua")
+include("extension/meta/screen.lua")
+include("extension/meta/vehicle.lua")
+include("extension/meta/player.lua")
 
-print("Initializing modding base for REALM: " .. REALM)
+include("extension/render.lua")
+include("extension/timer.lua")
+include("extension/tdui.lua")
 
-include("init.lua")
+include("extension/added_hooks.lua")
 
-local function canload(manifest)
-	if manifest.disabled then return end
-	for i = 1, #manifest.realms do
-		if manifest.realms[i] == "*" or manifest.realms[i] == REALM then
-			return true
-		end
-	end
-end
+include("extension/level_loader.lua")
+include("extension/tool_loader.lua")
 
-local function loadmod(modname, path, manifest)
-	if not canload(manifest) then return end
-	local init, err = loadfile(path .. "/init.lua")
-	if not init then
-		if not unknownfile(err) then printerror(err) end
-		return
-	end
-	-- TODO: dependencies support
-	init()
-	printinfo("Loaded mod: " .. modname)
-end
-
-local runningMod = GetString("game.levelpath"):match("mods/([^/]+)/main.xml$")
 for i, modname in ipairs(ListKeys("mods.available")) do
 	local modkey = string.format("mods.available.%s", modname)
 	local path = GetString(modkey .. ".path")
 	knownroots[#knownroots + 1] = path
-	if not UMF_NOMODS then
-		local success, manifest = pcall(dofile, path .. "/manifest.lua")
-		if success and (GetBool(modkey .. ".active") or GetString("game.levelpath") == "" or runningMod == path:match("mods/([^/]+)/?$")) then
-			softassert(pcall(loadmod, modname, path, manifest))
-		end
-	end
 end
 
 hook.saferun("api.postinit")
-
-end)
-
-if not s then
-	SetString("savegame.errors."..(math.floor(math.random()*5000)), e)
-end
