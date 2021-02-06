@@ -87,37 +87,8 @@ end)
 
 --------------------------------
 
-if REALM_HUD then
-	hook.add("base.command.quicksave", "api.broadcast_quicksave", function()
-		GLOBAL_CHANNEL:broadcast("quicksave")
-	end)
-else
-	GLOBAL_CHANNEL:listen(function(channel, type)
-		if type == "quicksave" then
-			hook.saferun("base.command.quicksave")
-		end
-	end)
-end
-
-if REALM_SANDBOX then
-	SetBool("game.sandbox", true)
-	SetBool("game.unlimitedammo", pUnlimited)
-
-	function tick(dt)
-		--Fade to black and respawn when dead
-		if GetFloat("game.player.health") == 0 then
-			if dieFade == 0 then
-				SetValue("dieFade", 1, "linear", 4)
-			end
-			if dieFade == 1 then
-				RespawnPlayer()
-				SetValue("dieFade", 0, "linear", 1)
-			end	
-		end
-	end
-end
-
 hook.add("base.tick", "api.firsttick", function()
 	hook.remove("base.tick", "api.firsttick")
 	hook.saferun("api.firsttick")
+	if type(firsttick) == "function" then firsttick() end
 end)

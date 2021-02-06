@@ -145,7 +145,6 @@ include("extension/tdui.lua")
 
 include("extension/added_hooks.lua")
 
-include("extension/level_loader.lua")
 include("extension/tool_loader.lua")
 
 for i, modname in ipairs(ListKeys("mods.available")) do

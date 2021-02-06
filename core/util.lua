@@ -112,7 +112,7 @@ function util.shared_buffer(name, max)
 	}
 end
 
-function util.shared_channel(name, max)
+function util.shared_channel(name, max, local_realm)
 	max = max or 64
 	local channel = {
 		_buffer = util.shared_buffer(name, max),
@@ -159,7 +159,7 @@ function util.shared_channel(name, max)
 			end
 		end
 	}
-	local local_realm = "," .. (REALM or "") .. ","
+	local_realm = "," .. (local_realm or "unknown") .. ","
 	local function receive(...)
 		for i = 1, #channel._hooks do
 			local f = channel._hooks[i]
@@ -297,7 +297,6 @@ do
 				end,
 			})
 		end
-		print("setup")
 		if type(base) == "table" then return generate(base) end
 		return generate
 	end
