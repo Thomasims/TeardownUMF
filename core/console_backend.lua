@@ -16,10 +16,11 @@ local function maketext(...)
 	return text
 end
 
+_OLDPRINT = _OLDPRINT or print
 function printcolor(r, g, b, ...)
 	local text = string.format("%f;%f;%f;%s", r, g, b, maketext(...))
 	console_buffer:push(text)
-	--Command("console.update")
+	return _OLDPRINT(...)
 end
 
 function print(...)
