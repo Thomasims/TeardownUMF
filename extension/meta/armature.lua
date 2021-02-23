@@ -86,7 +86,7 @@ function Armature(definition)
     for i, name in ipairs(definition.shapes) do
         ids[name] = #definition.shapes - i + 1
     end
-    local armature = {root = definition.bones, refs = {}, __noquickload = function() end}
+    local armature = {root = definition.bones, refs = {}, scale = definition.scale, __noquickload = function() end}
     local function dobone(b)
         if b.name then armature.refs[b.name] = b end
         b.transform = Transform()
@@ -109,19 +109,21 @@ function Armature(definition)
     return setmetatable(armature, armature_meta)
 end
 
-local function applybone(shapes, bone, transform)
+local function applybone(shapes, bone, transform, scale)
     local newtr = TransformToParentTransform(transform, bone.transform)
     for i = 1, #bone.shape_offsets do
         local b = bone.shape_offsets[i]
-        SetShapeLocalTransform(GetEntityHandle(shapes[b.id]), TransformToParentTransform(newtr, b.tr))
+        local btr = TransformToParentTransform(newtr, b.tr)
+        if scale then btr.pos = VecScale(btr.pos, scale) end
+        SetShapeLocalTransform(GetEntityHandle(shapes[b.id]), btr)
     end
     for i = 1, #bone.children do
-        applybone(shapes, bone.children[i], newtr)
+        applybone(shapes, bone.children[i], newtr, scale)
     end
 end
 
 function armature_meta:Apply(shapes)
-    applybone(shapes, self.root, Transform())
+    applybone(shapes, self.root, Transform(), self.scale)
 end
 
 function armature_meta:SetBoneTransform(bone, transform)
