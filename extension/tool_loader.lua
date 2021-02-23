@@ -9,7 +9,7 @@ function RegisterToolUMF(id, data)
 end
 
 local function istoolactive()
-	return not GetBool("game.player.grabbing") and not GetBool("game.player.usescreen") and not GetBool("game.player.usevehicle") and not GetBool("game.map.enabled") and not GetBool("game.paused") and GetString("level.state") == ""
+	return GetBool("game.player.canusetool")
 end
 
 local prev
@@ -35,7 +35,6 @@ hook.add("base.tick", "api.tool_loader", function(dt)
 	prev = cur
 
 	if tool then
-		if tool.Tick then softassert(pcall(tool.Tick, tool, dt)) end
 		if tool.Animate then
 			local body = GetToolBody()
 			if not tool._BODY or tool._BODY.handle ~= body then
@@ -46,6 +45,7 @@ hook.add("base.tick", "api.tool_loader", function(dt)
 				softassert(pcall(tool.Animate, tool, tool._BODY, tool._SHAPES))
 			end
 		end
+		if tool.Tick then softassert(pcall(tool.Tick, tool, dt)) end
 	end
 end)
 
@@ -53,6 +53,11 @@ hook.add("base.init", "api.tool_loader", function()
 	for id, tool in pairs(extra_tools) do
 		if tool.Initialize then softassert(pcall(tool.Initialize, tool)) end
 	end
+end)
+
+hook.add("base.draw", "api.tool_loader", function()
+	local tool = extra_tools[GetString("game.player.tool")]
+	if tool and tool.Draw then softassert(pcall(tool.Draw, tool)) end
 end)
 
 hook.add("api.mouse.pressed", "api.tool_loader", function(button)
