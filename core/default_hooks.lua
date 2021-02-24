@@ -63,13 +63,13 @@ local function hasfunction(t, bck)
 	end
 end
 
-hook.add("api.postinit", "quicksave_workaround", function()
+function UpdateQuickloadPatch()
 	for k, v in pairs(_G) do
 		if k ~= "_G" and type(v) == "table" and hasfunction(v, {}) then
 			saved[k] = v
 		end
 	end
-end)
+end
 
 local quickloadfix = function()
 	for k, v in pairs(saved) do

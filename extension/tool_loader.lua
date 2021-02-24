@@ -49,7 +49,7 @@ hook.add("base.tick", "api.tool_loader", function(dt)
 	end
 end)
 
-hook.add("base.init", "api.tool_loader", function()
+hook.add("api.firsttick", "api.tool_loader", function()
 	for id, tool in pairs(extra_tools) do
 		if tool.Initialize then softassert(pcall(tool.Initialize, tool)) end
 	end

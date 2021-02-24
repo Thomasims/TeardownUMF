@@ -8,3 +8,4 @@
 #include "umf/core/added_hooks.lua"
 
 GLOBAL_CHANNEL = util.shared_channel("game.umf_global_channel", 128)
+UpdateQuickloadPatch()

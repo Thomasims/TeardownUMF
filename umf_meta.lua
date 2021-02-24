@@ -13,3 +13,5 @@
 #include "umf/extension/meta/vehicle.lua"
 #include "umf/extension/meta/player.lua"
 #include "umf/extension/meta/armature.lua"
+
+UpdateQuickloadPatch()
