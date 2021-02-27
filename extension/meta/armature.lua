@@ -86,7 +86,7 @@ function Armature(definition)
     for i, name in ipairs(definition.shapes) do
         ids[name] = #definition.shapes - i + 1
     end
-    local armature = {root = definition.bones, refs = {}, scale = definition.scale, __noquickload = function() end}
+    local armature = {root = definition.bones, refs = {}, scale = definition.scale, __noquickload = function() end, dirty = true}
     local function dobone(b)
         if b.name then armature.refs[b.name] = b end
         b.transform = Transform()
@@ -95,7 +95,7 @@ function Armature(definition)
             for name, transform in pairs(b.shapes) do
                 table.insert(b.shape_offsets, {
                     id = ids[name],
-                    tr = transform
+                    tr = Transform(VecScale(transform.pos, definition.scale or 1), transform.rot)
                 })
             end
         end
@@ -109,26 +109,43 @@ function Armature(definition)
     return setmetatable(armature, armature_meta)
 end
 
-local function applybone(shapes, bone, transform, scale)
+local function computebone(bone, transform, scale)
     local newtr = TransformToParentTransform(transform, bone.transform)
+    bone.g_transform = Transform(VecScale(newtr.pos, scale), newtr.rot)
+    for i = 1, #bone.children do
+        computebone(bone.children[i], newtr, scale)
+    end
+end
+
+function armature_meta:ComputeBones()
+    computebone(self.root, Transform(), self.scale or 1)
+    self.dirty = false
+end
+
+local function applybone(shapes, bone)
     for i = 1, #bone.shape_offsets do
-        local b = bone.shape_offsets[i]
-        local btr = TransformToParentTransform(newtr, b.tr)
-        if scale then btr.pos = VecScale(btr.pos, scale) end
-        SetShapeLocalTransform(GetEntityHandle(shapes[b.id]), btr)
+        local offset = bone.shape_offsets[i]
+        SetShapeLocalTransform(
+            GetEntityHandle(shapes[offset.id]),
+            TransformToParentTransform(bone.g_transform, offset.tr)
+        )
     end
     for i = 1, #bone.children do
-        applybone(shapes, bone.children[i], newtr, scale)
+        applybone(shapes, bone.children[i])
     end
 end
 
 function armature_meta:Apply(shapes)
-    applybone(shapes, self.root, Transform(), self.scale)
+    if self.dirty then
+        self:ComputeBones()
+    end
+    applybone(shapes, self.root)
 end
 
 function armature_meta:SetBoneTransform(bone, transform)
     local b = self.refs[bone]
     if not b then return end
+    self.dirty = true
     b.transform = transform
 end
 
@@ -136,4 +153,11 @@ function armature_meta:GetBoneTransform(bone)
     local b = self.refs[bone]
     if not b then return Transform() end
     return b.transform
+end
+
+function armature_meta:GetBoneGlobalTransform(bone)
+    local b = self.refs[bone]
+    if not b then return Transform() end
+    if self.dirty then self:ComputeBones() end
+    return b.g_transform
 end
