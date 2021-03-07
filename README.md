@@ -1,6 +1,3 @@
-# This Branch is ***NOT READY FOR NORMAL USAGE***.
-UMF is moving away from the special position afforded by hook_modloader.bat in preparation for the Steam Workshop integration. There will be major changes due to this and mods using it will have to update their structure as well.
-
 # Teardown Unofficial Modding Framework
 
 The UMF is an unofficial extension of the modding system present in the game.
