@@ -2,5 +2,6 @@
 #include "umf/umf_ext.lua"
 #include "umf/umf_meta.lua"
 #include "umf/umf_tool.lua"
+#include "umf/umf_3d.lua"
 
 UpdateQuickloadPatch()
