@@ -5,30 +5,31 @@ COLOR_BLACK = {r = 0, g = 0, b = 0, a = 255/255}
 COLOR_RED = {r = 255/255, g = 0, b = 0, a = 255/255}
 COLOR_ORANGE = {r = 255/255, g = 128/255, b = 0, a = 255/255}
 COLOR_YELLOW = {r = 255/255, g = 255/255, b = 0, a = 255/255}
-COLOR_GREEN = {r = 0, g = 255/255, b = 0, a = 1}
-COLOR_CYAN = {r = 0, g = 255/255, b = 128/255, a = 1}
+COLOR_GREEN = {r = 0, g = 255/255, b = 0, a = 255/255}
+COLOR_CYAN = {r = 0, g = 255/255, b = 128/255, a = 255/255}
 COLOR_AQUA = {r = 0, g = 255/255, b = 255/255, a = 255/255}
-COLOR_BLUE = {r = 0, g = 0, b = 255/255, a = 1}
+COLOR_BLUE = {r = 0, g = 0, b = 255/255, a = 255/255}
 COLOR_VIOLET = {r = 128/255, g = 0, b = 255/255, a = 255/255}
 COLOR_PINK = {r = 255/255, g = 0, b = 255/255, a = 255/255}
 
 
 if DrawSprite then
     function visual.drawsprite(sprite, source, radius, info)
-		local r, g, b, a = 1, 1, 1, 1
+		local r, g, b, a
 		local writeZ, additive = true, false
         local target = GetCameraTransform().pos
-        local ratio = math.max(info.r, info.g, info.b, info.a)
+		local DrawFunction = DrawLine
 
 		if info then
-			height = info.height or height
-			r = info.r / ratio or r
-			g = info.g / ratio or g
-			b = info.b / ratio or b
-            a = info.a / ratio or a
-			writeZ = info.writeZ ~= nil and info.writeZ or writeZ
-			additive = info.additive ~= nil and info.additive or additive
+			r = info.r and info.r or 1
+			g = info.g and info.g or 1
+			b = info.b and info.b or 1
+			a = info.a and info.a or 1
+			width = info.width or width
 			target = info.target or target
+			if info.writeZ ~= nil then writeZ = info.writeZ end
+			if info.additive ~= nil then additive = info.additive end
+			DrawFunction = info.DrawFunction ~= nil and info.DrawFunction or (info.writeZ == false and DebugLine or DrawLine)
 		end
 
 		DrawSprite(sprite, Transform(source, QuatLookAt(source, target)), radius, radius, r, g, b, a, writeZ, additive)
@@ -44,22 +45,22 @@ if DrawSprite then
 	end
 
     function visual.drawline(sprite, source, destination, info)
-		local width = 0.03
-		local r, g, b, a = 1, 1, 1, 1
+		local r, g, b, a
 		local writeZ, additive = true, false
         local target = GetCameraTransform().pos
-        local ratio = math.max(info.r, info.g, info.b, info.a)
-		local DrawFunction = writeZ and DrawLine or DebugLine
-
+		local DrawFunction = DrawLine
+		local width = 0.03
+		
 		if info then
+			r = info.r and info.r or 1
+			g = info.g and info.g or 1
+			b = info.b and info.b or 1
+			a = info.a and info.a or 1
 			width = info.width or width
-			r = info.r / ratio or r
-			g = info.g / ratio or g
-			b = info.b / ratio or b
-            a = info.a / ratio or a
-			writeZ = info.writeZ ~= nil and info.writeZ or writeZ
-			additive = info.additive ~= nil and info.additive or additive
 			target = info.target or target
+			if info.writeZ ~= nil then writeZ = info.writeZ end
+			if info.additive ~= nil then additive = info.additive end
+			DrawFunction = info.DrawFunction ~= nil and info.DrawFunction or (info.writeZ == false and DebugLine or DrawLine)
 		end
 
 		if sprite then
@@ -114,10 +115,7 @@ if DrawSprite then
 			r = info.r and info.r or 1
 			g = info.g and info.g or 1
 			b = info.b and info.b or 1
-			a = info.a and info.a or max(r, g, b)
-
-			local ratio = max(r, g, b, a)
-			r, g, b, a = r / ratio, g / ratio, b / ratio, a / ratio
+			a = info.a and info.a or 1
 			DrawFunction = info.DrawFunction ~= nil and info.DrawFunction or (info.writeZ == false and DebugLine or DrawLine)
 		end
 		
@@ -146,10 +144,7 @@ if DrawSprite then
 			r = info.r and info.r or 1
 			g = info.g and info.g or 1
 			b = info.b and info.b or 1
-			a = info.a and info.a or max(r, g, b)
-
-			local ratio = max(r, g, b, a)
-			r, g, b, a = r / ratio, g / ratio, b / ratio, a / ratio
+			a = info.a and info.a or 1
 			DrawFunction = info.DrawFunction ~= nil and info.DrawFunction or (info.writeZ == false and DebugLine or DrawLine)
 		end
 
@@ -165,7 +160,7 @@ if DrawSprite then
 		end
 	end
 
-	function visual.drawsphere(transform, radius, rotation, samples, info)
+	function visual.drawsphere(transform, quat, radius, rotation, samples, info)
 		local points = {}
 		local sqrt, sin, cos, max = math.sqrt, math.sin, math.cos, math.max
 		local r, g, b, a
@@ -177,10 +172,7 @@ if DrawSprite then
 			r = info.r and info.r or 1
 			g = info.g and info.g or 1
 			b = info.b and info.b or 1
-			a = info.a and info.a or max(r, g, b)
-
-			local ratio = max(r, g, b, a)
-			r, g, b, a = r / ratio, g / ratio, b / ratio, a / ratio
+			a = info.a and info.a or 1
 			DrawFunction = info.DrawFunction ~= nil and info.DrawFunction or (info.writeZ == false and DebugLine or DrawLine)
 		end
 
