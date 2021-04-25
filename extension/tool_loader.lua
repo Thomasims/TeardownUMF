@@ -1,6 +1,15 @@
 
+local tool_meta = {
+	__index = {
+		DrawInWorld = function(self, transform)
+			SetToolTransform(TransformToLocalTransform(GetCameraTransform(), transform))
+		end
+	}
+}
+
 local extra_tools = {}
 function RegisterToolUMF(id, data)
+	setmetatable(data, tool_meta)
 	data.id = id
 	data.base = data.base or "none"
 	extra_tools[id] = data
