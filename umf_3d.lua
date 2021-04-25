@@ -1,4 +1,4 @@
-#include "umf/umf_core.lua"
-#include "umf/extension/visual.lua"
+#include "umf_core.lua"
+#include "extension/visual.lua"
 
 UpdateQuickloadPatch()
