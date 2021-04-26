@@ -91,6 +91,7 @@ function Armature(definition)
         if b.name then armature.refs[b.name] = b end
         b.transform = b.transform or Transform()
         b.shape_offsets = {}
+        b.dirty = true
         if b.shapes then
             for name, transform in pairs(b.shapes) do
                 table.insert(b.shape_offsets, {
@@ -109,11 +110,15 @@ function Armature(definition)
     return setmetatable(armature, armature_meta)
 end
 
-local function computebone(bone, transform, scale)
-    local newtr = TransformToParentTransform(transform, bone.transform)
-    bone.g_transform = Transform(VecScale(newtr.pos, scale), newtr.rot)
+local function computebone(bone, transform, scale, dirty)
+    dirty = dirty or bone.dirty
+    if dirty or not bone.gr_transform then
+        bone.gr_transform = TransformToParentTransform(transform, bone.transform)
+        bone.g_transform = Transform(VecScale(bone.gr_transform.pos, scale), bone.gr_transform.rot)
+        bone.dirty = false
+    end
     for i = 1, #bone.children do
-        computebone(bone.children[i], newtr, scale)
+        computebone(bone.children[i], bone.gr_transform, scale, dirty)
     end
 end
 
@@ -146,6 +151,7 @@ function armature_meta:SetBoneTransform(bone, transform)
     local b = self.refs[bone]
     if not b then return end
     self.dirty = true
+    b.dirty = true
     b.transform = transform
 end
 
