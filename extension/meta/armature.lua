@@ -111,9 +111,12 @@ function Armature(definition)
 end
 
 local function computebone(bone, transform, scale, dirty)
-    dirty = dirty or bone.dirty
+    dirty = dirty or bone.dirty or bone.jiggle_transform
     if dirty or not bone.gr_transform then
         bone.gr_transform = TransformToParentTransform(transform, bone.transform)
+        if bone.jiggle_transform then
+            bone.gr_transform = TransformToParentTransform(bone.gr_transform, bone.jiggle_transform)
+        end
         bone.g_transform = Transform(VecScale(bone.gr_transform.pos, scale), bone.gr_transform.rot)
         bone.dirty = false
     end
@@ -141,7 +144,7 @@ local function applybone(shapes, bone)
 end
 
 function armature_meta:Apply(shapes)
-    if self.dirty then
+    if self.dirty or self.jiggle then
         self:ComputeBones()
     end
     applybone(shapes, self.root)
@@ -166,6 +169,43 @@ function armature_meta:GetBoneGlobalTransform(bone)
     if not b then return Transform() end
     if self.dirty then self:ComputeBones() end
     return b.g_transform
+end
+
+function armature_meta:SetBoneJiggle(bone, jiggle, constraint)
+    local b = self.refs[bone]
+    if not b then return end
+    self.dirty = true
+    if jiggle > 0 then self.jiggle = true end
+    b.jiggle = math.atan(jiggle) / math.pi * 2
+    b.jiggle_constraint = constraint
+end
+
+local function updatebone(bone, current_transform, prev_transform, dt, gravity)
+    local current_transform_local = TransformToParentTransform(current_transform, bone.transform)
+    local prev_transform_local = TransformToParentTransform(prev_transform, bone.transform)
+    if bone.jiggle then
+        prev_transform_local = TransformToParentTransform(prev_transform_local, bone.jiggle_transform or Transform())
+
+        local local_diff = TransformToLocalTransform(current_transform_local, prev_transform_local)
+        local target = TransformToParentPoint(local_diff, Vec(0, 0, -2/dt))
+
+        if bone.jiggle_constraint and bone.jiggle_constraint.gravity then
+            target = VecAdd(target, TransformToLocalVec(current_transform_local, VecScale(gravity, bone.jiggle_constraint.gravity)))
+        end
+
+        local lookat = QuatLookAt(Vec(), target)
+
+        bone.jiggle_transform = Transform(Vec(), QuatSlerp(lookat, QuatEuler(0, 0, 0), 1 - bone.jiggle))
+        current_transform_local = TransformToParentTransform(current_transform_local, bone.jiggle_transform)
+    end
+    for i = 1, #bone.children do
+        updatebone(bone.children[i], current_transform_local, prev_transform_local, dt, gravity)
+    end
+end
+
+function armature_meta:UpdatePhysics(diff, dt, gravity)
+    diff.pos = VecScale(diff.pos, 1 / dt)
+    updatebone(self.root, Transform(), diff, dt or 0.01666, gravity or Vec(0, -10, 0))
 end
 
 local function DebugAxis(tr, s)
