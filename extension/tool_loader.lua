@@ -11,7 +11,6 @@ local extra_tools = {}
 function RegisterToolUMF(id, data)
 	setmetatable(data, tool_meta)
 	data.id = id
-	data.base = data.base or "none"
 	extra_tools[id] = data
 	RegisterTool(id, data.printname or id, data.model or "")
 	SetBool("game.tool." .. id .. ".enabled", true)
@@ -30,20 +29,22 @@ end)
 
 hook.add("base.tick", "api.tool_loader", function(dt)
 	local cur = GetString("game.player.tool")
-	local tool = extra_tools[cur]
 	
 	local prevtool = prev and extra_tools[prev]
-	if prevtool and prevtool.ShouldLockMouseWheel then
-		local s, b = softassert(pcall(prevtool.ShouldLockMouseWheel, prevtool))
-		if b then
-			SetString("game.player.tool", prev)
-			cur = prev
-			tool = prevtool
+	if prevtool then
+		if prevtool.ShouldLockMouseWheel then
+			local s, b = softassert(pcall(prevtool.ShouldLockMouseWheel, prevtool))
+			if b then
+				SetString("game.player.tool", prev)
+				cur = prev
+			end
 		end
+		if prev ~= cur and prevtool.Holster then softassert(pcall(prevtool.Holster, prevtool)) end
 	end
-	prev = cur
 
+	local tool = extra_tools[cur]
 	if tool then
+		if prev ~= cur and tool.Deploy then softassert(pcall(tool.Deploy, tool)) end
 		if tool.Animate then
 			local body = GetToolBody()
 			if not tool._BODY or tool._BODY.handle ~= body then
@@ -56,6 +57,7 @@ hook.add("base.tick", "api.tool_loader", function(dt)
 		end
 		if tool.Tick then softassert(pcall(tool.Tick, tool, dt)) end
 	end
+	prev = cur
 end)
 
 hook.add("api.firsttick", "api.tool_loader", function()
