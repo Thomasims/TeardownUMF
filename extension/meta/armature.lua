@@ -180,6 +180,19 @@ function armature_meta:SetBoneJiggle(bone, jiggle, constraint)
     b.jiggle_constraint = constraint
 end
 
+function armature_meta:GetBoneJiggle(bone)
+    local b = self.refs[bone]
+    if not b then return 0 end
+    return b.jiggle, b.jiggle_constraint
+end
+
+function armature_meta:ResetJiggle()
+    for _, b in pairs(self.refs) do
+        b.jiggle_transform = nil
+    end
+    self.dirty = true
+end
+
 local function updatebone(bone, current_transform, prev_transform, dt, gravity)
     local current_transform_local = TransformToParentTransform(current_transform, bone.transform)
     local prev_transform_local = TransformToParentTransform(prev_transform, bone.transform)
@@ -204,8 +217,9 @@ local function updatebone(bone, current_transform, prev_transform, dt, gravity)
 end
 
 function armature_meta:UpdatePhysics(diff, dt, gravity)
+    dt = dt or 0.01666
     diff.pos = VecScale(diff.pos, 1 / dt)
-    updatebone(self.root, Transform(), diff, dt or 0.01666, gravity or Vec(0, -10, 0))
+    updatebone(self.root, Transform(), diff, dt, gravity or Vec(0, -10, 0))
 end
 
 local function DebugAxis(tr, s)
