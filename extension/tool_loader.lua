@@ -3,6 +3,15 @@ local tool_meta = {
 	__index = {
 		DrawInWorld = function(self, transform)
 			SetToolTransform(TransformToLocalTransform(GetCameraTransform(), transform))
+		end,
+		GetTransform = function(self)
+			return self._TRANSFORM or MakeTransformation(GetBodyTransform(GetToolBody()))
+		end,
+		GetPredictedTransform = function(self)
+			return self._TRANSFORM_FIX or MakeTransformation(GetBodyTransform(GetToolBody()))
+		end,
+		GetTransformDelta = function(self)
+			return self._TRANSFORM_DIFF or Transformation(Vec(), Quat())
 		end
 	}
 }
@@ -45,17 +54,23 @@ hook.add("base.tick", "api.tool_loader", function(dt)
 	local tool = extra_tools[cur]
 	if tool then
 		if prev ~= cur and tool.Deploy then softassert(pcall(tool.Deploy, tool)) end
-		if tool.Animate then
-			local body = GetToolBody()
-			if not tool._BODY or tool._BODY.handle ~= body then
-				tool._BODY = Body(body)
-				tool._SHAPES = tool._BODY and tool._BODY:GetShapes()
-			end
-			if tool._BODY then
+		local body = GetToolBody()
+		if not tool._BODY or tool._BODY.handle ~= body then
+			tool._BODY = Body(body)
+			tool._SHAPES = tool._BODY and tool._BODY:GetShapes()
+		end
+		if tool._BODY then
+			tool._TRANSFORM = tool._BODY:GetTransform()
+			tool._TRANSFORM_DIFF = tool._TRANSFORM_OLD and tool._TRANSFORM:ToLocal(tool._TRANSFORM_OLD) or Transformation(Vec(), Quat())
+			local reverse_diff = tool._TRANSFORM_OLD and tool._TRANSFORM_OLD:ToLocal(tool._TRANSFORM) or Transformation(Vec(), Quat())
+			--reverse_diff.pos = VecScale(reverse_diff.pos, 60 * dt)
+			tool._TRANSFORM_FIX = tool._TRANSFORM:ToGlobal(reverse_diff)
+			if tool.Animate then
 				softassert(pcall(tool.Animate, tool, tool._BODY, tool._SHAPES))
 			end
 		end
 		if tool.Tick then softassert(pcall(tool.Tick, tool, dt)) end
+		if tool._TRANSFORM then tool._TRANSFORM_OLD = tool._TRANSFORM end
 	end
 	prev = cur
 end)
