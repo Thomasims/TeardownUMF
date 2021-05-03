@@ -8,7 +8,6 @@ local invehicle = IsPlayerInVehicle()
 
 local keyboardkeys = {"esc", "up", "down", "left", "right", "space", "interact", "return"}
 for i = 97, 97 + 25 do keyboardkeys[#keyboardkeys + 1] = string.char(i) end
-local mousekeys = {"lmb", "rmb"}
 local function checkkeys(func, mousehook, keyhook)
 	if hook.used(keyhook) and func("any") then
 		for i = 1, #keyboardkeys do
@@ -21,8 +20,37 @@ local function checkkeys(func, mousehook, keyhook)
 	end
 end
 
+local mousekeys = {"lmb", "rmb", "mmb"}
+local heldkeys = {}
+
 hook.add("base.tick", "api.default_hooks", function()
-	if InputPressed then
+	if InputLastPressedKey then
+		for i = 1, #mousekeys do
+			local k = mousekeys[i]
+			if InputPressed(k) then
+				hook.saferun("api.mouse.pressed", k)
+			elseif InputReleased(k) then
+				hook.saferun("api.mouse.released", k)
+			end
+		end
+		local lastkey = InputLastPressedKey()
+		if lastkey ~= "" then
+			heldkeys[lastkey] = true
+			hook.saferun("api.key.pressed", lastkey)
+		end
+		for key in pairs(heldkeys) do
+			if not InputDown(key) then
+				heldkeys[key] = nil
+				hook.saferun("api.key.released", key)
+				break
+			end
+		end
+		local wheel = InputValue("mousewheel")
+		if wheel ~= 0 then hook.saferun("api.mouse.wheel", wheel) end
+		local mousedx = InputValue("mousedx")
+		local mousedy = InputValue("mousedy")
+		if mousedx ~= 0 or mousedy ~= 0 then hook.saferun("api.mouse.move", mousedx, mousedy) end
+	elseif InputPressed then
 		checkkeys(InputPressed, "api.mouse.pressed", "api.key.pressed")
 		checkkeys(InputReleased, "api.mouse.released", "api.key.released")
 		local wheel = InputValue("mousewheel")
