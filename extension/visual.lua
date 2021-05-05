@@ -18,28 +18,29 @@ if DrawSprite then
 		local r, g, b, a
 		local writeZ, additive = true, false
         local target = GetCameraTransform().pos
-		local DrawFunction = DrawLine
+		local DrawFunction = DrawSprite
 
+		radius = radius or 1
+		
 		if info then
 			r = info.r and info.r or 1
 			g = info.g and info.g or 1
 			b = info.b and info.b or 1
 			a = info.a and info.a or 1
-			width = info.width or width
 			target = info.target or target
 			if info.writeZ ~= nil then writeZ = info.writeZ end
 			if info.additive ~= nil then additive = info.additive end
-			DrawFunction = info.DrawFunction ~= nil and info.DrawFunction or (info.writeZ == false and DebugLine or DrawLine)
+			DrawFunction = info.DrawFunction ~= nil and info.DrawFunction or DrawFunction
 		end
 
-		DrawSprite(sprite, Transform(source, QuatLookAt(source, target)), radius, radius, r, g, b, a, writeZ, additive)
+		DrawFunction(sprite, Transform(source, QuatLookAt(source, target)), radius, radius, r, g, b, a, writeZ, additive)
     end
-    function visual.drawsprites(sprites, sources, size, info)
+    function visual.drawsprites(sprites, sources, radius, info)
 		sprites = type(sprites) ~= "table" and {sprites} or sprites
 
         for i = 1, #sprites do
             for j = 1, #sources do
-                visual.drawsprite(sprites[i], sources[j], size, info)
+                visual.drawsprite(sprites[i], sources[j], radius, info)
             end
         end
 	end
@@ -93,23 +94,26 @@ if DrawSprite then
 	end
 
 	function visual.drawaxis(transform, quat, radius, writeZ)
-		scale = scale or 1
-		if not transform.pos then transform = Transform(transform, quat or QUAT_ZERO) end
 		local DrawFunction = writeZ and DrawLine or DebugLine
+
+		if not transform.pos then transform = Transform(transform, quat or QUAT_ZERO) end
+		radius = radius or 1
 
 		DrawFunction(transform.pos, TransformToParentPoint(transform, Vec(radius, 0, 0)), 1, 0, 0)
 		DrawFunction(transform.pos, TransformToParentPoint(transform, Vec(0, radius, 0)), 0, 1, 0)
 		DrawFunction(transform.pos, TransformToParentPoint(transform, Vec(0, 0, radius)), 0, 0, 1)
     end
     
-    function visual.drawpolygon(transform, quat, radius, rotation, sides, info)
+    function visual.drawpolygon(transform, radius, rotation, sides, info)
 		local points = {}
 		local iteration = 1
-		local sqrt, sin, cos, max = math.sqrt, math.sin, math.cos, math.max
+		local sin, cos = math.sin, math.cos
 		local r, g, b, a
 		local DrawFunction = DrawLine
-
-		if not transform.pos then transform = Transform(transform, quat or QUAT_ZERO) end
+		
+		radius = radius or 1
+		rotation = rotation or 0
+		sides = sides or 4
 
 		if info then
 			r = info.r and info.r or 1
@@ -131,14 +135,17 @@ if DrawSprite then
 		return points
     end
 
-	function visual.drawprism(transform, quat, radius, depth, rotation, sides, info)
+	function visual.drawprism(transform, radius, depth, rotation, sides, info)
 		local points = {}
 		local iteration = 1
-		local sqrt, sin, cos, max = math.sqrt, math.sin, math.cos, math.max
+		local sin, cos = math.sin, math.cos
 		local r, g, b, a
 		local DrawFunction = DrawLine
 
-		if not transform.pos then transform = Transform(transform, quat or QUAT_ZERO) end
+		radius = radius or 1
+		depth = depth or 1
+		rotation = rotation or 0
+		sides = sides or 4
 
 		if info then
 			r = info.r and info.r or 1
@@ -150,7 +157,7 @@ if DrawSprite then
 
 		for v = 0, 360, 360 / sides do
 			points[iteration] = TransformToParentPoint(transform, Vec(sin(v * degreeToRadian + rotation) * radius, 0, cos(v * degreeToRadian + rotation) * radius))
-			points[iteration + 1] = TransformToParentPoint(transform, Vec(sin(v * degreeToRadian + rotation) * radius, -10, cos(v * degreeToRadian + rotation) * radius))
+			points[iteration + 1] = TransformToParentPoint(transform, Vec(sin(v * degreeToRadian + rotation) * radius, -depth, cos(v * degreeToRadian + rotation) * radius))
 			if iteration > 2 then
 				DrawFunction(points[iteration], points[iteration + 1], r, g, b, a)
 				DrawFunction(points[iteration - 2], points[iteration], r, g, b, a)
@@ -160,13 +167,15 @@ if DrawSprite then
 		end
 	end
 
-	function visual.drawsphere(transform, quat, radius, rotation, samples, info)
+	function visual.drawsphere(transform, radius, rotation, samples, info)
 		local points = {}
-		local sqrt, sin, cos, max = math.sqrt, math.sin, math.cos, math.max
+		local sqrt, sin, cos = math.sqrt, math.sin, math.cos
 		local r, g, b, a
 		local DrawFunction = DrawLine
 
-		if not transform.pos then transform = Transform(transform, quat or QUAT_ZERO) end
+		radius = radius or 1
+		rotation = rotation or 1
+		samples = samples or 100
 
 		if info then
 			r = info.r and info.r or 1
