@@ -312,7 +312,7 @@ function LoadArmatureFromXML(xml, parts, scale) -- Example below
         bones = bones,
     }
     arm:ComputeBones()
-    return arm
+    return arm, dt
 end
 --[=[
 --[[---------------------------------------------------

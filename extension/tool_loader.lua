@@ -12,12 +12,44 @@ local tool_meta = {
 		end,
 		GetTransformDelta = function(self)
 			return self._TRANSFORM_DIFF or Transformation(Vec(), Quat())
+		end,
+		GetBoneGlobalTransform = function(self, bone, nopredicted)
+			if not self._ARMATURE then return Transformation(Vec(), Quat()) end
+			return (nopredicted and self:GetTransform() or self:GetPredictedTransform())
+				:ToGlobal(self._ARMATURE:GetBoneGlobalTransform(bone))
+		end,
+		DrawDebug = function(self, nobones, nobounds, nopredicted)
+			if not self._ARMATURE or not self._SHAPES then return end
+			local ptr = (nopredicted and self:GetTransform() or self:GetPredictedTransform())
+			if not nobones and self._ARMATURE then
+				self._ARMATURE:DrawDebug(ptr)
+			end
+			if not nobounds and self._OBJECTS then
+				local s = self._OBJECTS
+				for i = 1, #self._SHAPES do
+					visual.drawbox(ptr:ToGlobal(self._SHAPES[i]:GetLocalTransform()), Vec(0,0,0), VecScale(s[#s+1-i][2], .05), 1, 1, 1, .2, false)
+				end
+			end
 		end
 	}
 }
 
 local extra_tools = {}
 function RegisterToolUMF(id, data)
+	if LoadArmatureFromXML and type(data.model) == "table" then
+		local arm, xml = LoadArmatureFromXML(data.model.prefab, data.model.objects, data.model.scale)
+		data.armature = arm
+		data._ARMATURE = arm
+		data._OBJECTS = data.model.objects
+		local function findvox(xml)
+			if xml.type == "vox" then return xml.attributes["file"] end
+			for i, c in ipairs(xml.children) do
+				local t = findvox(c)
+				if t then return t end
+			end
+		end
+		data.model = data.model.path or findvox(xml)
+	end
 	setmetatable(data, tool_meta)
 	data.id = id
 	extra_tools[id] = data
@@ -53,7 +85,10 @@ hook.add("base.tick", "api.tool_loader", function(dt)
 
 	local tool = extra_tools[cur]
 	if tool then
-		if prev ~= cur and tool.Deploy then softassert(pcall(tool.Deploy, tool)) end
+		if prev ~= cur then
+			if tool.Deploy then softassert(pcall(tool.Deploy, tool)) end
+			if tool._ARMATURE then tool._ARMATURE:ResetJiggle() end
+		end
 		local body = GetToolBody()
 		if not tool._BODY or tool._BODY.handle ~= body then
 			tool._BODY = Body(body)
@@ -67,6 +102,10 @@ hook.add("base.tick", "api.tool_loader", function(dt)
 			tool._TRANSFORM_FIX = tool._TRANSFORM:ToGlobal(reverse_diff)
 			if tool.Animate then
 				softassert(pcall(tool.Animate, tool, tool._BODY, tool._SHAPES))
+			end
+			if tool._ARMATURE then
+				tool._ARMATURE:UpdatePhysics(tool:GetTransformDelta(), GetTimeStep(), TransformToLocalVec(tool:GetTransform(), Vec(0, -10, 0)))
+				tool._ARMATURE:Apply(tool._SHAPES)
 			end
 		end
 		if tool.Tick then softassert(pcall(tool.Tick, tool, dt)) end
