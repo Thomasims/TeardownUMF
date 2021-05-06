@@ -1,5 +1,4 @@
-
-local armature_meta = global_metatable("armature")
+local armature_meta = global_metatable( "armature" )
 
 --[[
 
@@ -81,238 +80,251 @@ Armature {
 
 ]]
 
-function Armature(definition)
-    local ids = {}
-    for i, name in ipairs(definition.shapes) do
-        ids[name] = #definition.shapes - i + 1
-    end
-    local armature = {root = definition.bones, refs = {}, scale = definition.scale, __noquickload = function() end, dirty = true}
-    local function dobone(b)
-        if b.name then armature.refs[b.name] = b end
-        b.transform = b.transform or Transform()
-        b.shape_offsets = {}
-        b.dirty = true
-        if b.shapes then
-            for name, transform in pairs(b.shapes) do
-                table.insert(b.shape_offsets, {
-                    id = ids[name],
-                    tr = Transform(VecScale(transform.pos, definition.scale or 1), transform.rot)
-                })
-            end
-        end
-        b.children = {}
-        for i = 1, #b do
-            b.children[i] = dobone(b[i])
-        end
-        return b
-    end
-    dobone(armature.root)
-    return setmetatable(armature, armature_meta)
+function Armature( definition )
+	local ids = {}
+	for i, name in ipairs( definition.shapes ) do
+		ids[name] = #definition.shapes - i + 1
+	end
+	local armature = {
+		root = definition.bones,
+		refs = {},
+		scale = definition.scale,
+		__noquickload = function()
+		end,
+		dirty = true,
+	}
+	local function dobone( b )
+		if b.name then
+			armature.refs[b.name] = b
+		end
+		b.transform = b.transform or Transform()
+		b.shape_offsets = {}
+		b.dirty = true
+		if b.shapes then
+			for name, transform in pairs( b.shapes ) do
+				table.insert( b.shape_offsets,
+				              { id = ids[name], tr = Transform( VecScale( transform.pos, definition.scale or 1 ), transform.rot ) } )
+			end
+		end
+		b.children = {}
+		for i = 1, #b do
+			b.children[i] = dobone( b[i] )
+		end
+		return b
+	end
+	dobone( armature.root )
+	return setmetatable( armature, armature_meta )
 end
 
-local function computebone(bone, transform, scale, dirty)
-    dirty = dirty or bone.dirty or bone.jiggle_transform
-    if dirty or not bone.gr_transform then
-        bone.gr_transform = TransformToParentTransform(transform, bone.transform)
-        if bone.jiggle_transform then
-            bone.gr_transform = TransformToParentTransform(bone.gr_transform, bone.jiggle_transform)
-        end
-        bone.g_transform = Transform(VecScale(bone.gr_transform.pos, scale), bone.gr_transform.rot)
-        bone.dirty = false
-    end
-    for i = 1, #bone.children do
-        computebone(bone.children[i], bone.gr_transform, scale, dirty)
-    end
+local function computebone( bone, transform, scale, dirty )
+	dirty = dirty or bone.dirty or bone.jiggle_transform
+	if dirty or not bone.gr_transform then
+		bone.gr_transform = TransformToParentTransform( transform, bone.transform )
+		if bone.jiggle_transform then
+			bone.gr_transform = TransformToParentTransform( bone.gr_transform, bone.jiggle_transform )
+		end
+		bone.g_transform = Transform( VecScale( bone.gr_transform.pos, scale ), bone.gr_transform.rot )
+		bone.dirty = false
+	end
+	for i = 1, #bone.children do
+		computebone( bone.children[i], bone.gr_transform, scale, dirty )
+	end
 end
 
 function armature_meta:ComputeBones()
-    computebone(self.root, Transform(), self.scale or 1)
-    self.dirty = false
+	computebone( self.root, Transform(), self.scale or 1 )
+	self.dirty = false
 end
 
-local function applybone(shapes, bone)
-    for i = 1, #bone.shape_offsets do
-        local offset = bone.shape_offsets[i]
-        SetShapeLocalTransform(
-            GetEntityHandle(shapes[offset.id]),
-            TransformToParentTransform(bone.g_transform, offset.tr)
-        )
-    end
-    for i = 1, #bone.children do
-        applybone(shapes, bone.children[i])
-    end
+local function applybone( shapes, bone )
+	for i = 1, #bone.shape_offsets do
+		local offset = bone.shape_offsets[i]
+		SetShapeLocalTransform( GetEntityHandle( shapes[offset.id] ),
+		                        TransformToParentTransform( bone.g_transform, offset.tr ) )
+	end
+	for i = 1, #bone.children do
+		applybone( shapes, bone.children[i] )
+	end
 end
 
-function armature_meta:Apply(shapes)
-    if self.dirty or self.jiggle then
-        self:ComputeBones()
-    end
-    applybone(shapes, self.root)
+function armature_meta:Apply( shapes )
+	if self.dirty or self.jiggle then
+		self:ComputeBones()
+	end
+	applybone( shapes, self.root )
 end
 
-function armature_meta:SetBoneTransform(bone, transform)
-    local b = self.refs[bone]
-    if not b then return end
-    self.dirty = true
-    b.dirty = true
-    b.transform = transform
+function armature_meta:SetBoneTransform( bone, transform )
+	local b = self.refs[bone]
+	if not b then
+		return
+	end
+	self.dirty = true
+	b.dirty = true
+	b.transform = transform
 end
 
-function armature_meta:GetBoneTransform(bone)
-    local b = self.refs[bone]
-    if not b then return Transform() end
-    return b.transform
+function armature_meta:GetBoneTransform( bone )
+	local b = self.refs[bone]
+	if not b then
+		return Transform()
+	end
+	return b.transform
 end
 
-function armature_meta:GetBoneGlobalTransform(bone)
-    local b = self.refs[bone]
-    if not b then return Transform() end
-    if self.dirty then self:ComputeBones() end
-    return b.g_transform
+function armature_meta:GetBoneGlobalTransform( bone )
+	local b = self.refs[bone]
+	if not b then
+		return Transform()
+	end
+	if self.dirty then
+		self:ComputeBones()
+	end
+	return b.g_transform
 end
 
-function armature_meta:SetBoneJiggle(bone, jiggle, constraint)
-    local b = self.refs[bone]
-    if not b then return end
-    self.dirty = true
-    if jiggle > 0 then self.jiggle = true end
-    b.jiggle = math.atan(jiggle) / math.pi * 2
-    b.jiggle_constraint = constraint
+function armature_meta:SetBoneJiggle( bone, jiggle, constraint )
+	local b = self.refs[bone]
+	if not b then
+		return
+	end
+	self.dirty = true
+	if jiggle > 0 then
+		self.jiggle = true
+	end
+	b.jiggle = math.atan( jiggle ) / math.pi * 2
+	b.jiggle_constraint = constraint
 end
 
-function armature_meta:GetBoneJiggle(bone)
-    local b = self.refs[bone]
-    if not b then return 0 end
-    return b.jiggle, b.jiggle_constraint
+function armature_meta:GetBoneJiggle( bone )
+	local b = self.refs[bone]
+	if not b then
+		return 0
+	end
+	return b.jiggle, b.jiggle_constraint
 end
 
 function armature_meta:ResetJiggle()
-    for _, b in pairs(self.refs) do
-        b.jiggle_transform = nil
-    end
-    self.dirty = true
+	for _, b in pairs( self.refs ) do
+		b.jiggle_transform = nil
+	end
+	self.dirty = true
 end
 
-local function updatebone(bone, current_transform, prev_transform, dt, gravity)
-    local current_transform_local = TransformToParentTransform(current_transform, bone.transform)
-    local prev_transform_local = TransformToParentTransform(prev_transform, bone.transform)
-    if bone.jiggle then
-        prev_transform_local = TransformToParentTransform(prev_transform_local, bone.jiggle_transform or Transform())
+local function updatebone( bone, current_transform, prev_transform, dt, gravity )
+	local current_transform_local = TransformToParentTransform( current_transform, bone.transform )
+	local prev_transform_local = TransformToParentTransform( prev_transform, bone.transform )
+	if bone.jiggle then
+		prev_transform_local = TransformToParentTransform( prev_transform_local, bone.jiggle_transform or Transform() )
 
-        local local_diff = TransformToLocalTransform(current_transform_local, prev_transform_local)
-        local target = TransformToParentPoint(local_diff, Vec(0, 0, -2/dt))
+		local local_diff = TransformToLocalTransform( current_transform_local, prev_transform_local )
+		local target = TransformToParentPoint( local_diff, Vec( 0, 0, -2 / dt ) )
 
-        if bone.jiggle_constraint and bone.jiggle_constraint.gravity then
-            target = VecAdd(target, TransformToLocalVec(current_transform_local, VecScale(gravity, bone.jiggle_constraint.gravity)))
-        end
+		if bone.jiggle_constraint and bone.jiggle_constraint.gravity then
+			target = VecAdd( target,
+			                 TransformToLocalVec( current_transform_local, VecScale( gravity, bone.jiggle_constraint.gravity ) ) )
+		end
 
-        local lookat = QuatLookAt(Vec(), target)
+		local lookat = QuatLookAt( Vec(), target )
 
-        bone.jiggle_transform = Transform(Vec(), QuatSlerp(lookat, QuatEuler(0, 0, 0), 1 - bone.jiggle))
-        current_transform_local = TransformToParentTransform(current_transform_local, bone.jiggle_transform)
-    end
-    for i = 1, #bone.children do
-        updatebone(bone.children[i], current_transform_local, prev_transform_local, dt, gravity)
-    end
+		bone.jiggle_transform = Transform( Vec(), QuatSlerp( lookat, QuatEuler( 0, 0, 0 ), 1 - bone.jiggle ) )
+		current_transform_local = TransformToParentTransform( current_transform_local, bone.jiggle_transform )
+	end
+	for i = 1, #bone.children do
+		updatebone( bone.children[i], current_transform_local, prev_transform_local, dt, gravity )
+	end
 end
 
-function armature_meta:UpdatePhysics(diff, dt, gravity)
-    dt = dt or 0.01666
-    diff.pos = VecScale(diff.pos, 1 / dt)
-    updatebone(self.root, Transform(), diff, dt, gravity or Vec(0, -10, 0))
+function armature_meta:UpdatePhysics( diff, dt, gravity )
+	dt = dt or 0.01666
+	diff.pos = VecScale( diff.pos, 1 / dt )
+	updatebone( self.root, Transform(), diff, dt, gravity or Vec( 0, -10, 0 ) )
 end
 
-local function DebugAxis(tr, s)
-    s = s or 1
-    DebugLine(tr.pos, TransformToParentPoint(tr, Vec(1*s,0,0)), 1, 0, 0)
-    DebugLine(tr.pos, TransformToParentPoint(tr, Vec(0,1*s,0)), 0, 1, 0)
-    DebugLine(tr.pos, TransformToParentPoint(tr, Vec(0,0,1*s)), 0, 0, 1)
+local function DebugAxis( tr, s )
+	s = s or 1
+	DebugLine( tr.pos, TransformToParentPoint( tr, Vec( 1 * s, 0, 0 ) ), 1, 0, 0 )
+	DebugLine( tr.pos, TransformToParentPoint( tr, Vec( 0, 1 * s, 0 ) ), 0, 1, 0 )
+	DebugLine( tr.pos, TransformToParentPoint( tr, Vec( 0, 0, 1 * s ) ), 0, 0, 1 )
 end
 
-function armature_meta:DrawDebug(transform)
-    transform = transform or Transform()
-    DebugAxis(transform, 0.05)
-    for k, v in pairs(self.refs) do
-        local r = TransformToParentTransform(transform, v.g_transform)
-        local g = v.name:find("^__FIXED_") and 1 or 0
-        for i = 1, #v.children do
-            DebugLine(r.pos, TransformToParentTransform(transform, v.children[i].g_transform).pos, 1, 1 - g, g, .4)
-        end
-        for i = 1, #v.shape_offsets do
-            local offset = v.shape_offsets[i]
-            local p = TransformToParentTransform(transform, TransformToParentTransform(v.g_transform, offset.tr))
-            DebugAxis(p, 0.03)
-            DebugLine(r.pos, p.pos, 0, 1, 1, .4)
-        end
-    end
+function armature_meta:DrawDebug( transform )
+	transform = transform or Transform()
+	DebugAxis( transform, 0.05 )
+	for k, v in pairs( self.refs ) do
+		local r = TransformToParentTransform( transform, v.g_transform )
+		local g = v.name:find( "^__FIXED_" ) and 1 or 0
+		for i = 1, #v.children do
+			DebugLine( r.pos, TransformToParentTransform( transform, v.children[i].g_transform ).pos, 1, 1 - g, g, .4 )
+		end
+		for i = 1, #v.shape_offsets do
+			local offset = v.shape_offsets[i]
+			local p = TransformToParentTransform( transform, TransformToParentTransform( v.g_transform, offset.tr ) )
+			DebugAxis( p, 0.03 )
+			DebugLine( r.pos, p.pos, 0, 1, 1, .4 )
+		end
+	end
 end
 
-function LoadArmatureFromXML(xml, parts, scale) -- Example below
-    scale = scale or 1
-    local dt = ParseXML(xml)
-    assert(dt.type == "prefab" and dt.children[1] and dt.children[1].type == "group")
-    local shapes = {}
-    local offsets = {}
-    for i = 1, #parts do
-        shapes[i] = parts[i][1]
-        local v = parts[i][2]
-        -- Compensate for the editor placing vox parts relative to the center of the base
-        offsets[parts[i][1]] = Vec(math.floor(v[1]/2)/10, 0, -math.floor(v[2]/2)/10)
-    end
+function LoadArmatureFromXML( xml, parts, scale ) -- Example below
+	scale = scale or 1
+	local dt = ParseXML( xml )
+	assert( dt.type == "prefab" and dt.children[1] and dt.children[1].type == "group" )
+	local shapes = {}
+	local offsets = {}
+	for i = 1, #parts do
+		shapes[i] = parts[i][1]
+		local v = parts[i][2]
+		-- Compensate for the editor placing vox parts relative to the center of the base
+		offsets[parts[i][1]] = Vec( math.floor( v[1] / 2 ) / 10, 0, -math.floor( v[2] / 2 ) / 10 )
+	end
 
-    local function parseVec(str)
-        if not str then return Vec(0,0,0) end
-        local x, y, z = str:match("([%d.-]+) ([%d.-]+) ([%d.-]+)")
-        return Vec(tonumber(x), tonumber(y), tonumber(z))
-    end
+	local function parseVec( str )
+		if not str then
+			return Vec( 0, 0, 0 )
+		end
+		local x, y, z = str:match( "([%d.-]+) ([%d.-]+) ([%d.-]+)" )
+		return Vec( tonumber( x ), tonumber( y ), tonumber( z ) )
+	end
 
-    local function parseTransform(attr)
-        local pos, angv = parseVec(attr.pos), parseVec(attr.rot)
-        return Transform(Vec(pos[1], pos[2], pos[3]), QuatEuler(angv[1], angv[2], angv[3]))
-    end
+	local function parseTransform( attr )
+		local pos, angv = parseVec( attr.pos ), parseVec( attr.rot )
+		return Transform( Vec( pos[1], pos[2], pos[3] ), QuatEuler( angv[1], angv[2], angv[3] ) )
+	end
 
-    local function translatebone(node, isLocation)
-        local t = {
-            name = node.attributes.name,
-            transform = parseTransform(node.attributes),
-        }
-        local sub = t
-        if not isLocation then
-            t.name = "__FIXED_" .. node.attributes.name
-            t[1] = {
-                name = node.attributes.name
-            }
-            sub = t[1]
-        end
-        sub.shapes = {}
-        for i = 1, #node.children do
-            local child = node.children[i]
-            if child.type == "vox" then
-                local name = child.attributes.object
-                local tr = parseTransform(child.attributes)
-                local s = child.attributes.scale and tonumber(child.attributes.scale) or 1
-                tr.pos = VecSub(tr.pos, VecScale(offsets[name], s))
-                tr.rot = QuatRotateQuat(tr.rot, QuatEuler(-90,0,0))
-                sub.shapes[name] = tr
-            elseif child.type == "group" then
-                sub[#sub + 1] = translatebone(child)
-            elseif child.type == "location" then
-                sub[#sub + 1] = translatebone(child, true)
-            end
-        end
-        return t
-    end
-    local bones = translatebone(dt.children[1])[1]
-    bones.transform = Transform(Vec(), QuatEuler(0, 0, 0))
-    bones.name = "root"
+	local function translatebone( node, isLocation )
+		local t = { name = node.attributes.name, transform = parseTransform( node.attributes ) }
+		local sub = t
+		if not isLocation then
+			t.name = "__FIXED_" .. node.attributes.name
+			t[1] = { name = node.attributes.name }
+			sub = t[1]
+		end
+		sub.shapes = {}
+		for i = 1, #node.children do
+			local child = node.children[i]
+			if child.type == "vox" then
+				local name = child.attributes.object
+				local tr = parseTransform( child.attributes )
+				local s = child.attributes.scale and tonumber( child.attributes.scale ) or 1
+				tr.pos = VecSub( tr.pos, VecScale( offsets[name], s ) )
+				tr.rot = QuatRotateQuat( tr.rot, QuatEuler( -90, 0, 0 ) )
+				sub.shapes[name] = tr
+			elseif child.type == "group" then
+				sub[#sub + 1] = translatebone( child )
+			elseif child.type == "location" then
+				sub[#sub + 1] = translatebone( child, true )
+			end
+		end
+		return t
+	end
+	local bones = translatebone( dt.children[1] )[1]
+	bones.transform = Transform( Vec(), QuatEuler( 0, 0, 0 ) )
+	bones.name = "root"
 
-    local arm = Armature {
-        shapes = shapes,
-        scale = scale,
-        bones = bones,
-    }
-    arm:ComputeBones()
-    return arm, dt
+	local arm = Armature { shapes = shapes, scale = scale, bones = bones }
+	arm:ComputeBones()
+	return arm, dt
 end
 --[=[
 --[[---------------------------------------------------
