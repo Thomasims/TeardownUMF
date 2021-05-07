@@ -3,7 +3,7 @@ local quat_meta = global_metatable( "quaternion" )
 
 function IsQuaternion( q )
 	return type( q ) == "table" and type( q[1] ) == "number" and type( q[2] ) == "number" and type( q[3] ) == "number" and
-					       type( q[4] ) == "number"
+	       type( q[4] ) == "number"
 end
 
 function MakeQuaternion( v )

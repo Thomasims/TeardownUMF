@@ -17,7 +17,7 @@ local tool_meta = {
 				return Transformation( Vec(), Quat() )
 			end
 			return (nopredicted and self:GetTransform() or self:GetPredictedTransform()):ToGlobal(
-							       self._ARMATURE:GetBoneGlobalTransform( bone ) )
+			       self._ARMATURE:GetBoneGlobalTransform( bone ) )
 		end,
 		DrawDebug = function( self, nobones, nobounds, nopredicted )
 			if not self._ARMATURE or not self._SHAPES then
@@ -115,9 +115,9 @@ hook.add( "base.tick", "api.tool_loader", function( dt )
 		if tool._BODY then
 			tool._TRANSFORM = tool._BODY:GetTransform()
 			tool._TRANSFORM_DIFF = tool._TRANSFORM_OLD and tool._TRANSFORM:ToLocal( tool._TRANSFORM_OLD ) or
-							                       Transformation( Vec(), Quat() )
+			                       Transformation( Vec(), Quat() )
 			local reverse_diff = tool._TRANSFORM_OLD and tool._TRANSFORM_OLD:ToLocal( tool._TRANSFORM ) or
-							                     Transformation( Vec(), Quat() )
+			                     Transformation( Vec(), Quat() )
 			-- reverse_diff.pos = VecScale(reverse_diff.pos, 60 * dt)
 			tool._TRANSFORM_FIX = tool._TRANSFORM:ToGlobal( reverse_diff )
 			if tool.Animate then

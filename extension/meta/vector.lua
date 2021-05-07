@@ -3,7 +3,7 @@ local quat_meta = global_metatable( "quaternion" )
 
 function IsVector( v )
 	return type( v ) == "table" and type( v[1] ) == "number" and type( v[2] ) == "number" and type( v[3] ) == "number" and
-					       not v[4]
+	       not v[4]
 end
 
 function MakeVector( v )

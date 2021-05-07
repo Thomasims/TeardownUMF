@@ -18,7 +18,7 @@ end
 
 function transform_meta:__unserialize( data )
 	local x, y, z, i, j, k, r =
-					data:match( "([-0-9.]*);([-0-9.]*);([-0-9.]*);([-0-9.]*);([-0-9.]*);([-0-9.]*);([-0-9.]*)" )
+		data:match( "([-0-9.]*);([-0-9.]*);([-0-9.]*);([-0-9.]*);([-0-9.]*);([-0-9.]*);([-0-9.]*)" )
 	self.pos = Vector( tonumber( x ), tonumber( y ), tonumber( z ) )
 	self.rot = Quaternion( tonumber( i ), tonumber( j ), tonumber( k ), tonumber( r ) )
 	return self
