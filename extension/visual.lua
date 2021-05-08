@@ -107,11 +107,11 @@ if DrawSprite then
     function visual.drawpolygon(transform, radius, rotation, sides, info)
 		local points = {}
 		local iteration = 1
-		local sin, cos = math.sin, math.cos
+		local pow, sqrt, sin, cos = math.pow, math.sqrt, math.sin, math.cos
 		local r, g, b, a
 		local DrawFunction = DrawLine
 		
-		radius = radius or 1
+		radius = sqrt(2 * pow(radius, 2)) or sqrt(2)
 		rotation = rotation or 0
 		sides = sides or 4
 
@@ -135,14 +135,51 @@ if DrawSprite then
 		return points
     end
 
+	function visual.drawbox(transform, min, max, info)
+		local r, g, b, a
+		local DrawFunction = DrawLine
+		local points = {
+			TransformToParentPoint(transform, Vec(min[1], min[2], min[3])),
+			TransformToParentPoint(transform, Vec(max[1], min[2], min[3])),
+			TransformToParentPoint(transform, Vec(min[1], max[2], min[3])),
+			TransformToParentPoint(transform, Vec(max[1], max[2], min[3])),
+			TransformToParentPoint(transform, Vec(min[1], min[2], max[3])),
+			TransformToParentPoint(transform, Vec(max[1], min[2], max[3])),
+			TransformToParentPoint(transform, Vec(min[1], max[2], max[3])),
+			TransformToParentPoint(transform, Vec(max[1], max[2], max[3]))
+		}
+
+		if info then
+			r = info.r and info.r or 1
+			g = info.g and info.g or 1
+			b = info.b and info.b or 1
+			a = info.a and info.a or 1
+			DrawFunction = info.DrawFunction ~= nil and info.DrawFunction or (info.writeZ == false and DebugLine or DrawLine)
+		end
+
+		DrawFunction(points[1], points[2], r, g, b, a)
+		DrawFunction(points[1], points[3], r, g, b, a)
+		DrawFunction(points[1], points[5], r, g, b, a)
+		DrawFunction(points[4], points[3], r, g, b, a)
+		DrawFunction(points[4], points[2], r, g, b, a)
+		DrawFunction(points[4], points[8], r, g, b, a)
+		DrawFunction(points[6], points[5], r, g, b, a)
+		DrawFunction(points[6], points[8], r, g, b, a)
+		DrawFunction(points[6], points[2], r, g, b, a)
+		DrawFunction(points[7], points[8], r, g, b, a)
+		DrawFunction(points[7], points[5], r, g, b, a)
+		DrawFunction(points[7], points[3], r, g, b, a)
+
+		return points
+	end
 	function visual.drawprism(transform, radius, depth, rotation, sides, info)
 		local points = {}
 		local iteration = 1
-		local sin, cos = math.sin, math.cos
+		local pow, sqrt, sin, cos = math.pow, math.sqrt, math.sin, math.cos
 		local r, g, b, a
 		local DrawFunction = DrawLine
 
-		radius = radius or 1
+		radius = sqrt(2 * pow(radius, 2)) or sqrt(2)
 		depth = depth or 1
 		rotation = rotation or 0
 		sides = sides or 4
@@ -156,8 +193,8 @@ if DrawSprite then
 		end
 
 		for v = 0, 360, 360 / sides do
-			points[iteration] = TransformToParentPoint(transform, Vec(sin(v * degreeToRadian + rotation) * radius, 0, cos(v * degreeToRadian + rotation) * radius))
-			points[iteration + 1] = TransformToParentPoint(transform, Vec(sin(v * degreeToRadian + rotation) * radius, -depth, cos(v * degreeToRadian + rotation) * radius))
+			points[iteration] = TransformToParentPoint(transform, Vec(sin((v + rotation) * degreeToRadian) * radius, depth, cos((v + rotation) * degreeToRadian) * radius))
+			points[iteration + 1] = TransformToParentPoint(transform, Vec(sin((v + rotation) * degreeToRadian) * radius, -depth, cos((v + rotation) * degreeToRadian) * radius))
 			if iteration > 2 then
 				DrawFunction(points[iteration], points[iteration + 1], r, g, b, a)
 				DrawFunction(points[iteration - 2], points[iteration], r, g, b, a)
@@ -165,6 +202,8 @@ if DrawSprite then
 			end
 			iteration = iteration + 2
 		end
+
+		return points
 	end
 
 	function visual.drawsphere(transform, radius, rotation, samples, info)
@@ -174,7 +213,7 @@ if DrawSprite then
 		local DrawFunction = DrawLine
 
 		radius = radius or 1
-		rotation = rotation or 1
+		rotation = rotation or 0
 		samples = samples or 100
 
 		if info then
@@ -190,11 +229,11 @@ if DrawSprite then
 		for i = 0, samples do
 			local y = 1 - (i / (samples - 1)) * 2
 			local rad = sqrt(1 - y * y)
-			local theta = (2.399963229728653 * i) + rotation
+			local theta = 2.399963229728653 * i
 
 			local x = cos(theta) * rad
 			local z = sin(theta) * rad
-			local point = TransformToParentPoint(transform, Vec(x * radius, y * radius, z * radius))
+			local point = TransformToParentPoint(Transform(transform.pos, QuatRotateQuat(transform.rot, QuatEuler(0, rotation, 0))), Vec(x * radius, y * radius, z * radius))
 
 			DrawFunction(point, VecAdd(point, Vec(0, .01, 0)), r, g, b, a)
 			points[i + 1] = point
