@@ -213,7 +213,8 @@ end
 
 local function updatebone( bone, current_transform, prev_transform, dt, gravity )
 	local current_transform_local = TransformToParentTransform( current_transform, bone.transform )
-	local prev_transform_local = TransformToParentTransform( prev_transform, bone.transform )
+	local prev_transform_local = TransformToParentTransform( prev_transform, bone.old_transform or bone.transform )
+	bone.old_transform = bone.transform
 	if bone.jiggle then
 		prev_transform_local = TransformToParentTransform( prev_transform_local, bone.jiggle_transform or Transform() )
 
