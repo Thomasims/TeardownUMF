@@ -87,6 +87,9 @@ hook.add( "base.tick", "api.tool_loader", function( dt )
 	if prevtool then
 		if prevtool.ShouldLockMouseWheel then
 			local s, b = softassert( pcall( prevtool.ShouldLockMouseWheel, prevtool ) )
+			if s then
+				SetBool( "game.input.locktool", not not b )
+			end
 			if b then
 				SetString( "game.player.tool", prev )
 				cur = prev
