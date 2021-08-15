@@ -17,8 +17,10 @@ end
 
 _OLDPRINT = _OLDPRINT or print
 function printcolor( r, g, b, ... )
-	local text = string.format( "%f;%f;%f;%s", r, g, b, maketext( ... ) )
-	console_buffer:push( text )
+	local text = maketext( ... )
+	console_buffer:push( string.format( "%f;%f;%f;%s", r, g, b, text ) )
+	-- TODO: Use color
+	if PRINTTOSCREEN then DebugPrint( text ) end
 	return _OLDPRINT( ... )
 end
 
