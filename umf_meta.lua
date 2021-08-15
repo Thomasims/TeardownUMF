@@ -12,6 +12,5 @@
 #include "extension/meta/screen.lua"
 #include "extension/meta/vehicle.lua"
 #include "extension/meta/player.lua"
-#include "extension/meta/armature.lua"
 
 UpdateQuickloadPatch()

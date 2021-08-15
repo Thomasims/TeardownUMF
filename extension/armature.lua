@@ -139,7 +139,7 @@ end
 local function applybone( shapes, bone )
 	for i = 1, #bone.shape_offsets do
 		local offset = bone.shape_offsets[i]
-		SetShapeLocalTransform( GetEntityHandle( shapes[offset.id] ),
+		SetShapeLocalTransform( GetEntityHandle and GetEntityHandle( shapes[offset.id] ) or shapes[offset.id],
 		                        TransformToParentTransform( bone.g_transform, offset.tr ) )
 	end
 	for i = 1, #bone.children do
