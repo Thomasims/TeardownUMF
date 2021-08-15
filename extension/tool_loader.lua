@@ -31,7 +31,7 @@ local tool_meta = {
 				local s = self._OBJECTS
 				for i = 1, #self._SHAPES do
 					visual.drawbox( ptr:ToGlobal( self._SHAPES[i]:GetLocalTransform() ), Vec( 0, 0, 0 ),
-					                VecScale( s[#s + 1 - i][2], .05 ), 1, 1, 1, .2, false )
+					                VecScale( s[#s + 1 - i][2], .05 ), { r = 1, g = 1, b = 1, a = .2, writeZ = false } )
 				end
 			end
 		end,
