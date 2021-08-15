@@ -81,6 +81,11 @@ function body_meta:GetVelocity()
 	return MakeVector( GetBodyVelocity( self.handle ) )
 end
 
+function body_meta:GetVelocityAtPos( pos )
+	assert( self:IsValid() )
+	return MakeVector( GetBodyVelocityAtPos( self.handle, pos ) )
+end
+
 function body_meta:GetAngularVelocity()
 	assert( self:IsValid() )
 	return MakeVector( GetBodyAngularVelocity( self.handle ) )
@@ -104,6 +109,20 @@ function body_meta:GetWorldBounds()
 	assert( self:IsValid() )
 	local min, max = GetBodyBounds( self.handle )
 	return MakeVector( min ), MakeVector( max )
+end
+
+function body_meta:GetLocalCenterOfMass()
+	assert( self:IsValid() )
+	return MakeVector( GetBodyCenterOfMass( self.handle ) )
+end
+
+function body_meta:GetWorldCenterOfMass()
+	return self:GetTransform():ToGlobal(self:GetLocalCenterOfMass())
+end
+
+function body_meta:IsActive()
+	assert( self:IsValid() )
+	return IsBodyActive( self.handle )
 end
 
 function body_meta:IsDynamic()

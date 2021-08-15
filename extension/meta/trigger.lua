@@ -36,6 +36,12 @@ function trigger_meta:GetTransform()
 	return MakeTransformation( GetTriggerTransform( self.handle ) )
 end
 
+function trigger_meta:GetWorldBounds()
+	assert( self:IsValid() )
+	local min, max = GetTriggerBounds( self.handle )
+	return MakeVector( min ), MakeVector( max )
+end
+
 function trigger_meta:IsBodyInTrigger( handle )
 	assert( self:IsValid() )
 	return IsBodyInTrigger( self.handle, GetEntityHandle( handle ) )

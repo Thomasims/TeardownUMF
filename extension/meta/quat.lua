@@ -104,6 +104,12 @@ function quat_meta:Mul( o )
 end
 
 function quat_meta.__mul( a, b )
+	if not IsQuaternion( a ) then
+		a, b = b, a
+	end
+	if type(b) == "number" then
+		return Quaternion(a[1] * b, a[2] * b, a[3] * b, a[4] * b)
+	end
 	if IsVector( b ) then
 		return vector_meta.__mul( b, a )
 	end
@@ -111,6 +117,18 @@ function quat_meta.__mul( a, b )
 		return Transformation( vector_meta.Mul( vector_meta.Clone( b.pos ), a ), QuatRotateQuat( b.rot, a ) )
 	end
 	return MakeQuaternion( QuatRotateQuat( a, b ) )
+end
+
+function quat_meta:Div( o )
+	self[1] = self[1] / o
+	self[2] = self[2] / o
+	self[3] = self[3] / o
+	self[4] = self[4] / o
+	return self
+end
+
+function quat_meta.__div( a, b )
+	return quat_meta.Div( quat_meta.Clone( a ), b )
 end
 
 function quat_meta.__eq( a, b )
@@ -149,10 +167,11 @@ function quat_meta:Forward()
 end
 
 function quat_meta:ToEuler()
+	if GetQuatEuler then
+		return GetQuatEuler(self)
+	end
 	local x, y, z, w = self[1], self[2], self[3], self[4]
 	-- Credit to https://www.euclideanspace.com/maths/geometry/rotations/conversions/quaternionToEuler/index.htm
-
-	-- TODO: Figure out roll gimbal lock
 
 	local bank, heading, attitude
 
@@ -172,4 +191,12 @@ function quat_meta:ToEuler()
 	end
 
 	return math.deg( bank ), math.deg( heading ), math.deg( attitude )
+end
+
+function quat_meta:Approach(dest, rate)
+	local dot = self[1] * dest[1] + self[2] * dest[2] + self[3] * dest[3] + self[4] * dest[4]
+	if dot >= 1 then return self end
+	local corr_rate = rate / math.acos(dot)
+	if corr_rate >= 1 then return MakeQuaternion(dest) end
+	return MakeQuaternion(QuatSlerp(self, dest, corr_rate))
 end

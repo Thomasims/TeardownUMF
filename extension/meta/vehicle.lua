@@ -26,6 +26,11 @@ function vehicle_meta:__tostring()
 	return string.format( "Vehicle[%d]", self.handle )
 end
 
+function vehicle_meta:Drive( drive, steering, handbrake )
+	assert( self:IsValid() )
+	return DriveVehicle( self.handle, drive, steering, handbrake )
+end
+
 function vehicle_meta:GetTransform()
 	assert( self:IsValid() )
 	return MakeTransformation( GetVehicleTransform( self.handle ) )
@@ -34,6 +39,11 @@ end
 function vehicle_meta:GetBody()
 	assert( self:IsValid() )
 	return Body( GetVehicleBody( self.handle ) )
+end
+
+function vehicle_meta:GetHealth()
+	assert( self:IsValid() )
+	return GetVehicleHealth( self.handle )
 end
 
 function vehicle_meta:GetDriverPos()

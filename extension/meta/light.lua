@@ -51,6 +51,11 @@ function light_meta:GetShape()
 	return Shape( GetLightShape( self.handle ) )
 end
 
+function light_meta:IsActive()
+	assert( self:IsValid() )
+	return IsLightActive( self.handle )
+end
+
 function light_meta:IsPointAffectedByLight( point )
 	assert( self:IsValid() )
 	return IsPointAffectedByLight( self.handle, point )

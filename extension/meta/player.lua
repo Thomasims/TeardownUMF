@@ -54,6 +54,10 @@ function player_meta:GetTransform()
 	return MakeTransformation( GetPlayerTransform() )
 end
 
+function player_meta:GetPlayerCamera()
+	return MakeTransformation( GetPlayerCameraTransform() )
+end
+
 function player_meta:GetCamera()
 	return MakeTransformation( GetCameraTransform() )
 end

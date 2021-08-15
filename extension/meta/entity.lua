@@ -52,6 +52,12 @@ function entity_meta:SetTag( tag, value )
 	return SetTag( self.handle, tag, value )
 end
 
+local SetDescription = SetDescription
+function entity_meta:SetDescription( description )
+	assert( self:IsValid() )
+	return SetDescription( self.handle, description )
+end
+
 local RemoveTag = RemoveTag
 function entity_meta:RemoveTag( tag )
 	assert( self:IsValid() )

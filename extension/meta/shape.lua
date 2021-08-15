@@ -85,6 +85,21 @@ function shape_meta:GetWorldBounds()
 	return MakeVector( min ), MakeVector( max )
 end
 
+function shape_meta:GetMaterialAtPos( pos )
+	assert( self:IsValid() )
+	return GetShapeMaterialAtPosition( self.handle, pos )
+end
+
+function shape_meta:GetSize()
+	assert( self:IsValid() )
+	return GetShapeSize( self.handle )
+end
+
+function shape_meta:GetVoxelCount()
+	assert( self:IsValid() )
+	return GetShapeVoxelCount( self.handle )
+end
+
 function shape_meta:IsVisible( maxDist )
 	assert( self:IsValid() )
 	return IsShapeVisible( self.handle )

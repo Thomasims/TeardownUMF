@@ -31,6 +31,11 @@ function joint_meta:SetMotor( velocity, strength )
 	return SetJointMotor( self.handle, velocity, strength )
 end
 
+function joint_meta:SetMotorTarget( target, maxVel, strength )
+	assert( self:IsValid() )
+	return SetJointMotorTarget( self.handle, target, maxVel, strength )
+end
+
 function joint_meta:GetJointType()
 	assert( self:IsValid() )
 	return GetJointType( self.handle )
