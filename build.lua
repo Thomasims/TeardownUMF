@@ -5,6 +5,7 @@
 --
 -- Usage: build.lua [-s] <output> <input files...>
 --------------------------------------------------------------------------------
+-- TODO: defines
 local function SplitPath( filepath )
 	return filepath:match( "^(.-/?)([^/]+)$" )
 end
@@ -91,7 +92,12 @@ local function ParseArguments( rules, ... )
 		end
 	end
 	local function applyRule( param )
-		rulesValues[activeRule.id] = param
+		if activeRule.multi then
+			rulesValues[activeRule.id] = rulesValues[activeRule.id] or {}
+			rulesValues[activeRule.id][#rulesValues[activeRule.id] + 1] = param
+		else
+			rulesValues[activeRule.id] = param
+		end
 		activeRule = nil
 	end
 
@@ -101,8 +107,12 @@ local function ParseArguments( rules, ... )
 			if param:sub( 1, 2 ) == "--" then
 				activateRule( longRules[param:sub( 3 )], param )
 			else
-				for r in param:gmatch( "[^-]" ) do
+				for r, pos in param:gmatch( "([^-])()" ) do
 					activateRule( shortRules[r], r )
+					if activeRule and pos <= #param then
+						applyRule( param:sub( pos ) )
+						break
+					end
 				end
 			end
 		else
@@ -121,7 +131,10 @@ local precode = "local __RUNLATER = {} UMF_RUNLATER = function(code) __RUNLATER[
 local postcode = "\nfor i = 1, #__RUNLATER do local f = loadstring(__RUNLATER[i]) if f then pcall(f) end end\n"
 
 do
-	local files, rules = ParseArguments( { { long = "shorten", short = "s", id = "shorten" } }, ... )
+	local files, rules = ParseArguments( {
+		{ long = "shorten", short = "s", id = "shorten" },
+		{ long = "define", short = "D", hasparam = true, multi = true, id = "define" },
+	}, ... )
 	if #files < 2 then
 		error( "build.lua [-s] <output> <input files...>" )
 	end
