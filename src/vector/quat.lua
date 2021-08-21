@@ -200,7 +200,7 @@ function quat_meta:Approach( dest, rate )
 	if dot >= 1 then
 		return self
 	end
-	local corr_rate = rate / math.acos( dot )
+	local corr_rate = rate / math.acos( 2 * dot ^ 2 - 1 )
 	if corr_rate >= 1 then
 		return MakeQuaternion( dest )
 	end
