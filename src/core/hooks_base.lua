@@ -37,13 +37,13 @@ function shoulddraw( kind )
 end
 
 DETOUR( "draw", function( original )
-	return function()
+	return function( dt )
 		if shoulddraw( "all" ) then
-			hook.saferun( "base.predraw" )
+			hook.saferun( "base.predraw", dt )
 			if shoulddraw( "original" ) then
-				checkoriginal( pcall( original ) )
+				checkoriginal( pcall( original, dt ) )
 			end
-			hook.saferun( "base.draw" )
+			hook.saferun( "base.draw", dt )
 		end
 	end
 
