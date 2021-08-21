@@ -1,4 +1,5 @@
 UMF_REQUIRE "util/meta.lua"
+UMF_REQUIRE "vector"
 UMF_REQUIRE "entity.lua"
 UMF_REQUIRE "body.lua"
 UMF_REQUIRE "joint.lua"
