@@ -13,6 +13,36 @@ COLOR_VIOLET = { r = 128 / 255, g = 0, b = 255 / 255, a = 255 / 255 }
 COLOR_PINK = { r = 255 / 255, g = 0, b = 255 / 255, a = 255 / 255 }
 
 if DrawSprite then
+	function visual.huergb(p, q, t)
+		if t < 0 then t = t + 1 end
+		if t > 1 then t = t - 1 end
+		if t < 1 / 6 then return p + (q - p) * 6 * t end
+		if t < 1 / 2 then return q end
+		if t < 2 / 3 then return p + (q - p) * (2 / 3 - t) * 6 end
+		return p
+	end
+
+	function visual.hslrgb(h, s, l)
+		local r, g, b
+
+		if s == 0 then
+			r = l
+			g = l
+			b = l
+		else
+			local huergb = visual.huergb
+
+			local q = l < .5 and l * (1 + s) or l + s - l * s
+			local p = 2 * l - q
+
+			r = huergb(p, q, h + 1 / 3)
+			g = huergb(p, q, h)
+			b = huergb(p, q, h - 1 / 3)
+
+		end
+		return Vec(r, g, b)
+	end
+
 	function visual.drawsprite( sprite, source, radius, info )
 		local r, g, b, a
 		local writeZ, additive = true, false
