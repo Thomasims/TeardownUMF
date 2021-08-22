@@ -1,0 +1,7 @@
+UMF_REQUIRE "debug.lua"
+UMF_REQUIRE "detouring.lua"
+UMF_REQUIRE "meta.lua"
+UMF_REQUIRE "registry.lua"
+UMF_REQUIRE "timer.lua"
+UMF_REQUIRE "visual.lua"
+UMF_REQUIRE "xml.lua"
