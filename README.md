@@ -9,6 +9,7 @@ This means you only need to copy over one file (containing all the code needed) 
 # Installing
 
 - Select one of the packages from the [Release Page](https://github.com/Thomasims/TeardownUMF/releases/latest)
+    - `umf_complete_c.lua` is recommended during development.
 - Place the package file somewhere in your mod
 - Load the package with `#include` (e.g. `#include "umf_tool.lua"`)
 
