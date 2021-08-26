@@ -23,10 +23,20 @@ end
 
 local diff = GetTime() -- In certain realms, GetTime() is not 0 right away
 
+--- Creates a simple timer to execute code in a specified amount of time.
+---
+---@param time number
+---@param callback function
 function timer.simple( time, callback )
 	sortedinsert( backlog, { time = GetTime() + time - diff, callback = callback } )
 end
 
+--- Creates a time to execute a function in the future
+---
+---@param id any
+---@param interval number
+---@param iterations number
+---@param callback function
 function timer.create( id, interval, iterations, callback )
 	sortedinsert( backlog, {
 		id = id,
@@ -37,6 +47,9 @@ function timer.create( id, interval, iterations, callback )
 	} )
 end
 
+--- Waits a specified amount of time in a coroutine.
+---
+---@param time number
 function timer.wait( time )
 	local co = coroutine.running()
 	if not co then
@@ -56,6 +69,10 @@ local function find( id )
 	end
 end
 
+--- Gets the amount of time left of a named timer.
+---
+---@param id any
+---@return number
 function timer.time_left( id )
 	local index, entry = find( id )
 	if entry then
@@ -63,6 +80,10 @@ function timer.time_left( id )
 	end
 end
 
+--- Gets the number of iterations left on a named timer.
+---
+---@param id any
+---@return number
 function timer.iterations_left( id )
 	local index, entry = find( id )
 	if entry then
@@ -70,6 +91,9 @@ function timer.iterations_left( id )
 	end
 end
 
+--- Removes a named timer.
+---
+---@param id any
 function timer.remove( id )
 	local index, entry = find( id )
 	if index then

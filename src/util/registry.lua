@@ -30,6 +30,10 @@ do
 		end
 	end
 
+	--- Serializes something to a lua-like string.
+	---
+	---@vararg any
+	---@return string
 	function util.serialize( ... )
 		local result = {}
 		for i = 1, select( "#", ... ) do
@@ -39,6 +43,10 @@ do
 	end
 end
 
+--- Unserializes something from a lua-like string.
+---
+---@param dt string
+---@return ...
 function util.unserialize( dt )
 	local fn = loadstring( "return " .. dt )
 	if fn then
@@ -82,11 +90,20 @@ do
 		end
 	end
 
+	--- Serializes something to a JSON string.
+	---
+	---@param val any
+	---@return string
 	function util.serializeJSON( val )
 		return serialize_any( val, {} )
 	end
 end
 
+--- Creates a buffer shared via the registry.
+---
+---@param name string
+---@param max? number
+---@return table
 function util.shared_buffer( name, max )
 	max = max or 64
 	return {
@@ -121,6 +138,12 @@ function util.shared_buffer( name, max )
 	}
 end
 
+--- Creates a channel shared via the registry.
+---
+---@param name string Name of the channel.
+---@param max? number Maximum amount of unread messages in the channel.
+---@param local_realm? string Name to use to identify the local recipient.
+---@return table
 function util.shared_channel( name, max, local_realm )
 	max = max or 64
 	local channel = {
@@ -200,6 +223,10 @@ function util.shared_channel( name, max, local_realm )
 	return channel
 end
 
+--- Creates an async reader on a channel for coroutines.
+---
+---@param channel table Name of the channel.
+---@return table
 function util.async_channel( channel )
 	local listener = {
 		_channel = channel,
@@ -234,6 +261,10 @@ do
 
 	local gets, sets = {}, {}
 
+	--- Registers a type unserializer.
+	---
+	---@param type string
+	---@param callback fun(data: string): any
 	function util.register_unserializer( type, callback )
 		gets[type] = function( key )
 			return callback( GetString( key ) )
@@ -249,6 +280,11 @@ do
 		end
 	end )
 
+	--- Creates a table shared via the registry.
+	---
+	---@param name string
+	---@param base? table
+	---@return table
 	function util.shared_table( name, base )
 		return setmetatable( base or {}, {
 			__index = function( self, k )
@@ -280,6 +316,12 @@ do
 		} )
 	end
 
+	--- Creates a table shared via the registry with a structure.
+	---
+	---@param name string
+	---@param base table
+	---@return table
+	---@overload fun(name: string): fun(base: table): table
 	function util.structured_table( name, base )
 		local function generate( base )
 			local root = {}

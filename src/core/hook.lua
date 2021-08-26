@@ -17,6 +17,12 @@ end
 
 hook = { table = hook_table }
 
+--- Hooks a function to the specified event.
+---
+---@param event string
+---@param identifier any
+---@param func function
+---@overload fun(event: string, func: function)
 function hook.add( event, identifier, func )
 	assert( type( event ) == "string", "Event must be a string" )
 	if func then
@@ -31,6 +37,10 @@ function hook.add( event, identifier, func )
 	return identifier
 end
 
+--- Removes a hook to an event by its identifier.
+---
+---@param event string
+---@param identifier any
 function hook.remove( event, identifier )
 	assert( type( event ) == "string", "Event must be a string" )
 	assert( identifier ~= nil, "Identifier must not be nil" )
@@ -45,6 +55,10 @@ function hook.remove( event, identifier )
 	end
 end
 
+--- Executes all hooks associated to an event.
+---
+---@param event string
+---@return any
 function hook.run( event, ... )
 	local hooks = hook_compiled[event]
 	if not hooks then
@@ -58,6 +72,10 @@ function hook.run( event, ... )
 	end
 end
 
+--- Executes all hooks associated to an event with `pcall`.
+---
+---@param event string
+---@return any
 function hook.saferun( event, ... )
 	local hooks = hook_compiled[event]
 	if not hooks then
@@ -71,6 +89,10 @@ function hook.saferun( event, ... )
 	end
 end
 
+--- Tests if an event has hooks attached.
+---
+---@param event string
+---@return boolean
 function hook.used( event )
 	return hook_table[event]
 end

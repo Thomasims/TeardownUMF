@@ -1,5 +1,9 @@
 util = util or {}
 
+--- Gets the current line of code.
+---
+---@param level number stack depth
+---@return string
 function util.current_line( level )
 	level = (level or 0) + 3
 	local _, line = pcall( error, "-", level )
@@ -15,6 +19,10 @@ function util.current_line( level )
 	return line
 end
 
+--- Gets the current stacktrack.
+---
+---@param start number starting stack depth
+---@return string
 function util.stacktrace( start )
 	start = (start or 0) + 3
 	local stack, last = {}, nil

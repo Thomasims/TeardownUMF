@@ -13,16 +13,32 @@ COLOR_VIOLET = { r = 128 / 255, g = 0, b = 255 / 255, a = 255 / 255 }
 COLOR_PINK = { r = 255 / 255, g = 0, b = 255 / 255, a = 255 / 255 }
 
 if DrawSprite then
-	function visual.huergb(p, q, t)
-		if t < 0 then t = t + 1 end
-		if t > 1 then t = t - 1 end
-		if t < 1 / 6 then return p + (q - p) * 6 * t end
-		if t < 1 / 2 then return q end
-		if t < 2 / 3 then return p + (q - p) * (2 / 3 - t) * 6 end
+	function visual.huergb( p, q, t )
+		if t < 0 then
+			t = t + 1
+		end
+		if t > 1 then
+			t = t - 1
+		end
+		if t < 1 / 6 then
+			return p + (q - p) * 6 * t
+		end
+		if t < 1 / 2 then
+			return q
+		end
+		if t < 2 / 3 then
+			return p + (q - p) * (2 / 3 - t) * 6
+		end
 		return p
 	end
 
-	function visual.hslrgb(h, s, l)
+	--- Converts hue, saturation, and light to RGB.
+	---
+	---@param h number
+	---@param s number
+	---@param l number
+	---@return number[]
+	function visual.hslrgb( h, s, l )
 		local r, g, b
 
 		if s == 0 then
@@ -35,14 +51,20 @@ if DrawSprite then
 			local q = l < .5 and l * (1 + s) or l + s - l * s
 			local p = 2 * l - q
 
-			r = huergb(p, q, h + 1 / 3)
-			g = huergb(p, q, h)
-			b = huergb(p, q, h - 1 / 3)
+			r = huergb( p, q, h + 1 / 3 )
+			g = huergb( p, q, h )
+			b = huergb( p, q, h - 1 / 3 )
 
 		end
-		return Vec(r, g, b)
+		return Vec( r, g, b )
 	end
 
+	--- Draws a sprite facing the camera.
+	---
+	---@param sprite number
+	---@param source Vector
+	---@param radius number
+	---@param info table
 	function visual.drawsprite( sprite, source, radius, info )
 		local r, g, b, a
 		local writeZ, additive = true, false
@@ -69,6 +91,12 @@ if DrawSprite then
 		DrawFunction( sprite, Transform( source, QuatLookAt( source, target ) ), radius, radius, r, g, b, a, writeZ, additive )
 	end
 
+	--- Draws sprites facing the camera.
+	---
+	---@param sprites number[]
+	---@param sources Vector[]
+	---@param radius number
+	---@param info table
 	function visual.drawsprites( sprites, sources, radius, info )
 		sprites = type( sprites ) ~= "table" and { sprites } or sprites
 
@@ -79,6 +107,12 @@ if DrawSprite then
 		end
 	end
 
+	--- Draws a line using a sprite.
+	---
+	---@param sprite number
+	---@param source Vector
+	---@param destination Vector
+	---@param info table
 	function visual.drawline( sprite, source, destination, info )
 		local r, g, b, a
 		local writeZ, additive = true, false
@@ -116,6 +150,12 @@ if DrawSprite then
 		end
 	end
 
+	--- Draws lines using a sprite.
+	---
+	---@param sprites number[] | number
+	---@param sources Vector[]
+	---@param connect boolean
+	---@param info table
 	function visual.drawlines( sprites, sources, connect, info )
 		sprites = type( sprites ) ~= "table" and { sprites } or sprites
 
@@ -132,6 +172,12 @@ if DrawSprite then
 		end
 	end
 
+	--- Draws a debug axis.
+	---
+	---@param transform Transformation
+	---@param quat? Quaternion
+	---@param radius number
+	---@param writeZ boolean
 	function visual.drawaxis( transform, quat, radius, writeZ )
 		local DrawFunction = writeZ and DrawLine or DebugLine
 
@@ -145,14 +191,21 @@ if DrawSprite then
 		DrawFunction( transform.pos, TransformToParentPoint( transform, Vec( 0, 0, radius ) ), 0, 0, 1 )
 	end
 
+	--- Draws a polygon.
+	---
+	---@param transform Transformation
+	---@param radius number
+	---@param rotation number
+	---@param sides number
+	---@param info table
 	function visual.drawpolygon( transform, radius, rotation, sides, info )
 		local points = {}
 		local iteration = 1
 		local pow, sqrt, sin, cos = math.pow, math.sqrt, math.sin, math.cos
 		local r, g, b, a
 		local DrawFunction = DrawLine
-		
-		radius = sqrt(2 * pow(radius, 2)) or sqrt(2)
+
+		radius = sqrt( 2 * pow( radius, 2 ) ) or sqrt( 2 )
 		rotation = rotation or 0
 		sides = sides or 4
 
@@ -180,18 +233,24 @@ if DrawSprite then
 		return points
 	end
 
-	function visual.drawbox(transform, min, max, info)
+	--- Draws a 3D box.
+	---
+	---@param transform Transformation
+	---@param min Vector
+	---@param max Vector
+	---@param info table
+	function visual.drawbox( transform, min, max, info )
 		local r, g, b, a
 		local DrawFunction = DrawLine
 		local points = {
-			TransformToParentPoint(transform, Vec(min[1], min[2], min[3])),
-			TransformToParentPoint(transform, Vec(max[1], min[2], min[3])),
-			TransformToParentPoint(transform, Vec(min[1], max[2], min[3])),
-			TransformToParentPoint(transform, Vec(max[1], max[2], min[3])),
-			TransformToParentPoint(transform, Vec(min[1], min[2], max[3])),
-			TransformToParentPoint(transform, Vec(max[1], min[2], max[3])),
-			TransformToParentPoint(transform, Vec(min[1], max[2], max[3])),
-			TransformToParentPoint(transform, Vec(max[1], max[2], max[3]))
+			TransformToParentPoint( transform, Vec( min[1], min[2], min[3] ) ),
+			TransformToParentPoint( transform, Vec( max[1], min[2], min[3] ) ),
+			TransformToParentPoint( transform, Vec( min[1], max[2], min[3] ) ),
+			TransformToParentPoint( transform, Vec( max[1], max[2], min[3] ) ),
+			TransformToParentPoint( transform, Vec( min[1], min[2], max[3] ) ),
+			TransformToParentPoint( transform, Vec( max[1], min[2], max[3] ) ),
+			TransformToParentPoint( transform, Vec( min[1], max[2], max[3] ) ),
+			TransformToParentPoint( transform, Vec( max[1], max[2], max[3] ) ),
 		}
 
 		if info then
@@ -202,29 +261,38 @@ if DrawSprite then
 			DrawFunction = info.DrawFunction ~= nil and info.DrawFunction or (info.writeZ == false and DebugLine or DrawLine)
 		end
 
-		DrawFunction(points[1], points[2], r, g, b, a)
-		DrawFunction(points[1], points[3], r, g, b, a)
-		DrawFunction(points[1], points[5], r, g, b, a)
-		DrawFunction(points[4], points[3], r, g, b, a)
-		DrawFunction(points[4], points[2], r, g, b, a)
-		DrawFunction(points[4], points[8], r, g, b, a)
-		DrawFunction(points[6], points[5], r, g, b, a)
-		DrawFunction(points[6], points[8], r, g, b, a)
-		DrawFunction(points[6], points[2], r, g, b, a)
-		DrawFunction(points[7], points[8], r, g, b, a)
-		DrawFunction(points[7], points[5], r, g, b, a)
-		DrawFunction(points[7], points[3], r, g, b, a)
+		DrawFunction( points[1], points[2], r, g, b, a )
+		DrawFunction( points[1], points[3], r, g, b, a )
+		DrawFunction( points[1], points[5], r, g, b, a )
+		DrawFunction( points[4], points[3], r, g, b, a )
+		DrawFunction( points[4], points[2], r, g, b, a )
+		DrawFunction( points[4], points[8], r, g, b, a )
+		DrawFunction( points[6], points[5], r, g, b, a )
+		DrawFunction( points[6], points[8], r, g, b, a )
+		DrawFunction( points[6], points[2], r, g, b, a )
+		DrawFunction( points[7], points[8], r, g, b, a )
+		DrawFunction( points[7], points[5], r, g, b, a )
+		DrawFunction( points[7], points[3], r, g, b, a )
 
 		return points
 	end
-	function visual.drawprism(transform, radius, depth, rotation, sides, info)
+
+	--- Draws a prism.
+	---
+	---@param transform Transformation
+	---@param radius number
+	---@param depth number
+	---@param rotation number
+	---@param sides number
+	---@param info table
+	function visual.drawprism( transform, radius, depth, rotation, sides, info )
 		local points = {}
 		local iteration = 1
 		local pow, sqrt, sin, cos = math.pow, math.sqrt, math.sin, math.cos
 		local r, g, b, a
 		local DrawFunction = DrawLine
 
-		radius = sqrt(2 * pow(radius, 2)) or sqrt(2)
+		radius = sqrt( 2 * pow( radius, 2 ) ) or sqrt( 2 )
 		depth = depth or 1
 		rotation = rotation or 0
 		sides = sides or 4
@@ -238,8 +306,11 @@ if DrawSprite then
 		end
 
 		for v = 0, 360, 360 / sides do
-			points[iteration] = TransformToParentPoint(transform, Vec(sin((v + rotation) * degreeToRadian) * radius, depth, cos((v + rotation) * degreeToRadian) * radius))
-			points[iteration + 1] = TransformToParentPoint(transform, Vec(sin((v + rotation) * degreeToRadian) * radius, -depth, cos((v + rotation) * degreeToRadian) * radius))
+			points[iteration] = TransformToParentPoint( transform, Vec( sin( (v + rotation) * degreeToRadian ) * radius, depth,
+			                                                            cos( (v + rotation) * degreeToRadian ) * radius ) )
+			points[iteration + 1] = TransformToParentPoint( transform, Vec( sin( (v + rotation) * degreeToRadian ) * radius,
+			                                                                -depth,
+			                                                                cos( (v + rotation) * degreeToRadian ) * radius ) )
 			if iteration > 2 then
 				DrawFunction( points[iteration], points[iteration + 1], r, g, b, a )
 				DrawFunction( points[iteration - 2], points[iteration], r, g, b, a )
@@ -251,6 +322,13 @@ if DrawSprite then
 		return points
 	end
 
+	--- Draws a sphere.
+	---
+	---@param transform Transformation
+	---@param radius number
+	---@param rotation number
+	---@param samples number
+	---@param info table
 	function visual.drawsphere( transform, radius, rotation, samples, info )
 		local points = {}
 		local sqrt, sin, cos = math.sqrt, math.sin, math.cos
@@ -273,12 +351,14 @@ if DrawSprite then
 		local points = {}
 		for i = 0, samples do
 			local y = 1 - (i / (samples - 1)) * 2
-			local rad = sqrt(1 - y * y)
+			local rad = sqrt( 1 - y * y )
 			local theta = 2.399963229728653 * i
 
-			local x = cos(theta) * rad
-			local z = sin(theta) * rad
-			local point = TransformToParentPoint(Transform(transform.pos, QuatRotateQuat(transform.rot, QuatEuler(0, rotation, 0))), Vec(x * radius, y * radius, z * radius))
+			local x = cos( theta ) * rad
+			local z = sin( theta ) * rad
+			local point = TransformToParentPoint( Transform( transform.pos,
+			                                                 QuatRotateQuat( transform.rot, QuatEuler( 0, rotation, 0 ) ) ),
+			                                      Vec( x * radius, y * radius, z * radius ) )
 
 			DrawFunction( point, VecAdd( point, Vec( 0, .01, 0 ) ), r, g, b, a )
 			points[i + 1] = point

@@ -1,5 +1,8 @@
 UMF_REQUIRE "/"
 
+--- Checks if the player is in a vehicle.
+---
+---@return boolean
 function IsPlayerInVehicle()
 	return GetBool( "game.player.usevehicle" )
 end

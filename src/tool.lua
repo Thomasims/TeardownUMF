@@ -3,47 +3,120 @@ UMF_REQUIRE "vector"
 UMF_REQUIRE "entities"
 UMF_REQUIRE "animation/armature.lua"
 
-local tool_meta = {
-	__index = {
-		DrawInWorld = function( self, transform )
-			SetToolTransform( TransformToLocalTransform( GetCameraTransform(), transform ) )
-		end,
-		GetTransform = function( self )
-			return self._TRANSFORM or MakeTransformation( GetBodyTransform( GetToolBody() ) )
-		end,
-		GetPredictedTransform = function( self )
-			return self._TRANSFORM_FIX or MakeTransformation( GetBodyTransform( GetToolBody() ) )
-		end,
-		GetTransformDelta = function( self )
-			return self._TRANSFORM_DIFF or Transformation( Vec(), Quat() )
-		end,
-		GetBoneGlobalTransform = function( self, bone, nopredicted )
-			if not self._ARMATURE then
-				return Transformation( Vec(), Quat() )
-			end
-			return (nopredicted and self:GetTransform() or self:GetPredictedTransform()):ToGlobal(
-				       self._ARMATURE:GetBoneGlobalTransform( bone ) )
-		end,
-		DrawDebug = function( self, nobones, nobounds, nopredicted )
-			if not self._ARMATURE or not self._SHAPES then
-				return
-			end
-			local ptr = (nopredicted and self:GetTransform() or self:GetPredictedTransform())
-			if not nobones and self._ARMATURE then
-				self._ARMATURE:DrawDebug( ptr )
-			end
-			if not nobounds and self._OBJECTS then
-				local s = self._OBJECTS
-				for i = 1, #self._SHAPES do
-					visual.drawbox( ptr:ToGlobal( self._SHAPES[i]:GetLocalTransform() ), Vec( 0, 0, 0 ),
-					                VecScale( s[#s + 1 - i][2], .05 ), { r = 1, g = 1, b = 1, a = .2, writeZ = false } )
-				end
-			end
-		end,
-	},
-}
+---@class Tool
+---@field _TRANSFORM Transformation
+---@field _TRANSFORM_FIX Transformation
+---@field _TRANSFORM_DIFF Transformation
+---@field _ARMATURE Armature
+---@field armature Armature
+---@field _SHAPES Shape[]
+---@field _OBJECTS table[]
+---@field model string
+---@field printname string
+---@field id string
+local tool_meta = global_metatable( "tool" )
 
+--- Draws the tool in the world instead of the player view.
+---
+---@param transform Transformation
+function tool_meta:DrawInWorld( transform )
+	SetToolTransform( TransformToLocalTransform( GetCameraTransform(), transform ) )
+end
+
+--- Gets the transform of the tool.
+---
+---@return Transformation
+function tool_meta:GetTransform()
+	return self._TRANSFORM or MakeTransformation( GetBodyTransform( GetToolBody() ) )
+end
+
+--- Gets the predicted transform of the tool.
+---
+---@return Transformation
+function tool_meta:GetPredictedTransform()
+	return self._TRANSFORM_FIX or MakeTransformation( GetBodyTransform( GetToolBody() ) )
+end
+
+--- Gets the transform delta of the tool.
+---
+---@return Transformation
+function tool_meta:GetTransformDelta()
+	return self._TRANSFORM_DIFF or Transformation( Vec(), Quat() )
+end
+
+--- Gets the transform of a bone on the tool in world-space.
+---
+---@param bone string
+---@param nopredicted? boolean
+---@return Transformation
+function tool_meta:GetBoneGlobalTransform( bone, nopredicted )
+	if not self._ARMATURE then
+		return Transformation( Vec(), Quat() )
+	end
+	return (nopredicted and self:GetTransform() or self:GetPredictedTransform()):ToGlobal(
+		       self._ARMATURE:GetBoneGlobalTransform( bone ) )
+end
+
+--- Draws the debug armature of the tool.
+---
+---@param nobones? boolean Don't draw bones.
+---@param nobounds? boolean Don't draw bounds.
+---@param nopredicted? boolean Don't use the predicted transform.
+function tool_meta:DrawDebug( nobones, nobounds, nopredicted )
+	if not self._ARMATURE or not self._SHAPES then
+		return
+	end
+	local ptr = (nopredicted and self:GetTransform() or self:GetPredictedTransform())
+	if not nobones and self._ARMATURE then
+		self._ARMATURE:DrawDebug( ptr )
+	end
+	if not nobounds and self._OBJECTS then
+		local s = self._OBJECTS
+		for i = 1, #self._SHAPES do
+			visual.drawbox( ptr:ToGlobal( self._SHAPES[i]:GetLocalTransform() ), Vec( 0, 0, 0 ),
+			                VecScale( s[#s + 1 - i][2], .05 ), { r = 1, g = 1, b = 1, a = .2, writeZ = false } )
+		end
+	end
+end
+
+--- Callback called when the level loads.
+function tool_meta:Initialize()
+end
+
+--- Callback called when tick() is called.
+---
+---@param dt number
+function tool_meta:Tick( dt )
+end
+
+--- Callback called when draw() is called.
+---
+---@param dt number
+function tool_meta:Draw( dt )
+end
+
+--- Callback called to animate the armature.
+---
+---@param body Body
+---@param shapes Shape[]
+function tool_meta:Animate( body, shapes )
+end
+
+--- Callback called when the tool is deployed.
+function tool_meta:Deploy()
+end
+
+--- Callback called when the tool is holstered.
+function tool_meta:Holster()
+end
+
+---@type table<string, Tool>
 local extra_tools = {}
+--- Registers a tool using UMF.
+---
+---@param id string
+---@param data table
+---@return Tool
 function RegisterToolUMF( id, data )
 	if LoadArmatureFromXML and type( data.model ) == "table" then
 		local arm, xml = LoadArmatureFromXML( data.model.prefab, data.model.objects, data.model.scale )
@@ -68,6 +141,7 @@ function RegisterToolUMF( id, data )
 	extra_tools[id] = data
 	RegisterTool( id, data.printname or id, data.model or "" )
 	SetBool( "game.tool." .. id .. ".enabled", true )
+	return data
 end
 
 local function istoolactive()
@@ -155,10 +229,10 @@ hook.add( "api.firsttick", "api.tool_loader", function()
 	end
 end )
 
-hook.add( "base.draw", "api.tool_loader", function()
+hook.add( "base.draw", "api.tool_loader", function( dt )
 	local tool = extra_tools[GetString( "game.player.tool" )]
 	if tool and tool.Draw then
-		softassert( pcall( tool.Draw, tool ) )
+		softassert( pcall( tool.Draw, tool, dt ) )
 	end
 end )
 

@@ -3,6 +3,11 @@ UMF_REQUIRE "core"
 local registered_meta = {}
 local reverse_meta = {}
 
+--- Defines a new metatable type.
+---
+---@param name string
+---@param parent? string
+---@return table
 function global_metatable( name, parent )
 	local meta = registered_meta[name]
 	if meta then
@@ -23,6 +28,10 @@ function global_metatable( name, parent )
 	return meta
 end
 
+--- Gets an existing metatable.
+---
+---@param name string
+---@return table?
 function find_global_metatable( name )
 	if not name then
 		return

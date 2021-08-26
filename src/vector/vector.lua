@@ -1,17 +1,34 @@
 UMF_REQUIRE "/"
 
+---@class Vector
 local vector_meta = global_metatable( "vector" )
+---@type Quaternion
 local quat_meta = global_metatable( "quaternion" )
 
+--- Tests if the parameter is a vector.
+---
+---@param v any
+---@return boolean
 function IsVector( v )
 	return type( v ) == "table" and type( v[1] ) == "number" and type( v[2] ) == "number" and type( v[3] ) == "number" and
 		       not v[4]
 end
 
+--- Makes the parameter vec into a vector.
+---
+---@param v number[]
+---@return Vector v
 function MakeVector( v )
 	return setmetatable( v, vector_meta )
 end
 
+--- Creates a new vector.
+---
+---@param x? number
+---@param y? number
+---@param z? number
+---@return Vector
+---@overload fun(v: Vector): Vector
 function Vector( x, y, z )
 	if IsVector( x ) then
 		x, y, z = x[1], x[2], x[3]
@@ -19,6 +36,8 @@ function Vector( x, y, z )
 	return MakeVector { x or 0, y or 0, z or 0 }
 end
 
+---@param data string
+---@return Vector self
 function vector_meta:__unserialize( data )
 	local x, y, z = data:match( "([-0-9.]*);([-0-9.]*);([-0-9.]*)" )
 	self[1] = tonumber( x )
@@ -27,6 +46,7 @@ function vector_meta:__unserialize( data )
 	return self
 end
 
+---@return string data
 function vector_meta:__serialize()
 	return table.concat( self, ";" )
 end
@@ -36,19 +56,28 @@ VEC_FORWARD = Vector( 0, 0, 1 )
 VEC_UP = Vector( 0, 1, 0 )
 VEC_LEFT = Vector( 1, 0, 0 )
 
+--- Clones the vector.
+---
+---@return Vector clone
 function vector_meta:Clone()
 	return MakeVector { self[1], self[2], self[3] }
 end
 
 local VecStr = VecStr
+---@return string
 function vector_meta:__tostring()
 	return VecStr( self )
 end
 
+---@return Vector
 function vector_meta:__unm()
 	return MakeVector { -self[1], -self[2], -self[3] }
 end
 
+--- Adds to the vector.
+---
+---@param o Vector | number
+---@return Vector self
 function vector_meta:Add( o )
 	if IsVector( o ) then
 		self[1] = self[1] + o[1]
@@ -62,6 +91,9 @@ function vector_meta:Add( o )
 	return self
 end
 
+---@param a Vector | Transformation | number
+---@param b Vector | Transformation | number
+---@return Vector
 function vector_meta.__add( a, b )
 	if not IsVector( a ) then
 		a, b = b, a
@@ -72,6 +104,10 @@ function vector_meta.__add( a, b )
 	return vector_meta.Add( vector_meta.Clone( a ), b )
 end
 
+--- Subtracts from the vector.
+---
+---@param o Vector | number
+---@return Vector self
 function vector_meta:Sub( o )
 	if IsVector( o ) then
 		self[1] = self[1] - o[1]
@@ -85,6 +121,9 @@ function vector_meta:Sub( o )
 	return self
 end
 
+---@param a Vector | number
+---@param b Vector | number
+---@return Vector
 function vector_meta.__sub( a, b )
 	if not IsVector( a ) then
 		a, b = b, a
@@ -92,6 +131,10 @@ function vector_meta.__sub( a, b )
 	return vector_meta.Sub( vector_meta.Clone( a ), b )
 end
 
+--- Multiplies the vector.
+---
+---@param o Vector | Quaternion | number
+---@return Vector self
 function vector_meta:Mul( o )
 	if IsVector( o ) then
 		self[1] = self[1] * o[1]
@@ -120,6 +163,9 @@ function vector_meta:Mul( o )
 	return self
 end
 
+---@param a Vector | Quaternion | number
+---@param b Vector | Quaternion | number
+---@return Vector
 function vector_meta.__mul( a, b )
 	if not IsVector( a ) then
 		a, b = b, a
@@ -127,6 +173,10 @@ function vector_meta.__mul( a, b )
 	return vector_meta.Mul( vector_meta.Clone( a ), b )
 end
 
+--- Divides the vector components.
+---
+---@param o number
+---@return Vector self
 function vector_meta:Div( o )
 	self[1] = self[1] / o
 	self[2] = self[2] / o
@@ -134,10 +184,17 @@ function vector_meta:Div( o )
 	return self
 end
 
+---@param a Vector | number
+---@param b Vector | number
+---@return Vector
 function vector_meta.__div( a, b )
 	return vector_meta.Div( vector_meta.Clone( a ), b )
 end
 
+--- Applies the modulo operator on the vector components.
+---
+---@param o number
+---@return Vector self
 function vector_meta:Mod( o )
 	self[1] = self[1] % o
 	self[2] = self[2] % o
@@ -145,10 +202,17 @@ function vector_meta:Mod( o )
 	return self
 end
 
+---@param a Vector | number
+---@param b Vector | number
+---@return Vector
 function vector_meta.__mod( a, b )
 	return vector_meta.Mod( vector_meta.Clone( a ), b )
 end
 
+--- Applies the exponent operator on the vector components.
+---
+---@param o number
+---@return Vector self
 function vector_meta:Pow( o )
 	self[1] = self[1] ^ o
 	self[2] = self[2] ^ o
@@ -156,63 +220,123 @@ function vector_meta:Pow( o )
 	return self
 end
 
+---@param a Vector
+---@param b number
+---@return Vector
 function vector_meta.__pow( a, b )
 	return vector_meta.Pow( vector_meta.Clone( a ), b )
 end
 
+---@param a Vector
+---@param b Vector
+---@return boolean
 function vector_meta.__eq( a, b )
 	return a[1] == b[1] and a[2] == b[2] and a[3] == b[3]
 end
 
+---@param a Vector
+---@param b Vector
+---@return boolean
 function vector_meta.__lt( a, b )
 	return a[1] < b[1] or (a[1] == b[1] and (a[2] < b[2] or (a[2] == b[2] and (a[3] < b[3]))))
 end
 
+---@param a Vector
+---@param b Vector
+---@return boolean
 function vector_meta.__le( a, b )
 	return a[1] < b[1] or (a[1] == b[1] and (a[2] < b[2] or (a[2] == b[2] and (a[3] <= b[3]))))
 end
 
 local VecDot = VecDot
+--- Computes the dot product with another vector.
+---
+---@param b Vector
+---@return number
 function vector_meta:Dot( b )
-	return MakeVector( VecDot( self, b ) )
+	return VecDot( self, b )
 end
 
 local VecCross = VecCross
+--- Computes the cross product with another vector.
+---
+---@param b Vector
+---@return Vector
 function vector_meta:Cross( b )
 	return MakeVector( VecCross( self, b ) )
 end
 
 local VecLength = VecLength
+--- Gets the length of the vector.
+---
+---@return number
 function vector_meta:Length()
 	return VecLength( self )
 end
 
+--- Gets the volume of the vector (product of all its components).
+---
+---@return number
 function vector_meta:Volume()
 	return math.abs( self[1] * self[2] * self[3] )
 end
 
 local VecLerp = VecLerp
+--- Lerps from the vector to another one.
+---
+---@param o Vector
+---@param n number
+---@return Vector
 function vector_meta:Lerp( o, n )
 	return MakeVector( VecLerp( self, o, n ) )
 end
 
 local VecNormalize = VecNormalize
+--- Gets the normalized form of the vector.
+---
+---@return Vector
 function vector_meta:Normalized()
 	return MakeVector( VecNormalize( self ) )
 end
 
+--- Normalize the vector.
+---
+---@return Vector self
 function vector_meta:Normalize()
 	return vector_meta.Div( self, vector_meta.Length( self ) )
 end
 
+--- Gets the squared distance to another vector.
+---
+---@return number
 function vector_meta:DistSquare( o )
 	return (self[1] - o[1]) ^ 2 + (self[2] - o[2]) ^ 2 + (self[3] - o[3]) ^ 2
 end
 
+--- Gets the distance to another vector.
+---
+---@return number
 function vector_meta:Distance( o )
 	return math.sqrt( vector_meta.DistSquare( self, o ) )
 end
 
+--- Gets the rotation to another vector.
+---
+---@param o Vector
+---@return Quaternion
 function vector_meta:LookAt( o )
 	return MakeQuaternion( QuatLookAt( self, o ) )
+end
+
+--- Approachs another vector by the specified distance.
+---
+---@param dest Vector
+---@param rate number
+---@return Vector
+function vector_meta:Approach( dest, rate )
+	local dist = vector_meta.Distance( self, dest )
+	if dist < rate then
+		return dest
+	end
+	return vector_meta.Lerp( self, dest, rate / dist )
 end

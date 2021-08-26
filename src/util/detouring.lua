@@ -7,6 +7,10 @@ local function call_original( name, ... )
 end
 
 local detoured = {}
+--- Detours a global function even it gets reassigned afterwards.
+---
+---@param name string
+---@param generator fun(original: function): function
 function DETOUR( name, generator )
 	original[name] = _G[name]
 	detoured[name] = generator( function( ... )

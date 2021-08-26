@@ -1,33 +1,51 @@
+---@class XMLNode
+---@field __call fun(children: XMLNode[]): XMLNode
+---@field attributes table<string, string> | nil
+---@field children XMLNode[] | nil
+---@field type string
+local xmlnode = {
+	--- Renders this node into an XML string.
+	---
+	---@return string
+	Render = function( self )
+		local attr = ""
+		if self.attributes then
+			for name, val in pairs( self.attributes ) do
+				attr = string.format( "%s %s=%q", attr, name, val )
+			end
+		end
+		local children = {}
+		if self.children then
+			for i = 1, #self.children do
+				children[i] = self.children[i]:Render()
+			end
+		end
+		return string.format( "<%s%s>%s</%s>", self.type, attr, table.concat( children, "" ), self.type )
+	end,
+}
+
 local meta = {
 	__call = function( self, children )
 		self.children = children
 		return self
 	end,
-	__index = {
-		Render = function( self )
-			local attr = ""
-			if self.attributes then
-				for name, val in pairs( self.attributes ) do
-					attr = string.format( "%s %s=%q", attr, name, val )
-				end
-			end
-			local children = {}
-			if self.children then
-				for i = 1, #self.children do
-					children[i] = self.children[i]:Render()
-				end
-			end
-			return string.format( "<%s%s>%s</%s>", self.type, attr, table.concat( children, "" ), self.type )
-		end,
-	},
+	__index = xmlnode,
 }
 
+--- Defines an XML node.
+---
+---@param type string
+---@return fun(attributes: table<string, string>): XMLNode
 XMLTag = function( type )
 	return function( attributes )
 		return setmetatable( { type = type, attributes = attributes }, meta )
 	end
 end
 
+--- Parses XML from a string.
+---
+---@param xml string
+---@return XMLNode
 ParseXML = function( xml )
 	local pos = 1
 	local function skipw()

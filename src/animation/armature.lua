@@ -1,6 +1,11 @@
 UMF_REQUIRE "util/meta.lua"
 UMF_REQUIRE "util/xml.lua"
 
+---@class Armature
+---@field refs any
+---@field root any
+---@field scale number | nil
+---@field dirty boolean
 local armature_meta = global_metatable( "armature" )
 
 --[[
@@ -83,6 +88,10 @@ Armature {
 
 ]]
 
+--- Creates a new armature.
+---
+---@param definition table
+---@return Armature
 function Armature( definition )
 	local ids = {}
 	for i, name in ipairs( definition.shapes ) do
@@ -134,6 +143,7 @@ local function computebone( bone, transform, scale, dirty )
 	end
 end
 
+--- Computes the bone positions.
 function armature_meta:ComputeBones()
 	computebone( self.root, Transform(), self.scale or 1 )
 	self.dirty = false
@@ -150,6 +160,9 @@ local function applybone( shapes, bone )
 	end
 end
 
+--- Applies the bone positions to a list of shapes.
+---
+---@param shapes Shape[] | number[]
 function armature_meta:Apply( shapes )
 	if self.dirty or self.jiggle then
 		self:ComputeBones()
@@ -157,6 +170,10 @@ function armature_meta:Apply( shapes )
 	applybone( shapes, self.root )
 end
 
+--- Sets the local transform of a bone.
+---
+---@param bone string
+---@param transform Transformation
 function armature_meta:SetBoneTransform( bone, transform )
 	local b = self.refs[bone]
 	if not b then
@@ -167,6 +184,10 @@ function armature_meta:SetBoneTransform( bone, transform )
 	b.transform = transform
 end
 
+--- Gets the local transform of a bone.
+---
+---@param bone string
+---@return Transformation
 function armature_meta:GetBoneTransform( bone )
 	local b = self.refs[bone]
 	if not b then
@@ -175,6 +196,10 @@ function armature_meta:GetBoneTransform( bone )
 	return b.transform
 end
 
+--- Gets the global transform of a bone.
+---
+---@param bone string
+---@return Transformation
 function armature_meta:GetBoneGlobalTransform( bone )
 	local b = self.refs[bone]
 	if not b then
@@ -186,6 +211,13 @@ function armature_meta:GetBoneGlobalTransform( bone )
 	return b.g_transform
 end
 
+---@alias JiggleConstaint { gravity?: number }
+
+--- Sets the jiggle constraints of a bone.
+---
+---@param bone string
+---@param jiggle number
+---@param constraint? JiggleConstaint
 function armature_meta:SetBoneJiggle( bone, jiggle, constraint )
 	local b = self.refs[bone]
 	if not b then
@@ -199,6 +231,11 @@ function armature_meta:SetBoneJiggle( bone, jiggle, constraint )
 	b.jiggle_constraint = constraint
 end
 
+--- Gets the jiggle constraints of a bone.
+---
+---@param bone string
+---@return number jiggle
+---@return JiggleConstaint constraints
 function armature_meta:GetBoneJiggle( bone )
 	local b = self.refs[bone]
 	if not b then
@@ -207,6 +244,7 @@ function armature_meta:GetBoneJiggle( bone )
 	return b.jiggle, b.jiggle_constraint
 end
 
+--- Resets the jiggle state of all bones.
 function armature_meta:ResetJiggle()
 	for _, b in pairs( self.refs ) do
 		b.jiggle_transform = nil
@@ -239,6 +277,11 @@ local function updatebone( bone, current_transform, prev_transform, dt, gravity 
 	end
 end
 
+--- Updates the physics of the armature.
+---
+---@param diff Transformation
+---@param dt number
+---@param gravity? Vector
 function armature_meta:UpdatePhysics( diff, dt, gravity )
 	dt = dt or 0.01666
 	diff.pos = VecScale( diff.pos, 1 / dt )
@@ -252,6 +295,9 @@ local function DebugAxis( tr, s )
 	DebugLine( tr.pos, TransformToParentPoint( tr, Vec( 0, 0, 1 * s ) ), 0, 0, 1 )
 end
 
+--- Draws debug info of the armature at the specified transform.
+---
+---@param transform? Transformation
 function armature_meta:DrawDebug( transform )
 	transform = transform or Transform()
 	DebugAxis( transform, 0.05 )
@@ -270,6 +316,11 @@ function armature_meta:DrawDebug( transform )
 	end
 end
 
+--- Loads armature information from a prefab and a list of shapes.
+---
+---@param xml string
+---@param parts table[]
+---@param scale? number
 function LoadArmatureFromXML( xml, parts, scale ) -- Example below
 	scale = scale or 1
 	local dt = ParseXML( xml )

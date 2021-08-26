@@ -32,6 +32,10 @@ for i = 1, #detours do
 	simple_detour( detours[i] )
 end
 
+--- Tests if a UI element should be drawn.
+---
+---@param kind string
+---@return boolean
 function shoulddraw( kind )
 	return hook.saferun( "api.shoulddraw", kind ) ~= false
 end
@@ -79,6 +83,7 @@ local function hasfunction( t, bck )
 	end
 end
 
+--- Updates the list of libraries known by the Quickload Patch.
 function UpdateQuickloadPatch()
 	for k, v in pairs( _G ) do
 		if k ~= "_G" and type( v ) == "table" and hasfunction( v, {} ) then
