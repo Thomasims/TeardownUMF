@@ -8,8 +8,8 @@ local function SplitPath( filepath )
 	return filepath:match( "^(.-/?)([^/]+)$" )
 end
 
-local function GetCurrentDirectory()
-	local _, errpath = pcall( error, "-", 2 )
+local function GetCurrentDirectory( level )
+	local _, errpath = pcall( error, "-", 2 + (level or 0) )
 	local curpath = errpath:match( "^%[string \"...([^\"]*)/umf_debug.lua\"%]:%d+: %-$" )
 
 	local matches = {}
@@ -28,37 +28,51 @@ local function GetCurrentDirectory()
 	end
 end
 
-local loaded = {}
-local includestack = { GetCurrentDirectory() .. "/" }
+local function NotFound( f, err )
+	return not f and err and err:sub( 1, 11 ) == "cannot open"
+end
 
-function UMF_REQUIRE( filepath )
-	local root = includestack[#includestack]
-	local realpath
-	local f
-	while true do
-		realpath = root .. filepath
-		f = loadfile( realpath )
-		if not f then
-			realpath = realpath:match( "(.-)/*$" ) .. "/_index.lua"
-			f = loadfile( realpath )
+local loaded = {}
+local currentdir
+function UMF_REQUIRE( filepath, isAbsolute )
+	local f, err, realpath
+	if isAbsolute then
+		realpath = filepath
+		f, err = loadfile( realpath )
+	else
+		local root = currentdir or (GetCurrentDirectory( 1 ) .. "/")
+		while true do
+			realpath = root .. filepath
+			f, err = loadfile( realpath )
+			if NotFound( f, err ) then
+				realpath = realpath:match( "(.-)/*$" ) .. "/_index.lua"
+				f, err = loadfile( realpath )
+			end
+			if not NotFound( f, err ) or root == "" then
+				break
+			end
+			root = root:match( "(.-)[^/]*/+$" ) or ""
 		end
-		if f or root == "" then
-			break
-		end
-		root = root:match( "(.-)[^/]*/+$" ) or ""
 	end
-	if not f or loaded[realpath] then
-		return loaded[realpath]
+	if not f then
+		print( err )
+		DebugPrint( err )
+		return loaded[realpath] and loaded[realpath].result or err
 	end
-	local res = { path = realpath, dump = string.dump( f ) }
+	local dump = string.dump( f )
+	if loaded[realpath] and loaded[realpath].dump == dump then
+		return loaded[realpath].result
+	end
+	local res = { path = realpath, dump = dump }
 	loaded[realpath] = res
-	local subroot = SplitPath( realpath )
-	includestack[#includestack + 1] = subroot
+	local prevdir = currentdir
+	currentdir = SplitPath( realpath )
 	local s, e = pcall( f )
 	if not s then
-		DebugPrint( tostring( e ) )
+		print( e )
+		DebugPrint( e )
 	end
-	includestack[#includestack] = nil
+	currentdir = prevdir
 	res.result = e
 	return e
 end
@@ -77,4 +91,21 @@ for i = 1, #__RUNLATER do
 	end
 end
 
--- IDEA: use loaded to auto refresh
+if hook then
+	function UMF_AUTOREFRESH( enabled )
+		if enabled then
+			local last = GetTime()
+			hook.add( "base.tick", "api.autorefresh", function()
+				local now = GetTime()
+				if now - last >= 1 then
+					last = now
+					for k, v in pairs( loaded ) do
+						UMF_REQUIRE( v.path, true )
+					end
+				end
+			end )
+		else
+			hook.remove( "base.tick", "api.autorefresh" )
+		end
+	end
+end

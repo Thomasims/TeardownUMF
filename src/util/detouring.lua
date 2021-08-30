@@ -12,7 +12,7 @@ local detoured = {}
 ---@param name string
 ---@param generator fun(original: function): function
 function DETOUR( name, generator )
-	original[name] = _G[name]
+	original[name] = original[name] or rawget( _G, name )
 	detoured[name] = generator( function( ... )
 		return call_original( name, ... )
 	end )
