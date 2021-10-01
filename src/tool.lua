@@ -14,7 +14,34 @@ UMF_REQUIRE "animation/armature.lua"
 ---@field model string
 ---@field printname string
 ---@field id string
-local tool_meta = global_metatable( "tool" )
+local tool_meta = global_metatable( "tool", nil, true )
+
+function tool_meta._C:ammo( val )
+	local key = "game.tool." .. self.id .. ".ammo"
+	local keystr = key .. ".display"
+	if val ~= nil then
+		if type( val ) == "number" then
+			SetFloat( key, val )
+			ClearKey( keystr )
+		else
+			SetFloat( key, 0 )
+			SetString( key .. ".display", tostring( val ) )
+		end
+	elseif HasKey( keystr ) then
+		return GetString( keystr )
+	else
+		return GetFloat( key )
+	end
+end
+
+function tool_meta._C:enabled( val )
+	local key = "game.tool." .. self.id .. ".enabled"
+	if val ~= nil then
+		SetBool( key, val )
+	else
+		return GetBool( key )
+	end
+end
 
 --- Draws the tool in the world instead of the player view.
 ---
@@ -141,6 +168,13 @@ function RegisterToolUMF( id, data )
 	extra_tools[id] = data
 	RegisterTool( id, data.printname or id, data.model or "", data.group or 6 )
 	SetBool( "game.tool." .. id .. ".enabled", true )
+	for k, f in pairs( tool_meta._C ) do
+		local v = rawget( data, k )
+		if v ~= nil then
+			rawset( data, k, nil )
+			f( data, v )
+		end
+	end
 	return data
 end
 
