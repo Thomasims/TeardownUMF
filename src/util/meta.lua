@@ -8,7 +8,7 @@ local reverse_meta = {}
 ---@param name string
 ---@param parent? string
 ---@return table
-function global_metatable( name, parent )
+function global_metatable( name, parent, usecomputed )
 	local meta = registered_meta[name]
 	if meta then
 		if not parent then
@@ -22,8 +22,34 @@ function global_metatable( name, parent )
 		reverse_meta[meta] = name
 		hook.saferun( "api.newmeta", name, meta )
 	end
+	local newindex = rawset
+	if usecomputed then
+		local computed = {}
+		meta._C = computed
+		meta.__index = function( self, k )
+			local c = computed[k]
+			if c then
+				return c( self )
+			end
+			return meta[k]
+		end
+		meta.__newindex = function( self, k, v )
+			local c = computed[k]
+			if c then
+				return c( self, v )
+			end
+			return newindex( self, k, v )
+		end
+	end
 	if parent then
-		setmetatable( meta, global_metatable( parent ) )
+		local parent_meta = global_metatable( parent )
+		if parent_meta.__newindex then
+			newindex = parent_meta.__newindex
+			if not meta.__newindex then
+				meta.__newindex = newindex
+			end
+		end
+		setmetatable( meta, { __index = parent_meta.__index } )
 	end
 	return meta
 end
