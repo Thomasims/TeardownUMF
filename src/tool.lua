@@ -139,7 +139,7 @@ function RegisterToolUMF( id, data )
 	setmetatable( data, tool_meta )
 	data.id = id
 	extra_tools[id] = data
-	RegisterTool( id, data.printname or id, data.model or "" )
+	RegisterTool( id, data.printname or id, data.model or "", data.group or 6 )
 	SetBool( "game.tool." .. id .. ".enabled", true )
 	return data
 end
