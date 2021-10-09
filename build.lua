@@ -10,9 +10,22 @@ local function SplitPath( filepath )
 	return filepath:match( "^(.-/?)([^/]+)$" )
 end
 
-local function IsDirectory( file )
-	local data, err = file:read( 0 )
-	return not data and err == "Is a directory"
+local function CheckDirectory( file, path )
+	if file then
+		local data, err = file:read( 0 )
+		if not data and err == "Is a directory" then
+			file:close()
+			path = path:match( "(.-)/*$" ) .. "/_index.lua"
+			file = io.open( path, "r" )
+		end
+	else
+		local newpath = path:match( "(.-)/*$" ) .. "/_index.lua"
+		local newfile = io.open( newpath, "r" )
+		if newfile then
+			file, path = newfile, newpath
+		end
+	end
+	return file, path
 end
 
 local function PreProcess( filepath, root, done, loaded )
@@ -24,11 +37,7 @@ local function PreProcess( filepath, root, done, loaded )
 	local f
 	while true do
 		realpath = root .. filepath
-		f = io.open( realpath, "r" )
-		if f and IsDirectory( f ) then
-			realpath = realpath:match( "(.-)/*$" ) .. "/_index.lua"
-			f = io.open( realpath, "r" )
-		end
+		f, realpath = CheckDirectory( io.open( realpath, "r" ), realpath )
 		if f or root == "" then
 			break
 		end
