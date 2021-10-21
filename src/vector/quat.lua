@@ -80,6 +80,14 @@ function quat_meta:Conjugate()
 	return MakeQuaternion { -self[1], -self[2], -self[3], self[4] }
 end
 
+--- Inverts the quaternion.
+---
+---@return Quaternion
+function quat_meta:Invert()
+	local l = quat_meta.LengthSquare( self )
+	return MakeQuaternion { -self[1] / l, -self[2] / l, -self[3] / l, self[4] / l }
+end
+
 --- Adds to the quaternion.
 ---
 ---@param o Quaternion | number
@@ -179,10 +187,14 @@ end
 ---@param o number
 ---@return Quaternion self
 function quat_meta:Div( o )
-	self[1] = self[1] / o
-	self[2] = self[2] / o
-	self[3] = self[3] / o
-	self[4] = self[4] / o
+	if IsQuaternion( o ) then
+		quat_meta.Mul( self, { -o[1], -o[2], -o[3], o[4] } )
+	else
+		self[1] = self[1] / o
+		self[2] = self[2] / o
+		self[3] = self[3] / o
+		self[4] = self[4] / o
+	end
 	return self
 end
 
