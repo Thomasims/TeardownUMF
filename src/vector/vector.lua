@@ -340,3 +340,62 @@ function vector_meta:Approach( dest, rate )
 	end
 	return vector_meta.Lerp( self, dest, rate / dist )
 end
+
+--- Get the minimum value for each vector component.
+---
+---@vararg Vector
+---@return Vector
+---@overload fun(o: number, ...): Vector
+function vector_meta:Min( ... )
+	local n = vector_meta.Clone( self )
+	for i = 1, select( "#", ... ) do
+		local o = select( i, ... )
+		if type( o ) == "number" then
+			n[1] = math.min( n[1], o )
+			n[2] = math.min( n[2], o )
+			n[3] = math.min( n[3], o )
+		else
+			n[1] = math.min( n[1], o[1] )
+			n[2] = math.min( n[2], o[2] )
+			n[3] = math.min( n[3], o[3] )
+		end
+	end
+	return n
+end
+
+--- Get the maximum value for each vector component.
+---
+---@vararg Vector
+---@return Vector
+---@overload fun(o: number, ...): Vector
+function vector_meta:Max( ... )
+	local n = vector_meta.Clone( self )
+	for i = 1, select( "#", ... ) do
+		local o = select( i, ... )
+		if type( o ) == "number" then
+			n[1] = math.max( n[1], o )
+			n[2] = math.max( n[2], o )
+			n[3] = math.max( n[3], o )
+		else
+			n[1] = math.max( n[1], o[1] )
+			n[2] = math.max( n[2], o[2] )
+			n[3] = math.max( n[3], o[3] )
+		end
+	end
+	return n
+end
+
+--- Clamp the vector components.
+---
+---@param min Vector | number
+---@param max Vector | number
+---@return Vector
+function vector_meta:Clamp( min, max )
+	if type( min ) == "number" then
+		return Vector( math.max( math.min( self[1], max ), min ), math.max( math.min( self[2], max ), min ),
+		               math.max( math.min( self[3], max ), min ) )
+	else
+		return Vector( math.max( math.min( self[1], max[1] ), min[1] ), math.max( math.min( self[2], max[2] ), min[2] ),
+		               math.max( math.min( self[3], max[3] ), min[3] ) )
+	end
+end
