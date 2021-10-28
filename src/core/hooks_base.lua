@@ -1,3 +1,6 @@
+----------------
+-- Default hooks
+-- @script core.hooks_base
 UMF_REQUIRE "/"
 UMF_REQUIRE "util/detouring.lua"
 UMF_RUNLATER "UpdateQuickloadPatch()"

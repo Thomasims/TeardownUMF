@@ -1,7 +1,11 @@
+----------------
+-- Joint class and related functions
+-- @script entities.joint
 UMF_REQUIRE "/"
 
 ---@class Joint: Entity
-local joint_meta = global_metatable( "joint", "entity" )
+local joint_meta
+joint_meta = global_metatable( "joint", "entity" )
 
 --- Tests if the parameter is a joint entity.
 ---
@@ -44,6 +48,8 @@ function FindJointsByTag( tag, global )
 	end
 	return t
 end
+
+---@type Joint
 
 ---@return string
 function joint_meta:__tostring()

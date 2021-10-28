@@ -1,9 +1,13 @@
+----------------
+-- Vector class and related functions
+-- @script vector.vector
 UMF_REQUIRE "/"
 
----@class Vector
-local vector_meta = global_metatable( "vector" )
----@type Quaternion
 local quat_meta = global_metatable( "quaternion" )
+
+---@class Vector
+local vector_meta
+vector_meta = global_metatable( "vector" )
 
 --- Tests if the parameter is a vector.
 ---
@@ -35,6 +39,8 @@ function Vector( x, y, z )
 	end
 	return MakeVector { x or 0, y or 0, z or 0 }
 end
+
+---@type Vector
 
 ---@param data string
 ---@return Vector self

@@ -1,3 +1,6 @@
+----------------
+-- Detour Utilities
+-- @script util.detouring
 local original = {}
 local function call_original( name, ... )
 	local fn = original[name]

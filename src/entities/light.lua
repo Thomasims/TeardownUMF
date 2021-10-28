@@ -1,7 +1,11 @@
+----------------
+-- Light class and related functions
+-- @script entities.light
 UMF_REQUIRE "/"
 
 ---@class Light: Entity
-local light_meta = global_metatable( "light", "entity" )
+local light_meta
+light_meta = global_metatable( "light", "entity" )
 
 --- Tests if the parameter is a light entity.
 ---
@@ -44,6 +48,8 @@ function FindLightsByTag( tag, global )
 	end
 	return t
 end
+
+---@type Light
 
 ---@return string
 function light_meta:__tostring()

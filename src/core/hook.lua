@@ -1,3 +1,6 @@
+----------------
+-- Hook library
+-- @script core.hook
 UMF_REQUIRE "/"
 
 if hook then

@@ -1,7 +1,11 @@
+----------------
+-- Trigger class and related functions
+-- @script entities.trigger
 UMF_REQUIRE "/"
 
 ---@class Trigger: Entity
-local trigger_meta = global_metatable( "trigger", "entity" )
+local trigger_meta
+trigger_meta = global_metatable( "trigger", "entity" )
 
 --- Tests if the parameter is a trigger entity.
 ---
@@ -44,6 +48,8 @@ function FindTriggersByTag( tag, global )
 	end
 	return t
 end
+
+---@type Trigger
 
 ---@return string
 function trigger_meta:__tostring()

@@ -1,10 +1,13 @@
+----------------
+-- Timer Utilities
+--
+--              WARNING
+--   Timers are reset on quickload!
+-- Keep this in mind if you use them.
+--
+-- @script util.timer
 UMF_REQUIRE "core"
 
-----------------------------------------
---              WARNING               --
---   Timers are reset on quickload!   --
--- Keep this in mind if you use them. --
-----------------------------------------
 timer = {}
 timer._backlog = {}
 

@@ -1,3 +1,6 @@
+----------------
+-- Tool Framework
+-- @script tool.tool
 UMF_REQUIRE "core"
 UMF_REQUIRE "vector"
 UMF_REQUIRE "entities"
@@ -15,7 +18,51 @@ UMF_REQUIRE "animation/armature.lua"
 ---@field model string
 ---@field printname string
 ---@field id string
-local tool_meta = global_metatable( "tool", nil, true )
+local tool_meta
+tool_meta = global_metatable( "tool", nil, true )
+
+local extra_tools = {}
+
+--- Registers a tool using UMF.
+---
+---@param id string
+---@param data table
+---@return Tool
+function RegisterToolUMF( id, data )
+	if LoadArmatureFromXML and type( data.model ) == "table" then
+		local arm, xml = LoadArmatureFromXML( data.model.prefab, data.model.objects, data.model.scale )
+		data.armature = arm
+		data._ARMATURE = arm
+		data._OBJECTS = data.model.objects
+		local function findvox( xml )
+			if xml.type == "vox" then
+				return xml.attributes["file"]
+			end
+			for i, c in ipairs( xml.children ) do
+				local t = findvox( c )
+				if t then
+					return t
+				end
+			end
+		end
+		data.model = data.model.path or findvox( xml )
+	end
+	setmetatable( data, tool_meta )
+	data.id = id
+	extra_tools[id] = data
+	RegisterTool( id, data.printname or id, data.model or "", data.group or 6 )
+	SetBool( "game.tool." .. id .. ".enabled", true )
+	for k, f in pairs( tool_meta._C ) do
+		local v = rawget( data, k )
+		if v ~= nil then
+			rawset( data, k, nil )
+			f( data, v )
+		end
+	end
+	return data
+end
+
+---@type Tool
 
 function tool_meta._C:ammo( val )
 	local key = "game.tool." .. self.id .. ".ammo"
@@ -138,47 +185,6 @@ end
 
 --- Callback called when the tool is holstered.
 function tool_meta:Holster()
-end
-
----@type table<string, Tool>
-local extra_tools = {}
---- Registers a tool using UMF.
----
----@param id string
----@param data table
----@return Tool
-function RegisterToolUMF( id, data )
-	if LoadArmatureFromXML and type( data.model ) == "table" then
-		local arm, xml = LoadArmatureFromXML( data.model.prefab, data.model.objects, data.model.scale )
-		data.armature = arm
-		data._ARMATURE = arm
-		data._OBJECTS = data.model.objects
-		local function findvox( xml )
-			if xml.type == "vox" then
-				return xml.attributes["file"]
-			end
-			for i, c in ipairs( xml.children ) do
-				local t = findvox( c )
-				if t then
-					return t
-				end
-			end
-		end
-		data.model = data.model.path or findvox( xml )
-	end
-	setmetatable( data, tool_meta )
-	data.id = id
-	extra_tools[id] = data
-	RegisterTool( id, data.printname or id, data.model or "", data.group or 6 )
-	SetBool( "game.tool." .. id .. ".enabled", true )
-	for k, f in pairs( tool_meta._C ) do
-		local v = rawget( data, k )
-		if v ~= nil then
-			rawset( data, k, nil )
-			f( data, v )
-		end
-	end
-	return data
 end
 
 local function istoolactive()

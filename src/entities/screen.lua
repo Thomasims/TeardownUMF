@@ -1,7 +1,11 @@
+----------------
+-- Screen class and related functions
+-- @script entities.screen
 UMF_REQUIRE "/"
 
 ---@class Screen: Entity
-local screen_meta = global_metatable( "screen", "entity" )
+local screen_meta
+screen_meta = global_metatable( "screen", "entity" )
 
 --- Tests if the parameter is a screen entity.
 ---
@@ -44,6 +48,8 @@ function FindScreensByTag( tag, global )
 	end
 	return t
 end
+
+---@type Screen
 
 ---@return string
 function screen_meta:__tostring()

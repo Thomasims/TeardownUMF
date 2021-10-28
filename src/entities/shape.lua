@@ -1,7 +1,11 @@
+----------------
+-- Shape class and related functions
+-- @script entities.shape
 UMF_REQUIRE "/"
 
 ---@class Shape: Entity
-local shape_meta = global_metatable( "shape", "entity" )
+local shape_meta
+shape_meta = global_metatable( "shape", "entity" )
 
 --- Tests if the parameter is a shape entity.
 ---
@@ -44,6 +48,8 @@ function FindShapesByTag( tag, global )
 	end
 	return t
 end
+
+---@type Shape
 
 ---@return string
 function shape_meta:__tostring()

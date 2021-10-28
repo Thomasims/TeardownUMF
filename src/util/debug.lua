@@ -1,3 +1,6 @@
+----------------
+-- Debug Utilities
+-- @script util.debug
 util = util or {}
 
 --- Gets the current line of code.

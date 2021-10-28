@@ -1,2 +1,4 @@
 .vscode
 dist
+doc
+!doc/ldoc.ltp

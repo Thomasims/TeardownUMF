@@ -1,3 +1,6 @@
+----------------
+-- Console related functions
+-- @script core.console_backend
 UMF_REQUIRE "util/registry.lua"
 UMF_REQUIRE "util/debug.lua"
 

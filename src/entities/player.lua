@@ -1,7 +1,11 @@
+----------------
+-- Player class and related functions
+-- @script entities.player
 UMF_REQUIRE "/"
 
 ---@class Player
-local player_meta = global_metatable( "player" )
+local player_meta
+player_meta = global_metatable( "player" )
 
 ---@type Player
 PLAYER = setmetatable( {}, player_meta )

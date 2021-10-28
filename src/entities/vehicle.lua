@@ -1,7 +1,11 @@
+----------------
+-- Vehicle class and related functions
+-- @script entities.vehicle
 UMF_REQUIRE "/"
 
 ---@class Vehicle: Entity
-local vehicle_meta = global_metatable( "vehicle", "entity" )
+local vehicle_meta
+vehicle_meta = global_metatable( "vehicle", "entity" )
 
 --- Tests if the parameter is a vehicle entity.
 ---
@@ -44,6 +48,8 @@ function FindVehiclesByTag( tag, global )
 	end
 	return t
 end
+
+---@type Vehicle
 
 ---@return string
 function vehicle_meta:__tostring()

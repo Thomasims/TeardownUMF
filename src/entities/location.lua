@@ -1,7 +1,11 @@
+----------------
+-- Location class and related functions
+-- @script entities.location
 UMF_REQUIRE "/"
 
 ---@class Location: Entity
-local location_meta = global_metatable( "location", "entity" )
+local location_meta
+location_meta = global_metatable( "location", "entity" )
 
 --- Tests if the parameter is a location entity.
 ---
@@ -44,6 +48,8 @@ function FindLocationsByTag( tag, global )
 	end
 	return t
 end
+
+---@type Location
 
 ---@return string
 function location_meta:__tostring()

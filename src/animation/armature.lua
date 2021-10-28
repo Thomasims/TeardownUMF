@@ -1,3 +1,6 @@
+----------------
+-- Armature library
+-- @script animation.armature
 UMF_REQUIRE "util/meta.lua"
 UMF_REQUIRE "util/xml.lua"
 
@@ -6,7 +9,8 @@ UMF_REQUIRE "util/xml.lua"
 ---@field root any
 ---@field scale number | nil
 ---@field dirty boolean
-local armature_meta = global_metatable( "armature" )
+local armature_meta
+armature_meta = global_metatable( "armature" )
 
 --[[
 
@@ -88,6 +92,152 @@ Armature {
 
 ]]
 
+--- Loads armature information from a prefab and a list of shapes.
+---
+---@param xml string
+---@param parts table[]
+---@param scale? number
+function LoadArmatureFromXML( xml, parts, scale ) -- Example below
+	scale = scale or 1
+	local dt = ParseXML( xml )
+	assert( dt.type == "prefab" and dt.children[1] and dt.children[1].type == "group" )
+	local shapes = {}
+	local offsets = {}
+	for i = 1, #parts do
+		shapes[i] = parts[i][1]
+		local v = parts[i][2]
+		-- Compensate for the editor placing vox parts relative to the center of the base
+		offsets[parts[i][1]] = Vec( math.floor( v[1] / 2 ) / 10, 0, -math.floor( v[2] / 2 ) / 10 )
+	end
+
+	local function parseVec( str )
+		if not str then
+			return Vec( 0, 0, 0 )
+		end
+		local x, y, z = str:match( "([%d.-]+) ([%d.-]+) ([%d.-]+)" )
+		return Vec( tonumber( x ), tonumber( y ), tonumber( z ) )
+	end
+
+	local function parseTransform( attr )
+		local pos, angv = parseVec( attr.pos ), parseVec( attr.rot )
+		return Transform( Vec( pos[1], pos[2], pos[3] ), QuatEuler( angv[1], angv[2], angv[3] ) )
+	end
+
+	local function translatebone( node, isLocation )
+		local t = { name = node.attributes.name, transform = parseTransform( node.attributes ) }
+		local sub = t
+		if not isLocation then
+			t.name = "__FIXED_" .. node.attributes.name
+			t[1] = { name = node.attributes.name }
+			sub = t[1]
+		end
+		sub.shapes = {}
+		for i = 1, #node.children do
+			local child = node.children[i]
+			if child.type == "vox" then
+				local name = child.attributes.object
+				local tr = parseTransform( child.attributes )
+				local s = child.attributes.scale and tonumber( child.attributes.scale ) or 1
+				tr.pos = VecSub( tr.pos, VecScale( offsets[name], s ) )
+				tr.rot = QuatRotateQuat( tr.rot, QuatEuler( -90, 0, 0 ) )
+				sub.shapes[name] = tr
+			elseif child.type == "group" then
+				sub[#sub + 1] = translatebone( child )
+			elseif child.type == "location" then
+				sub[#sub + 1] = translatebone( child, true )
+			end
+		end
+		return t
+	end
+	local bones = translatebone( dt.children[1] )[1]
+	bones.transform = Transform( Vec(), QuatEuler( 0, 0, 0 ) )
+	bones.name = "root"
+
+	local arm = Armature { shapes = shapes, scale = scale, bones = bones }
+	arm:ComputeBones()
+	return arm, dt
+end
+--[=[
+--[[---------------------------------------------------
+    LoadArmatureFromXML is capable of taking the XML of a prefab and turning it into a useable armature object for tools and such.
+    Two things are required: the XML of the prefab itself, and a list of all the objects inside the vox for position correction.
+    The list of objects should be as it appears in MagicaVoxel, with every slot corresponding to an object in the vox file.
+    One notable limitation is that there can only be one vox file used and that all the objects inside it can only be used once.
+--]]---------------------------------------------------
+
+-- Loading the armature from the prefab and the objects list
+local armature = LoadArmatureFromXML([[
+<prefab version="0.7.0">
+    <group id_="1196432640" open_="true" name="instance=MOD/physgun.xml" pos="-3.4 0.7 0.0" rot="0.0 0.0 0.0">
+        <vox id_="1866644736" pos="-0.125 -0.125 0.125" file="MOD/physgun.vox" object="body" scale="0.5"/>
+        <group id_="279659168" open_="true" name="core0" pos="0.0 0.0 -0.075" rot="0.0 0.0 0.0">
+            <vox id_="496006720" pos="-0.025 -0.125 0.0" rot="0.0 0.0 0.0" file="MOD/physgun.vox" object="core_0" scale="0.5"/>
+        </group>
+        <group id_="961930560" open_="true" name="core1" pos="0.0 0.0 -0.175" rot="0.0 0.0 0.0">
+            <vox id_="1109395584" pos="-0.025 -0.125 0.0" rot="0.0 0.0 0.0" file="MOD/physgun.vox" object="core_1" scale="0.5"/>
+        </group>
+        <group id_="806535232" open_="true" name="core2" pos="0.0 0.0 -0.275" rot="0.0 0.0 0.0">
+            <vox id_="378362432" pos="-0.025 -0.125 0.0" rot="0.0 0.0 0.0" file="MOD/physgun.vox" object="core_2" scale="0.5"/>
+        </group>
+        <group id_="1255943040" open_="true" name="arms_rot" pos="0.0 0.0 -0.375" rot="0.0 0.0 0.0">
+            <group id_="439970016" open_="true" name="arm0_base" pos="0.0 0.1 0.0" rot="0.0 0.0 0.0">
+                <vox id_="1925106432" pos="-0.025 0.0 0.025" file="MOD/physgun.vox" object="arm_00" scale="0.5"/>
+                <group id_="2122316288" open_="true" name="arm0_tip" pos="0.0 0.2 -0.0" rot="0.0 0.0 0.0">
+                    <vox id_="572557440" pos="-0.025 0.0 0.025" file="MOD/physgun.vox" object="arm_01" scale="0.5"/>
+                </group>
+            </group>
+            <group id_="516324128" open_="true" name="arm1_base" pos="0.087 -0.05 0.0" rot="180.0 180.0 -60.0">
+                <vox id_="28575440" pos="-0.025 0.0 0.025" file="MOD/physgun.vox" object="arm_10" scale="0.5"/>
+                <group id_="962454912" open_="true" name="arm1_tip" pos="0.0 0.2 0.0" rot="0.0 0.0 0.0">
+                    <vox id_="1966724352" pos="-0.025 0.0 0.025" file="MOD/physgun.vox" object="arm_11" scale="0.5"/>
+                </group>
+            </group>
+            <group id_="634361664" open_="true" name="arm2_base" pos="-0.087 -0.05 0.0" rot="180.0 180.0 60.0">
+                <vox id_="1049360960" pos="-0.025 0.0 0.025" file="MOD/physgun.vox" object="arm_20" scale="0.5"/>
+                <group id_="1428116608" open_="true" name="arm2_tip" pos="0.0 0.2 0.0" rot="0.0 0.0 0.0">
+                    <vox id_="1388661504" pos="-0.025 0.0 0.025" file="MOD/physgun.vox" object="arm_21" scale="0.5"/>
+                </group>
+            </group>
+        </group>
+        <group id_="1569551872" open_="true" name="nozzle" pos="0.0 0.0 -0.475">
+            <vox id_="506099872" pos="-0.025 -0.125 0.1" file="MOD/physgun.vox" object="cannon" scale="0.5"/>
+        </group>
+    </group>
+</prefab>
+]], {
+    -- The list of objects as it appears in MagicaVoxel. Each entry has the name of the object followed by the size as seen in MagicaVoxel.
+    -- Please note that the order MUST be the same as in MagicaVoxel and that there can be no gaps.
+    {"cannon", Vec(5, 3, 5)},
+    {"core_2", Vec(5, 2, 5)},
+    {"core_1", Vec(5, 2, 5)},
+    {"core_0", Vec(5, 2, 5)},
+    {"arm_21", Vec(1, 1, 2)},
+    {"arm_11", Vec(1, 1, 2)},
+    {"arm_01", Vec(1, 1, 2)},
+    {"arm_20", Vec(1, 1, 4)},
+    {"arm_10", Vec(1, 1, 4)},
+    {"arm_00", Vec(1, 1, 4)},
+    {"body", Vec(9, 6, 5)}
+})
+-----------------------------------------------------
+
+-- Every frame you can animate the armature by setting the local transform of bones and then applying the changes to the shapes of the object.
+armature:SetBoneTransform("core0", Transform(Vec(), QuatEuler(0, 0, GetTime()*73)))
+armature:SetBoneTransform("core1", Transform(Vec(), QuatEuler(0, 0, -GetTime()*45)))
+armature:SetBoneTransform("core2", Transform(Vec(), QuatEuler(0, 0, GetTime()*83)))
+armature:SetBoneTransform("arms_rot", Transform(Vec(), QuatEuler(0, 0, GetTime()*20)))
+local tr = Transform(Vec(0,0,0), QuatEuler(-40 + 5 * math.sin(GetTime()), 0, 0))
+armature:SetBoneTransform("arm0_base", tr)
+armature:SetBoneTransform("arm0_tip", tr)
+armature:SetBoneTransform("arm1_base", tr)
+armature:SetBoneTransform("arm1_tip", tr)
+armature:SetBoneTransform("arm2_base", tr)
+armature:SetBoneTransform("arm2_tip", tr)
+-- shapes is the list of all the shapes of the vox, it can be obtained with GetBodyShapes()
+armature:Apply(shapes)
+
+--]=]
+
 --- Creates a new armature.
 ---
 ---@param definition table
@@ -127,6 +277,8 @@ function Armature( definition )
 	dobone( armature.root )
 	return setmetatable( armature, armature_meta )
 end
+
+---@type Armature
 
 local function computebone( bone, transform, scale, dirty )
 	dirty = dirty or bone.dirty or bone.jiggle_transform
@@ -315,149 +467,3 @@ function armature_meta:DrawDebug( transform )
 		end
 	end
 end
-
---- Loads armature information from a prefab and a list of shapes.
----
----@param xml string
----@param parts table[]
----@param scale? number
-function LoadArmatureFromXML( xml, parts, scale ) -- Example below
-	scale = scale or 1
-	local dt = ParseXML( xml )
-	assert( dt.type == "prefab" and dt.children[1] and dt.children[1].type == "group" )
-	local shapes = {}
-	local offsets = {}
-	for i = 1, #parts do
-		shapes[i] = parts[i][1]
-		local v = parts[i][2]
-		-- Compensate for the editor placing vox parts relative to the center of the base
-		offsets[parts[i][1]] = Vec( math.floor( v[1] / 2 ) / 10, 0, -math.floor( v[2] / 2 ) / 10 )
-	end
-
-	local function parseVec( str )
-		if not str then
-			return Vec( 0, 0, 0 )
-		end
-		local x, y, z = str:match( "([%d.-]+) ([%d.-]+) ([%d.-]+)" )
-		return Vec( tonumber( x ), tonumber( y ), tonumber( z ) )
-	end
-
-	local function parseTransform( attr )
-		local pos, angv = parseVec( attr.pos ), parseVec( attr.rot )
-		return Transform( Vec( pos[1], pos[2], pos[3] ), QuatEuler( angv[1], angv[2], angv[3] ) )
-	end
-
-	local function translatebone( node, isLocation )
-		local t = { name = node.attributes.name, transform = parseTransform( node.attributes ) }
-		local sub = t
-		if not isLocation then
-			t.name = "__FIXED_" .. node.attributes.name
-			t[1] = { name = node.attributes.name }
-			sub = t[1]
-		end
-		sub.shapes = {}
-		for i = 1, #node.children do
-			local child = node.children[i]
-			if child.type == "vox" then
-				local name = child.attributes.object
-				local tr = parseTransform( child.attributes )
-				local s = child.attributes.scale and tonumber( child.attributes.scale ) or 1
-				tr.pos = VecSub( tr.pos, VecScale( offsets[name], s ) )
-				tr.rot = QuatRotateQuat( tr.rot, QuatEuler( -90, 0, 0 ) )
-				sub.shapes[name] = tr
-			elseif child.type == "group" then
-				sub[#sub + 1] = translatebone( child )
-			elseif child.type == "location" then
-				sub[#sub + 1] = translatebone( child, true )
-			end
-		end
-		return t
-	end
-	local bones = translatebone( dt.children[1] )[1]
-	bones.transform = Transform( Vec(), QuatEuler( 0, 0, 0 ) )
-	bones.name = "root"
-
-	local arm = Armature { shapes = shapes, scale = scale, bones = bones }
-	arm:ComputeBones()
-	return arm, dt
-end
---[=[
---[[---------------------------------------------------
-    LoadArmatureFromXML is capable of taking the XML of a prefab and turning it into a useable armature object for tools and such.
-    Two things are required: the XML of the prefab itself, and a list of all the objects inside the vox for position correction.
-    The list of objects should be as it appears in MagicaVoxel, with every slot corresponding to an object in the vox file.
-    One notable limitation is that there can only be one vox file used and that all the objects inside it can only be used once.
---]]---------------------------------------------------
-
--- Loading the armature from the prefab and the objects list
-local armature = LoadArmatureFromXML([[
-<prefab version="0.7.0">
-    <group id_="1196432640" open_="true" name="instance=MOD/physgun.xml" pos="-3.4 0.7 0.0" rot="0.0 0.0 0.0">
-        <vox id_="1866644736" pos="-0.125 -0.125 0.125" file="MOD/physgun.vox" object="body" scale="0.5"/>
-        <group id_="279659168" open_="true" name="core0" pos="0.0 0.0 -0.075" rot="0.0 0.0 0.0">
-            <vox id_="496006720" pos="-0.025 -0.125 0.0" rot="0.0 0.0 0.0" file="MOD/physgun.vox" object="core_0" scale="0.5"/>
-        </group>
-        <group id_="961930560" open_="true" name="core1" pos="0.0 0.0 -0.175" rot="0.0 0.0 0.0">
-            <vox id_="1109395584" pos="-0.025 -0.125 0.0" rot="0.0 0.0 0.0" file="MOD/physgun.vox" object="core_1" scale="0.5"/>
-        </group>
-        <group id_="806535232" open_="true" name="core2" pos="0.0 0.0 -0.275" rot="0.0 0.0 0.0">
-            <vox id_="378362432" pos="-0.025 -0.125 0.0" rot="0.0 0.0 0.0" file="MOD/physgun.vox" object="core_2" scale="0.5"/>
-        </group>
-        <group id_="1255943040" open_="true" name="arms_rot" pos="0.0 0.0 -0.375" rot="0.0 0.0 0.0">
-            <group id_="439970016" open_="true" name="arm0_base" pos="0.0 0.1 0.0" rot="0.0 0.0 0.0">
-                <vox id_="1925106432" pos="-0.025 0.0 0.025" file="MOD/physgun.vox" object="arm_00" scale="0.5"/>
-                <group id_="2122316288" open_="true" name="arm0_tip" pos="0.0 0.2 -0.0" rot="0.0 0.0 0.0">
-                    <vox id_="572557440" pos="-0.025 0.0 0.025" file="MOD/physgun.vox" object="arm_01" scale="0.5"/>
-                </group>
-            </group>
-            <group id_="516324128" open_="true" name="arm1_base" pos="0.087 -0.05 0.0" rot="180.0 180.0 -60.0">
-                <vox id_="28575440" pos="-0.025 0.0 0.025" file="MOD/physgun.vox" object="arm_10" scale="0.5"/>
-                <group id_="962454912" open_="true" name="arm1_tip" pos="0.0 0.2 0.0" rot="0.0 0.0 0.0">
-                    <vox id_="1966724352" pos="-0.025 0.0 0.025" file="MOD/physgun.vox" object="arm_11" scale="0.5"/>
-                </group>
-            </group>
-            <group id_="634361664" open_="true" name="arm2_base" pos="-0.087 -0.05 0.0" rot="180.0 180.0 60.0">
-                <vox id_="1049360960" pos="-0.025 0.0 0.025" file="MOD/physgun.vox" object="arm_20" scale="0.5"/>
-                <group id_="1428116608" open_="true" name="arm2_tip" pos="0.0 0.2 0.0" rot="0.0 0.0 0.0">
-                    <vox id_="1388661504" pos="-0.025 0.0 0.025" file="MOD/physgun.vox" object="arm_21" scale="0.5"/>
-                </group>
-            </group>
-        </group>
-        <group id_="1569551872" open_="true" name="nozzle" pos="0.0 0.0 -0.475">
-            <vox id_="506099872" pos="-0.025 -0.125 0.1" file="MOD/physgun.vox" object="cannon" scale="0.5"/>
-        </group>
-    </group>
-</prefab>
-]], {
-    -- The list of objects as it appears in MagicaVoxel. Each entry has the name of the object followed by the size as seen in MagicaVoxel.
-    -- Please note that the order MUST be the same as in MagicaVoxel and that there can be no gaps.
-    {"cannon", Vec(5, 3, 5)},
-    {"core_2", Vec(5, 2, 5)},
-    {"core_1", Vec(5, 2, 5)},
-    {"core_0", Vec(5, 2, 5)},
-    {"arm_21", Vec(1, 1, 2)},
-    {"arm_11", Vec(1, 1, 2)},
-    {"arm_01", Vec(1, 1, 2)},
-    {"arm_20", Vec(1, 1, 4)},
-    {"arm_10", Vec(1, 1, 4)},
-    {"arm_00", Vec(1, 1, 4)},
-    {"body", Vec(9, 6, 5)}
-})
------------------------------------------------------
-
--- Every frame you can animate the armature by setting the local transform of bones and then applying the changes to the shapes of the object.
-armature:SetBoneTransform("core0", Transform(Vec(), QuatEuler(0, 0, GetTime()*73)))
-armature:SetBoneTransform("core1", Transform(Vec(), QuatEuler(0, 0, -GetTime()*45)))
-armature:SetBoneTransform("core2", Transform(Vec(), QuatEuler(0, 0, GetTime()*83)))
-armature:SetBoneTransform("arms_rot", Transform(Vec(), QuatEuler(0, 0, GetTime()*20)))
-local tr = Transform(Vec(0,0,0), QuatEuler(-40 + 5 * math.sin(GetTime()), 0, 0))
-armature:SetBoneTransform("arm0_base", tr)
-armature:SetBoneTransform("arm0_tip", tr)
-armature:SetBoneTransform("arm1_base", tr)
-armature:SetBoneTransform("arm1_tip", tr)
-armature:SetBoneTransform("arm2_base", tr)
-armature:SetBoneTransform("arm2_tip", tr)
--- shapes is the list of all the shapes of the vox, it can be obtained with GetBodyShapes()
-armature:Apply(shapes)
-
---]=]

@@ -1,3 +1,5 @@
+----------------
+-- @submodule core.hooks_base
 UMF_REQUIRE "/"
 
 --- Checks if the player is in a vehicle.

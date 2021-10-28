@@ -1,3 +1,6 @@
+----------------
+-- Registry Utilities
+-- @script util.registry
 UMF_REQUIRE "core"
 
 util = util or {}

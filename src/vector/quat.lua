@@ -1,9 +1,12 @@
+----------------
+-- Quaternion class and related functions
+-- @script vector.quat
 UMF_REQUIRE "/"
 
----@type Vector
 local vector_meta = global_metatable( "vector" )
 ---@class Quaternion
-local quat_meta = global_metatable( "quaternion" )
+local quat_meta
+quat_meta = global_metatable( "quaternion" )
 
 --- Tests if the parameter is a quaternion.
 ---
@@ -36,6 +39,8 @@ function Quaternion( i, j, k, r )
 	end
 	return MakeQuaternion { i or 0, j or 0, k or 0, r or 1 }
 end
+
+---@type Quaternion
 
 ---@param data string
 ---@return Quaternion self

@@ -1,7 +1,11 @@
+----------------
+-- Body class and related functions
+-- @script entities.body
 UMF_REQUIRE "/"
 
 ---@class Body: Entity
-local body_meta = global_metatable( "body", "entity" )
+local body_meta
+body_meta = global_metatable( "body", "entity" )
 
 --- Tests if the parameter is a body entity.
 ---
@@ -44,6 +48,8 @@ function FindBodiesByTag( tag, global )
 	end
 	return t
 end
+
+---@type Body
 
 ---@return string
 function body_meta:__tostring()

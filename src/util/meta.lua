@@ -1,3 +1,6 @@
+----------------
+-- Metatable Utilities
+-- @script util.meta
 UMF_REQUIRE "core"
 
 local registered_meta = {}

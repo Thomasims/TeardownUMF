@@ -1,9 +1,13 @@
+----------------
+-- Entity class and related functions
+-- @script entities.entity
 UMF_REQUIRE "/"
 
 ---@class Entity
 ---@field handle number
 ---@field type string
-local entity_meta = global_metatable( "entity" )
+local entity_meta
+entity_meta = global_metatable( "entity" )
 
 --- Gets the handle of an entity.
 ---
@@ -44,6 +48,8 @@ function Entity( handle )
 		return setmetatable( { handle = handle, type = "unknown" }, entity_meta )
 	end
 end
+
+---@type Entity
 
 ---@param data string
 ---@return Entity self

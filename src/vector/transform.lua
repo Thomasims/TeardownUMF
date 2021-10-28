@@ -1,13 +1,15 @@
+----------------
+-- Transform class and related functions
+-- @script vector.transform
 UMF_REQUIRE "/"
 
----@type Vector
 local vector_meta = global_metatable( "vector" )
----@type Quaternion
 local quat_meta = global_metatable( "quaternion" )
 ---@class Transformation
 ---@field pos Vector
 ---@field rot Quaternion
-local transform_meta = global_metatable( "transformation" )
+local transform_meta
+transform_meta = global_metatable( "transformation" )
 
 --- Tests if the parameter is a transformation.
 ---
@@ -35,6 +37,8 @@ end
 function Transformation( pos, rot )
 	return MakeTransformation { pos = pos, rot = rot }
 end
+
+---@type Transformation
 
 ---@param data string
 ---@return Transformation self

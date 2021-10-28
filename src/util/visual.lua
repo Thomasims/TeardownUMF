@@ -1,3 +1,6 @@
+----------------
+-- Visual Utilities
+-- @script util.visual
 visual = {}
 degreeToRadian = math.pi / 180
 COLOR_WHITE = { r = 255 / 255, g = 255 / 255, b = 255 / 255, a = 255 / 255 }

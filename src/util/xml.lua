@@ -1,36 +1,14 @@
+----------------
+-- XML Utilities
+-- @script util.xml
+
 ---@class XMLNode
 ---@field __call fun(children: XMLNode[]): XMLNode
 ---@field attributes table<string, string> | nil
 ---@field children XMLNode[] | nil
 ---@field type string
-local xmlnode = {
-	--- Renders this node into an XML string.
-	---
-	---@return string
-	Render = function( self )
-		local attr = ""
-		if self.attributes then
-			for name, val in pairs( self.attributes ) do
-				attr = string.format( "%s %s=%q", attr, name, val )
-			end
-		end
-		local children = {}
-		if self.children then
-			for i = 1, #self.children do
-				children[i] = self.children[i]:Render()
-			end
-		end
-		return string.format( "<%s%s>%s</%s>", self.type, attr, table.concat( children, "" ), self.type )
-	end,
-}
-
-local meta = {
-	__call = function( self, children )
-		self.children = children
-		return self
-	end,
-	__index = xmlnode,
-}
+local xml_meta
+xml_meta = global_metatable( "xmlnode" )
 
 --- Defines an XML node.
 ---
@@ -38,7 +16,7 @@ local meta = {
 ---@return fun(attributes: table<string, string>): XMLNode
 XMLTag = function( type )
 	return function( attributes )
-		return setmetatable( { type = type, attributes = attributes }, meta )
+		return setmetatable( { type = type, attributes = attributes }, xml_meta )
 	end
 end
 
@@ -140,4 +118,31 @@ ParseXML = function( xml )
 	end
 
 	return readtag()
+end
+
+---@type XMLNode
+
+---@return XMLNode self
+function xml_meta:__call( children )
+	self.children = children
+	return self
+end
+
+--- Renders this node into an XML string.
+---
+---@return string
+function xml_meta:Render()
+	local attr = ""
+	if self.attributes then
+		for name, val in pairs( self.attributes ) do
+			attr = string.format( "%s %s=%q", attr, name, val )
+		end
+	end
+	local children = {}
+	if self.children then
+		for i = 1, #self.children do
+			children[i] = self.children[i]:Render()
+		end
+	end
+	return string.format( "<%s%s>%s</%s>", self.type, attr, table.concat( children, "" ), self.type )
 end
