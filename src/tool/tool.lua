@@ -8,6 +8,7 @@ UMF_REQUIRE "animation/armature.lua"
 ---@field _TRANSFORM_FIX Transformation
 ---@field _TRANSFORM_DIFF Transformation
 ---@field _ARMATURE Armature
+---@field _TOOLAMMOSTRING string
 ---@field armature Armature
 ---@field _SHAPES Shape[]
 ---@field _OBJECTS table[]
@@ -23,9 +24,11 @@ function tool_meta._C:ammo( val )
 		if type( val ) == "number" then
 			SetFloat( key, val )
 			ClearKey( keystr )
+			rawset( self, "_TOOLAMMOSTRING", false )
 		else
 			SetFloat( key, 0 )
 			SetString( key .. ".display", tostring( val ) )
+			rawset( self, "_TOOLAMMOSTRING", tostring( val ) )
 		end
 	elseif HasKey( keystr ) then
 		return GetString( keystr )
@@ -244,6 +247,10 @@ hook.add( "base.tick", "api.tool_loader", function( dt )
 				                              TransformToLocalVec( tool:GetTransform(), Vec( 0, -10, 0 ) ) )
 				tool._ARMATURE:Apply( tool._SHAPES )
 			end
+		end
+		if tool._TOOLAMMOSTRING then
+			-- Fix sandbox ammo string
+			SetInt( "game.tool." .. tool.id .. ".ammo", 0 )
 		end
 		if tool.Tick then
 			softassert( pcall( tool.Tick, tool, dt ) )
