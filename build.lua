@@ -28,11 +28,7 @@ local function CheckDirectory( file, path )
 	return file, path
 end
 
-local function PreProcess( filepath, root, done, loaded )
-	root = root or ""
-	done = done or {}
-	loaded = loaded or {}
-
+local function FindFile( filepath, root )
 	local realpath
 	local f
 	while true do
@@ -43,6 +39,14 @@ local function PreProcess( filepath, root, done, loaded )
 		end
 		root = root:match( "(.-)[^/]*/+$" ) or ""
 	end
+	return f, realpath
+end
+
+local function PreProcess( filepath, root, done, loaded )
+	done = done or {}
+	loaded = loaded or {}
+
+	local f, realpath = FindFile( filepath, root or "" )
 
 	if not f then
 		print( "missing include: " .. filepath )
@@ -55,13 +59,16 @@ local function PreProcess( filepath, root, done, loaded )
 	end
 	done[realpath] = true
 
-	local text = "\n" .. f:read( "*a" )
+	local text = f:read( "*a" ) .. "\n"
 	f:close()
 
 	local subroot = SplitPath( realpath )
-	text = text:gsub( "\nUMF_REQUIRE \"([^\"]+)\"", function( inc )
+	text = text:gsub( "UMF_REQUIRE \"([^\"]+)\"\n", function( inc )
 		PreProcess( inc, subroot, done, loaded )
 		return ""
+	end ):gsub( "UMF_SOFTREQUIRE \"([^\"]+)\"\n", function( inc )
+		local found, newfile = FindFile( inc, subroot )
+		return "UMF_SOFTREQUIRE \"" .. (found and newfile or inc) .. "\"\n"
 	end )
 	if text:match( "^[ \n\t]*$" ) then
 		return
@@ -137,6 +144,7 @@ local function ParseArguments( rules, ... )
 end
 
 local precode = "local __RUNLATER = {} UMF_RUNLATER = function(code) __RUNLATER[#__RUNLATER + 1] = code end\n"
+local preloadedcode = "local __UMFLOADED={%s} UMF_SOFTREQUIRE = function(name) return __UMFLOADED[name] end\n"
 local postcode = "\nfor i = 1, #__RUNLATER do local f = loadstring(__RUNLATER[i]) if f then pcall(f) end end\n"
 
 do
@@ -155,13 +163,16 @@ do
 		PreProcess( files[i], "src/", done, data )
 	end
 	print( "Generating build.." )
+	local loadedfiles = {}
 	for i = 1, #data do
+		loadedfiles[i] = string.format( "[%q]=true,", data[i].file )
 		print( " * Added " .. data[i].file )
 		data[i] = rules.shorten and Shrink( data[i].code ) or ("--" .. data[i].file .. "\n" .. data[i].code)
 	end
 	local code = table.concat( data, "\n" )
 	local f = io.open( files[1], "w" )
 	f:write( precode )
+	f:write( string.format( preloadedcode, table.concat( loadedfiles ) ) )
 	f:write( code )
 	f:write( postcode )
 	f:close()

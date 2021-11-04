@@ -1,7 +1,7 @@
 ----------------
 -- Registry Utilities
 -- @script util.registry
-UMF_REQUIRE "core"
+local coreloaded = UMF_SOFTREQUIRE "core"
 
 util = util or {}
 
@@ -141,123 +141,125 @@ function util.shared_buffer( name, max )
 	}
 end
 
---- Creates a channel shared via the registry.
----
----@param name string Name of the channel.
----@param max? number Maximum amount of unread messages in the channel.
----@param local_realm? string Name to use to identify the local recipient.
----@return table
-function util.shared_channel( name, max, local_realm )
-	max = max or 64
-	local channel = {
-		_buffer = util.shared_buffer( name, max ),
-		_offset = 0,
-		_hooks = {},
-		_ready_count = 0,
-		_ready = {},
-		broadcast = function( self, ... )
-			return self:send( "", ... )
-		end,
-		send = function( self, realm, ... )
-			self._buffer:push( string.format( ",%s,;%s",
-			                                  (type( realm ) == "table" and table.concat( realm, "," ) or tostring( realm )),
-			                                  util.serialize( ... ) ) )
-		end,
-		listen = function( self, callback )
-			if self._ready[callback] ~= nil then
-				return
-			end
-			self._hooks[#self._hooks + 1] = callback
-			self:ready( callback )
-			return callback
-		end,
-		unlisten = function( self, callback )
-			self:unready( callback )
-			self._ready[callback] = nil
-			for i = 1, #self._hooks do
-				if self._hooks[i] == callback then
-					table.remove( self._hooks, i )
-					return true
+if coreloaded then
+	--- Creates a channel shared via the registry.
+	---
+	---@param name string Name of the channel.
+	---@param max? number Maximum amount of unread messages in the channel.
+	---@param local_realm? string Name to use to identify the local recipient.
+	---@return table
+	function util.shared_channel( name, max, local_realm )
+		max = max or 64
+		local channel = {
+			_buffer = util.shared_buffer( name, max ),
+			_offset = 0,
+			_hooks = {},
+			_ready_count = 0,
+			_ready = {},
+			broadcast = function( self, ... )
+				return self:send( "", ... )
+			end,
+			send = function( self, realm, ... )
+				self._buffer:push( string.format( ",%s,;%s",
+				                                  (type( realm ) == "table" and table.concat( realm, "," ) or tostring( realm )),
+				                                  util.serialize( ... ) ) )
+			end,
+			listen = function( self, callback )
+				if self._ready[callback] ~= nil then
+					return
 				end
-			end
-		end,
-		ready = function( self, callback )
-			if not self._ready[callback] then
-				self._ready_count = self._ready_count + 1
-				self._ready[callback] = true
-			end
-		end,
-		unready = function( self, callback )
-			if self._ready[callback] then
-				self._ready_count = self._ready_count - 1
-				self._ready[callback] = false
-			end
-		end,
-	}
-	local_realm = "," .. (local_realm or "unknown") .. ","
-	local function receive( ... )
-		for i = 1, #channel._hooks do
-			local f = channel._hooks[i]
-			if channel._ready[f] then
-				f( channel, ... )
-			end
-		end
-	end
-	hook.add( "base.tick", name, function( dt )
-		if channel._ready_count > 0 then
-			local last_pos = channel._buffer:pos()
-			if last_pos > channel._offset then
-				for i = math.max( channel._offset, last_pos - max ), last_pos - 1 do
-					local message = channel._buffer:get_g( i )
-					local start = message:find( ";", 1, true )
-					local realms = message:sub( 1, start - 1 )
-					if realms == ",," or realms:find( local_realm, 1, true ) then
-						receive( util.unserialize( message:sub( start + 1 ) ) )
-						if channel._ready_count <= 0 then
-							channel._offset = i + 1
-							return
-						end
+				self._hooks[#self._hooks + 1] = callback
+				self:ready( callback )
+				return callback
+			end,
+			unlisten = function( self, callback )
+				self:unready( callback )
+				self._ready[callback] = nil
+				for i = 1, #self._hooks do
+					if self._hooks[i] == callback then
+						table.remove( self._hooks, i )
+						return true
 					end
 				end
-				channel._offset = last_pos
+			end,
+			ready = function( self, callback )
+				if not self._ready[callback] then
+					self._ready_count = self._ready_count + 1
+					self._ready[callback] = true
+				end
+			end,
+			unready = function( self, callback )
+				if self._ready[callback] then
+					self._ready_count = self._ready_count - 1
+					self._ready[callback] = false
+				end
+			end,
+		}
+		local_realm = "," .. (local_realm or "unknown") .. ","
+		local function receive( ... )
+			for i = 1, #channel._hooks do
+				local f = channel._hooks[i]
+				if channel._ready[f] then
+					f( channel, ... )
+				end
 			end
 		end
-	end )
-	return channel
-end
+		hook.add( "base.tick", name, function( dt )
+			if channel._ready_count > 0 then
+				local last_pos = channel._buffer:pos()
+				if last_pos > channel._offset then
+					for i = math.max( channel._offset, last_pos - max ), last_pos - 1 do
+						local message = channel._buffer:get_g( i )
+						local start = message:find( ";", 1, true )
+						local realms = message:sub( 1, start - 1 )
+						if realms == ",," or realms:find( local_realm, 1, true ) then
+							receive( util.unserialize( message:sub( start + 1 ) ) )
+							if channel._ready_count <= 0 then
+								channel._offset = i + 1
+								return
+							end
+						end
+					end
+					channel._offset = last_pos
+				end
+			end
+		end )
+		return channel
+	end
 
---- Creates an async reader on a channel for coroutines.
----
----@param channel table Name of the channel.
----@return table
-function util.async_channel( channel )
-	local listener = {
-		_channel = channel,
-		_waiter = nil,
-		read = function( self )
-			self._waiter = coroutine.running()
-			if not self._waiter then
-				error( "async_channel:read() can only be used in a coroutine" )
+	--- Creates an async reader on a channel for coroutines.
+	---
+	---@param channel table Name of the channel.
+	---@return table
+	function util.async_channel( channel )
+		local listener = {
+			_channel = channel,
+			_waiter = nil,
+			read = function( self )
+				self._waiter = coroutine.running()
+				if not self._waiter then
+					error( "async_channel:read() can only be used in a coroutine" )
+				end
+				self._channel:ready( self._handler )
+				return coroutine.yield()
+			end,
+			close = function( self )
+				if self._handler then
+					self._channel:unlisten( self._handler )
+				end
+			end,
+		}
+		listener._handler = listener._channel:listen( function( _, ... )
+			if listener._waiter then
+				local co = listener._waiter
+				listener._waiter = nil
+				listener._channel:unready( listener._handler )
+				return coroutine.resume( co, ... )
 			end
-			self._channel:ready( self._handler )
-			return coroutine.yield()
-		end,
-		close = function( self )
-			if self._handler then
-				self._channel:unlisten( self._handler )
-			end
-		end,
-	}
-	listener._handler = listener._channel:listen( function( _, ... )
-		if listener._waiter then
-			local co = listener._waiter
-			listener._waiter = nil
-			listener._channel:unready( listener._handler )
-			return coroutine.resume( co, ... )
-		end
-	end )
-	listener._channel:unready( listener._handler )
-	return listener
+		end )
+		listener._channel:unready( listener._handler )
+		return listener
+	end
 end
 
 do
@@ -274,14 +276,16 @@ do
 		end
 	end
 
-	hook.add( "api.newmeta", "api.createunserializer", function( name, meta )
-		gets[name] = function( key )
-			return setmetatable( {}, meta ):__unserialize( GetString( key ) )
-		end
-		sets[name] = function( key, value )
-			return SetString( key, meta.__serialize( value ) )
-		end
-	end )
+	if coreloaded then
+		hook.add( "api.newmeta", "api.createunserializer", function( name, meta )
+			gets[name] = function( key )
+				return setmetatable( {}, meta ):__unserialize( GetString( key ) )
+			end
+			sets[name] = function( key, value )
+				return SetString( key, meta.__serialize( value ) )
+			end
+		end )
+	end
 
 	--- Creates a table shared via the registry.
 	---

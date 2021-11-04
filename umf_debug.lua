@@ -77,6 +77,10 @@ function UMF_REQUIRE( filepath, isAbsolute )
 	return e
 end
 
+function UMF_SOFTREQUIRE( filepath )
+	return true
+end
+
 local __RUNLATER = {}
 function UMF_RUNLATER( code )
 	__RUNLATER[#__RUNLATER + 1] = code
