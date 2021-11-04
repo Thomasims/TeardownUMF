@@ -41,7 +41,11 @@ function OptionsMenu.Group( def )
 	for i = 1, #def do
 		elements[#elements + 1] = def[i]
 	end
+	local condition = def.condition
 	return function()
+		if condition and not condition() then
+			return 0, 0
+		end
 		local mw, mh = 0, 0
 		for i = 1, #elements do
 			UiPush()
@@ -67,7 +71,11 @@ function OptionsMenu.Text( text, options )
 	local font = options.font or "regular.ttf"
 	local padt = options.pad_top or 0
 	local padb = options.pad_bottom or 5
+	local condition = options.condition
 	return function()
+		if condition and not condition() then
+			return 0, 0
+		end
 		UiTranslate( offset, padt )
 		UiFont( font, size )
 		UiAlign( align )
@@ -81,8 +89,12 @@ end
 ---
 ---@param space number Vertical space
 ---@param spacew? number Horizontal space
-function OptionsMenu.Spacer( space, spacew )
+---@param condition? function Condition function to enable this spacer
+function OptionsMenu.Spacer( space, spacew, condition )
 	return function()
+		if condition and not condition() then
+			return 0, 0
+		end
 		return spacew or 0, space
 	end
 end
@@ -103,7 +115,7 @@ end
 local function setvalue( id, val, func )
 	local key = "savegame.mod." .. id
 	if val ~= nil then
-		(func or SetString)( key, tostring( val ) )
+		(func or SetString)( key, val )
 	else
 		ClearKey( key )
 	end
@@ -122,7 +134,11 @@ function OptionsMenu.Keybind( def )
 		value = "<none>"
 	end
 	local pressed = false
+	local condition = def.condition
 	return function()
+		if condition and not condition() then
+			return 0, 0
+		end
 		UiTranslate( -4, padt )
 		UiFont( "regular.ttf", size )
 		UiAlign( "right top" )
@@ -173,7 +189,11 @@ function OptionsMenu.Slider( def )
 	local value = getvalue( def.id, def.default, GetFloat )
 	local format = string.format( "%%.%df", math.max( 0, math.floor( math.log10( 1000 / range ) ) ) )
 	local step = def.step
+	local condition = def.condition
 	return function()
+		if condition and not condition() then
+			return 0, 0
+		end
 		UiTranslate( -4, padt )
 		UiFont( "regular.ttf", size )
 		UiAlign( "right top" )
@@ -206,7 +226,11 @@ function OptionsMenu.Toggle( def )
 	local padt = def.pad_top or 0
 	local padb = def.pad_bottom or 5
 	local value = getvalue( def.id, def.default, GetBool )
+	local condition = def.condition
 	return function()
+		if condition and not condition() then
+			return 0, 0
+		end
 		UiTranslate( -4, padt )
 		UiFont( "regular.ttf", size )
 		UiAlign( "right top" )
