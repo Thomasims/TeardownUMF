@@ -1,6 +1,17 @@
 ----------------
 -- Config Library
 -- @script util.config
+local registryloaded = UMF_SOFTREQUIRE "registry.lua"
+
+if registryloaded then
+	--- Creates a structured table for the mod config
+	---
+	---@param def table
+	function OptionsKeys( def )
+		return util.structured_table( "savegame.mod", def )
+	end
+end
+
 OptionsMenu = setmetatable( {}, {
 	__call = function( self, def )
 		def.title_size = def.title_size or 50
@@ -129,7 +140,7 @@ function OptionsMenu.Keybind( def )
 	local size = def.size or 30
 	local padt = def.pad_top or 0
 	local padb = def.pad_bottom or 5
-	local value = string.upper( getvalue( def.id, def.default ) )
+	local value = string.upper( getvalue( def.id, def.default ) or "" )
 	if value == "" then
 		value = "<none>"
 	end
@@ -141,6 +152,7 @@ function OptionsMenu.Keybind( def )
 		end
 		UiTranslate( -4, padt )
 		UiFont( "regular.ttf", size )
+		local fheight = UiFontHeight()
 		UiAlign( "right top" )
 		local lw, lh = UiText( text )
 		UiTranslate( 8, 0 )
@@ -163,15 +175,23 @@ function OptionsMenu.Keybind( def )
 		if UiTextButton( tempv ) then
 			pressed = not pressed
 		end
+		UiTranslate( rw, 0 )
 		if value ~= "<none>" then
-			UiTranslate( rw, 0 )
 			UiColor( 1, 0, 0 )
 			if UiTextButton( "x" ) then
 				value = "<none>"
 				setvalue( def.id, "" )
 			end
+			UiTranslate( size * 0.8, 0 )
 		end
-		return lw + 8 + rw, math.max( lh, rh ) + padt + padb
+		if getvalue( def.id ) then
+			UiColor( 0.5, 0.8, 1 )
+			if UiTextButton( "Reset" ) then
+				value = def.default and string.upper( def.default ) or "<none>"
+				setvalue( def.id )
+			end
+		end
+		return lw + 8 + rw, fheight + padt + padb
 	end
 end
 
@@ -196,6 +216,7 @@ function OptionsMenu.Slider( def )
 		end
 		UiTranslate( -4, padt )
 		UiFont( "regular.ttf", size )
+		local fheight = UiFontHeight()
 		UiAlign( "right top" )
 		local lw, lh = UiText( text )
 		UiTranslate( 16, lh / 2 )
@@ -213,7 +234,7 @@ function OptionsMenu.Slider( def )
 		end
 		UiTranslate( 216, 0 )
 		UiText( string.format( format, value ) )
-		return lw + 224, lh + padt + padb
+		return lw + 224, fheight + padt + padb
 	end
 end
 
@@ -233,6 +254,7 @@ function OptionsMenu.Toggle( def )
 		end
 		UiTranslate( -4, padt )
 		UiFont( "regular.ttf", size )
+		local fheight = UiFontHeight()
 		UiAlign( "right top" )
 		local lw, lh = UiText( text )
 		UiTranslate( 8, 0 )
@@ -242,6 +264,6 @@ function OptionsMenu.Toggle( def )
 			value = not value
 			setvalue( def.id, value, SetBool )
 		end
-		return lw + 100, lh + padt + padb
+		return lw + 100, fheight + padt + padb
 	end
 end

@@ -336,7 +336,11 @@ do
 			for k, v in pairs( base ) do
 				local key = name .. "." .. tostring( k )
 				if type( v ) == "table" then
-					root[k] = util.structured_table( key, v )
+					if #v == 0 then
+						root[k] = util.structured_table( key, v )
+					else
+						keys[k] = { type = v[1], key = key, default = v[2] }
+					end
 				elseif type( v ) == "string" then
 					keys[k] = { type = v, key = key }
 				else
@@ -347,7 +351,11 @@ do
 				__index = function( self, k )
 					local entry = keys[k]
 					if entry and gets[entry.type] then
-						return gets[entry.type]( entry.key )
+						if HasKey( entry.key ) then
+							return gets[entry.type]( entry.key )
+						else
+							return entry.default
+						end
 					end
 				end,
 				__newindex = function( self, k, v )
