@@ -63,10 +63,10 @@ local function PreProcess( filepath, root, done, loaded )
 	f:close()
 
 	local subroot = SplitPath( realpath )
-	text = text:gsub( "UMF_REQUIRE \"([^\"]+)\"\n", function( inc )
+	text = text:gsub( "UMF_REQUIRE \"([^\"]+)\"\r?\n", function( inc )
 		PreProcess( inc, subroot, done, loaded )
 		return ""
-	end ):gsub( "UMF_SOFTREQUIRE \"([^\"]+)\"\n", function( inc )
+	end ):gsub( "UMF_SOFTREQUIRE \"([^\"]+)\"\r?\n", function( inc )
 		local found, newfile = FindFile( inc, subroot )
 		return "UMF_SOFTREQUIRE \"" .. (found and newfile or inc) .. "\"\n"
 	end )
