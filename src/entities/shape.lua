@@ -89,6 +89,18 @@ function shape_meta:SetEmissiveScale( scale )
 	return SetShapeEmissiveScale( self.handle, scale )
 end
 
+--- Sets the collision filter of the shape.
+--- A shape will only collide with another if the following is true:
+--- ```
+--- (A.layer & B.mask) && (B.layer & A.mask)
+--- ```
+---
+---@param layer? number bit array (8 bits, 0-255)
+---@param mask? number bit mask (8 bits, 0-255)
+function shape_meta:SetCollisionFilter( layer, mask )
+	SetShapeCollisionFilter( self.handle, layer or 1, mask or 255 )
+end
+
 --- Gets the transform of the shape relative to its body.
 ---
 ---@return Transformation
@@ -176,6 +188,20 @@ end
 function shape_meta:GetVoxelCount()
 	assert( self:IsValid() )
 	return GetShapeVoxelCount( self.handle )
+end
+
+--- Gets the closest point to the shape from a given origin.
+---
+---@param origin Vector
+---@return boolean hit
+---@return Vector point
+---@return Vector normal
+function shape_meta:GetClosestPoint( origin )
+	local hit, point, normal = GetShapeClosestPoint( self.handle, origin )
+	if not hit then
+		return false
+	end
+	return hit, MakeVector( point ), MakeVector( normal )
 end
 
 --- Gets if the shape is currently visible.

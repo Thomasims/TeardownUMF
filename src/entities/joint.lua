@@ -56,6 +56,13 @@ function joint_meta:__tostring()
 	return string.format( "Joint[%d]", self.handle )
 end
 
+--- Detatches the joint from the given shape.
+---
+---@param shape Shape
+function joint_meta:DetachFromShape( shape )
+	DetachJointFromShape( self.handle, GetEntityHandle( shape ) )
+end
+
 --- Makes the joint behave as a motor.
 ---
 ---@param velocity number

@@ -99,6 +99,14 @@ function body_meta:SetTransform( tr )
 	return SetBodyTransform( self.handle, tr )
 end
 
+--- Sets if the body should be simulated.
+---
+---@param bool boolean
+function body_meta:SetActive( bool )
+	assert( self:IsValid() )
+	return SetBodyActive( self.handle, bool )
+end
+
 --- Sets if the body should move.
 ---
 ---@param bool boolean
@@ -207,6 +215,33 @@ end
 ---@return Vector
 function body_meta:GetWorldCenterOfMass()
 	return self:GetTransform():ToGlobal( self:GetLocalCenterOfMass() )
+end
+
+--- Gets the closest point to the body from a given origin.
+---
+---@param origin Vector
+---@return boolean hit
+---@return Vector point
+---@return Vector normal
+---@return Shape shape
+function body_meta:GetClosestPoint( origin )
+	local hit, point, normal, shape = GetBodyClosestPoint( self.handle, origin )
+	if not hit then
+		return false
+	end
+	return hit, MakeVector( point ), MakeVector( normal ), Shape( shape )
+end
+
+--- Gets all the dynamic bodies in the jointed structure.
+--- The result will include the current body.
+---
+---@return Body[] jointed
+function body_meta:GetJointedBodies()
+	local list = GetJointedBodies( self.handle )
+	for i = 1, #list do
+		list[i] = Body( list[i] )
+	end
+	return list
 end
 
 --- Gets if the body is currently being simulated.

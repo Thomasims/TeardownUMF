@@ -38,6 +38,12 @@ function player_meta:Respawn()
 	return RespawnPlayer()
 end
 
+--- Release what the player is currently holding.
+---
+function player_meta:ReleaseGrab()
+	ReleasePlayerGrab()
+end
+
 --- Sets the transform of the player.
 ---
 ---@param transform Transformation
@@ -50,6 +56,21 @@ end
 ---@param transform Transformation
 function player_meta:SetCamera( transform )
 	return SetCameraTransform( transform )
+end
+
+--- Sets the Field of View of the camera.
+---
+---@param degrees number
+function player_meta:SetFov( degrees )
+	return SetCameraFov( degrees )
+end
+
+--- Sets the Depth of Field of the camera.
+---
+---@param distance number
+---@param amount number
+function player_meta:SetDof( distance, amount )
+	return SetCameraDof( distance, amount )
 end
 
 --- Sets the transform of the player spawn.
@@ -85,6 +106,14 @@ end
 ---@param health number
 function player_meta:SetHealth( health )
 	return SetPlayerHealth( health )
+end
+
+--- Sets the velocity of the ground for the player,
+--- Effectively turning it into a conveyor belt of sorts.
+---
+---@param vel Vector
+function player_meta:SetGroundVelocity(vel)
+	SetPlayerGroundVelocity(vel)
 end
 
 --- Gets the transform of the player.

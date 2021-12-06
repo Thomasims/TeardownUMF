@@ -72,6 +72,21 @@ function trigger_meta:GetTransform()
 	return MakeTransformation( GetTriggerTransform( self.handle ) )
 end
 
+--- Gets the distance to the trigger from a given origin.
+--- Negative values indicate the origin is inside the trigger.
+---
+---@param origin Vector
+function trigger_meta:GetDistance(origin)
+	return GetTriggerDistance(self.handle, origin)
+end
+
+--- Gets the closest point to the trigger from a given origin.
+---
+---@param origin Vector
+function trigger_meta:GetClosestPoint(origin)
+	return MakeVector(GetTriggerDistance(self.handle, origin))
+end
+
 --- Gets the bounds of the trigger.
 ---
 ---@return Vector min
