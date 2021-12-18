@@ -202,6 +202,16 @@ hook.add( "api.mouse.wheel", "api.tool_loader", function( ds )
 	end
 end )
 
+hook.add( "base.update", "api.tool_loader", function( dt )
+	local cur = GetString( "game.player.tool" )
+	local tool = extra_tools[cur]
+	if tool then
+		if tool.Update then
+			softassert( pcall( tool.Update, tool, dt ) )
+		end
+	end
+end )
+
 hook.add( "base.tick", "api.tool_loader", function( dt )
 	local cur = GetString( "game.player.tool" )
 
