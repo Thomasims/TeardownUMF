@@ -1,6 +1,7 @@
 ----------------
 -- XML Utilities
 -- @script util.xml
+UMF_REQUIRE "meta.lua"
 
 ---@class XMLNode
 ---@field __call fun(children: XMLNode[]): XMLNode
