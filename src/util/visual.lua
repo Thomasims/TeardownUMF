@@ -202,35 +202,40 @@ if DrawSprite then
 	---@param sides number
 	---@param info table
 	function visual.drawpolygon( transform, radius, rotation, sides, info )
-		local points = {}
-		local iteration = 1
-		local pow, sqrt, sin, cos = math.pow, math.sqrt, math.sin, math.cos
-		local r, g, b, a
+		sides = sides or 4
+		radius = radius or 1
+
+		local offset, interval = math.rad( rotation or 0 ), 2 * math.pi / sides
+		local arc = false
+		local r, g, b, a = 1, 1, 1, 1
 		local DrawFunction = DrawLine
 
-		radius = sqrt( 2 * pow( radius, 2 ) ) or sqrt( 2 )
-		rotation = rotation or 0
-		sides = sides or 4
-
 		if info then
-			r = info.r and info.r or 1
-			g = info.g and info.g or 1
-			b = info.b and info.b or 1
-			a = info.a and info.a or 1
-			DrawFunction = info.DrawFunction ~= nil and info.DrawFunction or (info.writeZ == false and DebugLine or DrawLine)
+			r = info.r or r
+			g = info.g or g
+			b = info.b or b
+			a = info.a or a
+			if info.arc then
+				arc = true
+				interval = interval * info.arc / 360
+			end
+			DrawFunction = info.DrawFunction or (info.writeZ == false and DebugLine or DrawLine)
 		end
 
-		for v = 0, 360, 360 / sides do
-			points[iteration] = TransformToParentPoint( transform, Vec( sin( (v + rotation) * degreeToRadian ) * radius, 0,
-			                                                            cos( (v + rotation) * degreeToRadian ) * radius ) )
-			points[iteration + 1] = TransformToParentPoint( transform,
-			                                                Vec( sin( ((v + 360 / sides) + rotation) * degreeToRadian ) * radius,
-			                                                     0,
-			                                                     cos( ((v + 360 / sides) + rotation) * degreeToRadian ) * radius ) )
-			if iteration > 2 then
-				DrawFunction( points[iteration], points[iteration + 1], r, g, b, a )
+		local points = {}
+		for i = 0, sides - 1 do
+			points[i + 1] = TransformToParentPoint( transform, Vec( math.sin( offset + i * interval ) * radius, 0,
+			                                                        math.cos( offset + i * interval ) * radius ) )
+			if i > 0 then
+				DrawFunction( points[i], points[i + 1], r, g, b, a )
 			end
-			iteration = iteration + 2
+		end
+		if arc then
+			points[#points + 1] = TransformToParentPoint( transform, Vec( math.sin( offset + sides * interval ) * radius, 0,
+			                                                              math.cos( offset + sides * interval ) * radius ) )
+			DrawFunction( points[#points - 1], points[#points], r, g, b, a )
+		else
+			DrawFunction( points[#points], points[1], r, g, b, a )
 		end
 
 		return points
@@ -370,4 +375,32 @@ if DrawSprite then
 		return points
 	end
 
+	--- Draws a wireframe sphere.
+	---
+	---@param transform Transformation
+	---@param radius number
+	---@param points number
+	---@param info table
+	function visual.drawwiresphere( transform, radius, points, info )
+		radius = radius or 1
+		points = points or 32
+		if not info or not info.nolines then
+			local tr_r = TransformToParentTransform( transform, Transform( Vec(), QuatEuler( 90, 0, 0 ) ) )
+			local tr_f = TransformToParentTransform( transform, Transform( Vec(), QuatEuler( 0, 0, 90 ) ) )
+			visual.drawpolygon( transform, radius, 0, points, info )
+			visual.drawpolygon( tr_r, radius, 0, points, info )
+			visual.drawpolygon( tr_f, radius, 0, points, info )
+		end
+
+		local cam = info and info.target or GetCameraTransform().pos
+		local diff = VecSub( transform.pos, cam )
+		local len = VecLength( diff )
+		if len < radius then
+			return
+		end
+		local a = math.pi / 2 - math.asin( radius / len )
+		local vtr = Transform( VecAdd( transform.pos, VecScale( diff, -math.cos( a ) / len ) ),
+		                       QuatRotateQuat( QuatLookAt( transform.pos, cam ), QuatEuler( 90, 0, 0 ) ) )
+		visual.drawpolygon( vtr, radius * math.sin( a ), 0, points, info )
+	end
 end
