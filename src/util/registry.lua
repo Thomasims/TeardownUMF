@@ -131,6 +131,17 @@ function util.shared_buffer( name, max )
 			end
 			return GetString( self._list_name .. (pos + index - len) % max )
 		end,
+		iterator = function( self )
+			local pos = GetInt( self._pos_name )
+			local len = math.min( pos, max )
+			return function( _, i )
+				i = (i or 0) + 1
+				if i >= len then
+					return
+				end
+				return i, GetString( self._list_name .. (pos + i - len) % max )
+			end
+		end,
 		get_g = function( self, index )
 			return GetString( self._list_name .. (index % max) )
 		end,
