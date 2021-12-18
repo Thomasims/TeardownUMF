@@ -1,4 +1,5 @@
 UMF_REQUIRE "config.lua"
+UMF_REQUIRE "constraint.lua"
 UMF_REQUIRE "debug.lua"
 UMF_REQUIRE "detouring.lua"
 UMF_REQUIRE "meta.lua"
