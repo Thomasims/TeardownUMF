@@ -143,8 +143,21 @@ local function ParseArguments( rules, ... )
 	return extra, rulesValues
 end
 
-local precode = "local __RUNLATER = {} UMF_RUNLATER = function(code) __RUNLATER[#__RUNLATER + 1] = code end\n"
-local preloadedcode = "local __UMFLOADED={%s} UMF_SOFTREQUIRE = function(name) return __UMFLOADED[name] end\n"
+local function formatargs( ... )
+	local res = {}
+	for i = 1, select( "#", ... ) do
+		local arg = select( i, ... )
+		if arg:find( "[ \"']" ) then
+			res[i] = "\"" .. arg:gsub("\"", "\\\"") .. "\""
+		else
+			res[i] = arg
+		end
+	end
+	return table.concat( res, " " )
+end
+
+local precode = "local __RUNLATER = {} local UMF_RUNLATER = function(code) __RUNLATER[#__RUNLATER + 1] = code end\n"
+local preloadedcode = "local __UMFLOADED = {%s} local UMF_SOFTREQUIRE = function(name) return __UMFLOADED[name] end\n"
 local postcode = "\nfor i = 1, #__RUNLATER do local f = loadstring(__RUNLATER[i]) if f then pcall(f) end end\n"
 
 do
@@ -171,6 +184,7 @@ do
 	end
 	local code = table.concat( data, "\n" )
 	local f = io.open( files[1], "w" )
+	f:write( "-- UMF Package generated with:\n-- build.lua " .. formatargs( ... ) .. "\n--\n" )
 	f:write( precode )
 	f:write( string.format( preloadedcode, table.concat( loadedfiles ) ) )
 	f:write( code )
