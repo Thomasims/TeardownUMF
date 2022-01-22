@@ -211,7 +211,6 @@ TDUI.Panel = TDUI {
 					local name = self[i] == TDUI.Slot and "default" or self[i].__SLOT
 					result = {}
 					local content
-					print( "creating func for " .. name )
 					slots[name] = function( c )
 						content = c
 						self:__RefreshDynamic( id )
