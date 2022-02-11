@@ -100,7 +100,7 @@ Armature {
 function LoadArmatureFromXML( xml, parts, scale ) -- Example below
 	scale = scale or 1
 	local dt = ParseXML( xml )
-	assert( dt.type == "prefab" and dt.children[1] and dt.children[1].type == "group" )
+	assert( (dt.type == "prefab" and dt.children[1] and dt.children[1].type == "group") or dt.type == "group", "Invalid Tool XML" )
 	local shapes = {}
 	local offsets = {}
 	for i = 1, #parts do
@@ -149,7 +149,7 @@ function LoadArmatureFromXML( xml, parts, scale ) -- Example below
 		end
 		return t
 	end
-	local bones = translatebone( dt.children[1] )[1]
+	local bones = translatebone( dt.type == "prefab" and dt.children[1] or dt )[1]
 	bones.transform = Transform( Vec(), QuatEuler( 0, 0, 0 ) )
 	bones.name = "root"
 
