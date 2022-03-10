@@ -44,9 +44,15 @@ end
 ---@param handle number
 ---@return Entity
 function Entity( handle )
-	if handle > 0 then
-		return setmetatable( { handle = handle, type = "unknown" }, entity_meta )
+	if type( handle ) == "number" and handle > 0 then
+		local type, meta = "unknown", entity_meta
+		if GetEntityType then
+			type = GetEntityType( handle )
+			meta = find_global_metatable( type ) or meta
+		end
+		return setmetatable( { handle = handle, type = type }, meta )
 	end
+	return handle
 end
 
 ---@type Entity
