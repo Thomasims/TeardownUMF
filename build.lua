@@ -162,6 +162,7 @@ local postcode = "\nfor i = 1, #__RUNLATER do local f = loadstring(__RUNLATER[i]
 
 do
 	local files, rules = ParseArguments( {
+		{ long = "name", short = "n", hasparam = true, id = "name" },
 		{ long = "shorten", short = "s", id = "shorten" },
 		{ long = "define", short = "D", hasparam = true, multi = true, id = "define" },
 	}, ... )
@@ -184,7 +185,7 @@ do
 	end
 	local code = table.concat( data, "\n" )
 	local f = io.open( files[1], "w" )
-	f:write( "-- UMF Package generated with:\n-- build.lua " .. formatargs( ... ) .. "\n--\n" )
+	f:write( string.format("-- UMF Package%s generated with:\n-- build.lua %s\n--\n", rules.name and (" " .. rules.name) or "", formatargs( ... )) )
 	f:write( precode )
 	f:write( string.format( preloadedcode, table.concat( loadedfiles ) ) )
 	f:write( code )
