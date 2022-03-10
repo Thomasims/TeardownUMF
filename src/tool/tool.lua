@@ -295,16 +295,26 @@ end )
 
 hook.add( "api.mouse.pressed", "api.tool_loader", function( button )
 	local tool = extra_tools[GetString( "game.player.tool" )]
-	local event = button == "lmb" and "LeftClick" or "RightClick"
-	if tool and tool[event] and istoolactive() then
-		softassert( pcall( tool[event], tool ) )
+	local event = button == "lmb" and "LeftClick" or button == "rmb" and "RightClick"
+	if tool and istoolactive() then
+		if event and tool[event] then
+			softassert( pcall( tool[event], tool ) )
+		end
+		if tool.MousePressed then
+			softassert( pcall( tool.MousePressed, tool, button ) )
+		end
 	end
 end )
 
 hook.add( "api.mouse.released", "api.tool_loader", function( button )
 	local tool = extra_tools[GetString( "game.player.tool" )]
-	local event = button == "lmb" and "LeftClickReleased" or "RightClickReleased"
-	if tool and tool[event] and istoolactive() then
-		softassert( pcall( tool[event], tool ) )
+	local event = button == "lmb" and "LeftClickReleased" or button == "rmb" and "RightClickReleased"
+	if tool and istoolactive() then
+		if event and tool[event] then
+			softassert( pcall( tool[event], tool ) )
+		end
+		if tool.MouseReleased then
+			softassert( pcall( tool.MouseReleased, tool, button ) )
+		end
 	end
 end )
