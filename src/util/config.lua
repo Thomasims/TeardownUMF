@@ -140,6 +140,7 @@ function OptionsMenu.Keybind( def )
 	local size = def.size or 30
 	local padt = def.pad_top or 0
 	local padb = def.pad_bottom or 5
+	local allowmouse = def.allowmouse or false
 	local value = string.upper( getvalue( def.id, def.default ) or "" )
 	if value == "" then
 		value = "<none>"
@@ -172,7 +173,20 @@ function OptionsMenu.Keybind( def )
 			end
 		end
 		local rw, rh = UiGetTextSize( tempv )
-		if UiTextButton( tempv ) then
+		if allowmouse then
+			local inrect = UiIsMouseInRect( rw, rh )
+			local mouse = InputPressed( "lmb" ) and "lmb" or InputPressed( "rmb" ) and "rmb" or InputPressed( "mmb" ) and "mmb"
+			if inrect and mouse == "lmb" then
+				pressed = not pressed
+			elseif pressed and mouse then
+				value = string.upper( mouse )
+				tempv = value
+				rw, rh = UiGetTextSize( tempv )
+				setvalue( def.id, mouse )
+				pressed = false
+			end
+			UiTextButton( tempv )
+		elseif UiTextButton( tempv ) then
 			pressed = not pressed
 		end
 		UiTranslate( rw, 0 )
