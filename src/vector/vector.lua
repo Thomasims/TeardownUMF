@@ -334,6 +334,43 @@ function vector_meta:LookAt( o )
 	return MakeQuaternion( QuatLookAt( self, o ) )
 end
 
+--- Convert the direction vector into a Quaternion using an optional up vector.
+--- This function behaves similarly to QuatLookAt, so "forward" is -z
+---
+---@param target_up? Vector
+---@return Quaternion
+function vector_meta:ToQuaternion( target_up )
+	local forward = VecScale( self, -1 / VecLength( self ) )
+	local right = VecNormalize( VecCross( target_up or Vec( 0, 1, 0 ), forward ) )
+	local up = VecCross( forward, right )
+
+	local m00, m01, m02 = right[1], right[2], right[3]
+	local m10, m11, m12 = up[1], up[2], up[3]
+	local m20, m21, m22 = forward[1], forward[2], forward[3]
+
+	if m22 < 0 then
+		if m00 > m11 then
+			local t = 1 + m00 - m11 - m22
+			local t2 = 0.5 / math.sqrt( t )
+			return Quaternion( t2 * t, t2 * (m01 + m10), t2 * (m20 + m02), t2 * (m12 - m21) )
+		else
+			local t = 1 - m00 + m11 - m22
+			local t2 = 0.5 / math.sqrt( t )
+			return Quaternion( t2 * (m01 + m10), t2 * t, t2 * (m12 + m21), t2 * (m20 - m02) )
+		end
+	else
+		if m00 < -m11 then
+			local t = 1 - m00 - m11 + m22
+			local t2 = 0.5 / math.sqrt( t )
+			return Quaternion( t2 * (m20 + m02), t2 * (m12 + m21), t2 * t, t2 * (m01 - m10) )
+		else
+			local t = 1 + m00 + m11 + m22
+			local t2 = 0.5 / math.sqrt( t )
+			return Quaternion( t2 * (m12 - m21), t2 * (m20 - m02), t2 * (m01 - m10), t2 * t )
+		end
+	end
+end
+
 --- Approachs another vector by the specified distance.
 ---
 ---@param dest Vector
