@@ -22,6 +22,7 @@ local tool_meta
 tool_meta = global_metatable( "tool", nil, true )
 
 local extra_tools = {}
+local alreadyInit = false
 
 --- Registers a tool using UMF.
 ---
@@ -50,7 +51,9 @@ function RegisterToolUMF( id, data )
 	setmetatable( data, tool_meta )
 	data.id = id
 	extra_tools[id] = data
-	RegisterTool( id, data.printname or id, data.model or "", data.group or 6 )
+	if alreadyInit then
+		RegisterTool( id, data.printname or id, data.model or "", data.group or 6 )
+	end
 	SetBool( "game.tool." .. id .. ".enabled", true )
 	for k, f in pairs( tool_meta._C ) do
 		local v = rawget( data, k )
@@ -61,6 +64,13 @@ function RegisterToolUMF( id, data )
 	end
 	return data
 end
+
+hook.add( "base.init", "api.tool_loader", function()
+	for id, tool in pairs( extra_tools ) do
+		RegisterTool( id, tool.printname or id, tool.model or "", tool.group or 6 )
+	end
+	alreadyInit = true
+end )
 
 ---@type Tool
 
