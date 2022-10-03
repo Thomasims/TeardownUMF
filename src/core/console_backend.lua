@@ -54,8 +54,9 @@ end
 --- Also prints to the screen if global `PRINTTOSCREEN` is set to true.
 ---
 ---@param msg any
-function warning( msg )
-	printcolor( 1, .7, 0, "[WARNING] " .. tostring( msg ) .. "\n  " .. table.concat( util.stacktrace( 1 ), "\n  " ) )
+---@param level? number
+function warning( msg, level )
+	printcolor( 1, .7, 0, "[WARNING] " .. tostring( msg ) .. "\n  " .. table.concat( util.stacktrace( level or 1 ), "\n  " ) )
 end
 
 printwarning = warning
