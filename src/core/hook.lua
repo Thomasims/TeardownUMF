@@ -2,6 +2,7 @@
 -- Hook library
 -- @script core.hook
 UMF_REQUIRE "/"
+UMF_REQUIRE "util/debug.lua"
 
 if hook then
 	return
@@ -86,6 +87,29 @@ function hook.saferun( event, ... )
 	end
 	for i = 1, #hooks do
 		local s, a, b, c, d, e = softassert( pcall( hooks[i], ... ) )
+		if s and a ~= nil then
+			return a, b, c, d, e
+		end
+	end
+end
+
+--- Executes all hooks associated to an event with `xpcall`.
+--- Prints the stacktrace as a warning.
+---
+---@param event string
+---@return any
+function hook.saferun_debug( event, ... )
+	local hooks = hook_compiled[event]
+	if not hooks then
+		return
+	end
+	local args = { ... }
+	for i = 1, #hooks do
+		local s, a, b, c, d, e = xpcall( function()
+			return hooks[i]( unpack( args ) )
+		end, function( err )
+			warning( err, 2 )
+		end )
 		if s and a ~= nil then
 			return a, b, c, d, e
 		end
