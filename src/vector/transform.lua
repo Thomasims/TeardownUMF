@@ -139,6 +139,7 @@ end
 
 --- Raycasts from the transformation
 ---
+---@deprecated
 ---@param dist number
 ---@param mul? number
 ---@param radius? number
