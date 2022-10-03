@@ -42,6 +42,8 @@ end
 
 ---@type Vector
 
+--- Unserialize a vector from its serialized form.
+---
 ---@param data string
 ---@return Vector self
 function vector_meta:__unserialize( data )
@@ -52,6 +54,8 @@ function vector_meta:__unserialize( data )
 	return self
 end
 
+--- Serialize the vector to a string.
+---
 ---@return string data
 function vector_meta:__serialize()
 	return table.concat( self, ";" )
@@ -70,11 +74,15 @@ function vector_meta:Clone()
 end
 
 local VecStr = VecStr
+--- Turn the vector into a string for printing.
+---
 ---@return string
 function vector_meta:__tostring()
 	return VecStr( self )
 end
 
+--- Unary operator `-v`
+---
 ---@return Vector
 function vector_meta:__unm()
 	return MakeVector { -self[1], -self[2], -self[3] }
@@ -97,6 +105,8 @@ function vector_meta:Add( o )
 	return self
 end
 
+--- Addition operator `v + o`
+---
 ---@param a Vector | Transformation | number
 ---@param b Vector | Transformation | number
 ---@return Vector
@@ -127,6 +137,8 @@ function vector_meta:Sub( o )
 	return self
 end
 
+--- Subtraction operator `v - o`
+---
 ---@param a Vector | number
 ---@param b Vector | number
 ---@return Vector
@@ -169,6 +181,8 @@ function vector_meta:Mul( o )
 	return self
 end
 
+--- Multiplication operator `v * o`
+---
 ---@param a Vector | Quaternion | number
 ---@param b Vector | Quaternion | number
 ---@return Vector
@@ -190,6 +204,8 @@ function vector_meta:Div( o )
 	return self
 end
 
+--- Division operator `v / o`
+---
 ---@param a Vector | number
 ---@param b Vector | number
 ---@return Vector
@@ -208,6 +224,8 @@ function vector_meta:Mod( o )
 	return self
 end
 
+--- Modulo operator `v % o`
+---
 ---@param a Vector | number
 ---@param b Vector | number
 ---@return Vector
@@ -226,6 +244,8 @@ function vector_meta:Pow( o )
 	return self
 end
 
+--- Power operator `v ^ o`
+---
 ---@param a Vector
 ---@param b number
 ---@return Vector
@@ -233,6 +253,8 @@ function vector_meta.__pow( a, b )
 	return vector_meta.Pow( vector_meta.Clone( a ), b )
 end
 
+--- Equality comparison operator `v == o`
+---
 ---@param a Vector
 ---@param b Vector
 ---@return boolean
@@ -240,6 +262,8 @@ function vector_meta.__eq( a, b )
 	return a[1] == b[1] and a[2] == b[2] and a[3] == b[3]
 end
 
+--- Strict inequality comparison operator `v < o`
+---
 ---@param a Vector
 ---@param b Vector
 ---@return boolean
@@ -247,6 +271,8 @@ function vector_meta.__lt( a, b )
 	return a[1] < b[1] or (a[1] == b[1] and (a[2] < b[2] or (a[2] == b[2] and (a[3] < b[3]))))
 end
 
+--- Inequality comparison operator `v <= o`
+---
 ---@param a Vector
 ---@param b Vector
 ---@return boolean
@@ -314,6 +340,7 @@ end
 
 --- Gets the squared distance to another vector.
 ---
+---@param o Vector
 ---@return number
 function vector_meta:DistSquare( o )
 	return (self[1] - o[1]) ^ 2 + (self[2] - o[2]) ^ 2 + (self[3] - o[3]) ^ 2
@@ -321,6 +348,7 @@ end
 
 --- Gets the distance to another vector.
 ---
+---@param o Vector
 ---@return number
 function vector_meta:Distance( o )
 	return math.sqrt( vector_meta.DistSquare( self, o ) )
