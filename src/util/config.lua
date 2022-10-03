@@ -220,7 +220,10 @@ function OptionsMenu.Slider( def )
 	local min = def.min or 0
 	local max = def.max or 100
 	local range = max - min
-	local value = getvalue( def.id, def.default, GetFloat )
+	local getter = def.getter or GetFloat
+	local setter = def.setter or SetFloat
+	local value = getvalue( def.id, def.default, getter )
+	local formatter = def.formatter
 	local format = string.format( "%%.%df", math.max( 0, math.floor( math.log10( 1000 / range ) ) ) )
 	local step = def.step
 	local condition = def.condition
@@ -240,14 +243,14 @@ function OptionsMenu.Slider( def )
 		UiTranslate( -8, 0 )
 		local prev = value
 		value = UiSlider( "ui/common/dot.png", "x", (value - min) * 200 / range, 0, 200 ) * range / 200 + min
-		if value ~= prev then
-			setvalue( def.id, value, SetFloat )
-			if step then
-				value = math.floor( value / step + 0.5 ) * step
-			end
+		if step then
+			value = math.floor( value / step + 0.5 ) * step
 		end
 		UiTranslate( 216, 0 )
-		UiText( string.format( format, value ) )
+		UiText( formatter and formatter( value ) or string.format( format, value ) )
+		if value ~= prev then
+			setvalue( def.id, value, setter )
+		end
 		return lw + 224, fheight + padt + padb
 	end
 end
