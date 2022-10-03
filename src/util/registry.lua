@@ -307,11 +307,13 @@ do
 		return setmetatable( base or {}, {
 			__index = function( self, k )
 				local key = tostring( k )
-				local vtype = GetString( string.format( "%s.%s.type", name, key ) )
+				local newtypekey = string.format( "%s.%s._type" )
+				local newformat = HasKey( newtypekey )
+				local vtype = GetString( newformat and newtypekey or string.format( "%s.%s.type", name, key ) )
 				if vtype == "" then
 					return
 				end
-				return gets[vtype]( string.format( "%s.%s.val", name, key ) )
+				return gets[vtype]( string.format( newformat and "%s.%s" or "%s.%s.val", name, key ) )
 			end,
 			__newindex = function( self, k, v )
 				local vtype = type( v )
@@ -328,8 +330,8 @@ do
 						handler = sets.string
 					end
 				end
-				SetString( string.format( "%s.%s.type", name, key ), vtype )
-				handler( string.format( "%s.%s.val", name, key ), v )
+				SetString( string.format( "%s.%s._type", name, key ), vtype )
+				handler( string.format( "%s.%s", name, key ), v )
 			end,
 		} )
 	end
