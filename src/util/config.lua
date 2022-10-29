@@ -15,9 +15,11 @@ end
 OptionsMenu = setmetatable( {}, {
 	__call = function( self, def )
 		def.title_size = def.title_size or 50
+		local pos = def.center or 0.5
 		local f = OptionsMenu.Group( def )
 		draw = function()
-			UiTranslate( UiCenter(), 60 )
+			UiPush()
+			UiTranslate( UiWidth() * pos, 60 )
 			UiPush()
 			local fw, fh = f()
 			UiPop()
@@ -28,6 +30,7 @@ OptionsMenu = setmetatable( {}, {
 			if UiTextButton( "Close" ) then
 				Menu()
 			end
+			UiPop()
 		end
 		return f
 	end,
@@ -66,6 +69,28 @@ function OptionsMenu.Group( def )
 			mh = mh + h
 			mw = math.max( mw, w )
 		end
+		return mw, mh
+	end
+end
+
+function OptionsMenu.Columns( def )
+	local elements = {}
+	for i = 1, #def do
+		elements[#elements + 1] = def[i]
+	end
+
+	return function()
+		local mw, mh = UiWidth(), 0
+		UiPush()
+			UiTranslate(UiWidth() * ( - 0.5 + 0.5 / #elements ), 0)
+			for i = 1, #elements do
+				UiPush()
+					local _, gh = elements[i]()
+				UiPop()
+				UiTranslate(UiWidth() * ( 1 / #elements ), 0)
+				mh = math.max( mh, gh )
+			end
+		UiPop()
 		return mw, mh
 	end
 end
