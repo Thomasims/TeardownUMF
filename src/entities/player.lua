@@ -47,8 +47,9 @@ end
 --- Sets the transform of the player.
 ---
 ---@param transform Transformation
-function player_meta:SetTransform( transform )
-	return SetPlayerTransform( transform )
+---@param includePitch? boolean
+function player_meta:SetTransform( transform, includePitch )
+	return SetPlayerTransform( transform, includePitch )
 end
 
 --- Sets the transform of the camera.
@@ -118,9 +119,10 @@ end
 
 --- Gets the transform of the player.
 ---
+---@param includePitch? boolean
 ---@return Transformation
-function player_meta:GetTransform()
-	return MakeTransformation( GetPlayerTransform() )
+function player_meta:GetTransform( includePitch )
+	return MakeTransformation( GetPlayerTransform( includePitch ) )
 end
 
 --- Gets the transform of the player camera.
