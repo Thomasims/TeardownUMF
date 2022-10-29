@@ -15,6 +15,7 @@ UMF_REQUIRE "animation/armature.lua"
 ---@field armature Armature
 ---@field _SHAPES Shape[]
 ---@field _OBJECTS table[]
+---@field _C table
 ---@field model string
 ---@field printname string
 ---@field id string
@@ -29,7 +30,7 @@ local alreadyInit = false
 ---@param id string
 ---@param data table
 ---@return Tool
-function RegisterToolUMF( id, data )
+function RegisterToolUMF( id, data, force )
 	if LoadArmatureFromXML and type( data.model ) == "table" then
 		local arm, xml = LoadArmatureFromXML( data.model.prefab, data.model.objects, data.model.scale )
 		data.armature = arm
@@ -51,10 +52,15 @@ function RegisterToolUMF( id, data )
 	setmetatable( data, tool_meta )
 	data.id = id
 	extra_tools[id] = data
-	if alreadyInit then
-		RegisterTool( id, data.printname or id, data.model or "", data.group or 6 )
+	if not data.group and HasKey( "game.tool." .. id .. ".skin.group" ) then
+		data.group = GetInt( "game.tool." .. id .. ".skin.group" )
 	end
-	SetBool( "game.tool." .. id .. ".enabled", true )
+	if alreadyInit or force then
+		if not data.noregister and not GetBool( "game.tool." .. id .. ".enabled" ) then
+			RegisterTool( id, data.printname or id, data.model or "", data.group or 6 )
+			SetBool( "game.tool." .. id .. ".enabled", true )
+		end
+	end
 	for k, f in pairs( tool_meta._C ) do
 		local v = rawget( data, k )
 		if v ~= nil then
@@ -67,7 +73,10 @@ end
 
 hook.add( "base.init", "api.tool_loader", function()
 	for id, tool in pairs( extra_tools ) do
-		RegisterTool( id, tool.printname or id, tool.model or "", tool.group or 6 )
+		if not tool.noregister and not GetBool( "game.tool." .. id .. ".enabled" ) then
+			RegisterTool( id, tool.printname or id, tool.model or "", tool.group or 6 )
+			SetBool( "game.tool." .. id .. ".enabled", true )
+		end
 	end
 	alreadyInit = true
 end )
