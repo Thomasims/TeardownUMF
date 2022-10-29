@@ -374,7 +374,11 @@ do
 				__newindex = function( self, k, v )
 					local entry = keys[k]
 					if entry and sets[entry.type] then
-						return sets[entry.type]( entry.key, v )
+						if v == nil then
+							ClearKey( entry.key )
+						else
+							sets[entry.type]( entry.key, v )
+						end
 					end
 				end,
 			} )
