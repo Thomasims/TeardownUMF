@@ -52,7 +52,7 @@ end
 
 ---@return string data
 function transform_meta:__serialize()
-	return table.concat( self.pos, ";" ) .. ";" .. table.concat( self.rot, ";" )
+	return string.format("%f;%f;%f;%f;%f;%f;%f", self.pos[1], self.pos[2], self.pos[3], self.rot[1], self.rot[2], self.rot[3], self.rot[4])
 end
 
 --- Clones the transformation.

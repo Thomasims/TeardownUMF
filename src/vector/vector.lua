@@ -58,7 +58,7 @@ end
 ---
 ---@return string data
 function vector_meta:__serialize()
-	return table.concat( self, ";" )
+	return string.format("%f;%f;%f", self[1], self[2], self[3])
 end
 
 VEC_ZERO = Vector()
