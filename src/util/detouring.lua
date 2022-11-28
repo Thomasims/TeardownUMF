@@ -1,3 +1,5 @@
+if DETOUR then return end
+
 ----------------
 -- Detour Utilities
 -- @script util.detouring
