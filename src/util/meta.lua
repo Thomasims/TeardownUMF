@@ -41,7 +41,7 @@ function global_metatable( name, parent, usecomputed )
 		meta.__newindex = function( self, k, v )
 			local c = computed[k]
 			if c then
-				return c( self, v )
+				return c( self, true, v )
 			end
 			return newindex( self, k, v )
 		end

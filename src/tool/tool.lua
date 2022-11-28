@@ -83,18 +83,18 @@ end )
 
 ---@type Tool
 
-function tool_meta._C:ammo( val )
+function tool_meta._C:ammo( setter, val )
 	local key = "game.tool." .. self.id .. ".ammo"
 	local keystr = key .. ".display"
-	if val ~= nil then
+	if setter then
 		if type( val ) == "number" then
 			SetFloat( key, val )
 			ClearKey( keystr )
 			rawset( self, "_TOOLAMMOSTRING", false )
 		else
 			SetFloat( key, 0 )
-			SetString( key .. ".display", tostring( val ) )
-			rawset( self, "_TOOLAMMOSTRING", tostring( val ) )
+			SetString( key .. ".display", tostring( val or "" ) )
+			rawset( self, "_TOOLAMMOSTRING", tostring( val or "" ) )
 		end
 	elseif HasKey( keystr ) then
 		return GetString( keystr )
@@ -103,9 +103,9 @@ function tool_meta._C:ammo( val )
 	end
 end
 
-function tool_meta._C:enabled( val )
+function tool_meta._C:enabled( setter, val )
 	local key = "game.tool." .. self.id .. ".enabled"
-	if val ~= nil then
+	if setter then
 		SetBool( key, val )
 	else
 		return GetBool( key )
