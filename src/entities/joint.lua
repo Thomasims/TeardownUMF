@@ -4,8 +4,10 @@
 UMF_REQUIRE "/"
 
 ---@class Joint: Entity
+---@field jointType string (dynamic property -- readonly)
+---@field broken boolean (dynamic property -- readonly)
 local joint_meta
-joint_meta = global_metatable( "joint", "entity" )
+joint_meta = global_metatable( "joint", "entity", true )
 
 --- Tests if the parameter is a joint entity.
 ---
@@ -123,3 +125,15 @@ function joint_meta:IsBroken()
 	return not self:IsValid() or IsJointBroken( self.handle )
 end
 
+----------------
+-- Properties implementation
+
+function joint_meta._C:jointType( setter )
+	assert(not setter, "cannot set jointType")
+	return self:GetType()
+end
+
+function joint_meta._C:broken( setter )
+	assert(not setter, "cannot set broken")
+	return self:IsBroken()
+end

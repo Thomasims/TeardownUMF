@@ -4,8 +4,9 @@
 UMF_REQUIRE "/"
 
 ---@class Trigger: Entity
+---@field transform Transformation (dynamic property)
 local trigger_meta
-trigger_meta = global_metatable( "trigger", "entity" )
+trigger_meta = global_metatable( "trigger", "entity", true )
 
 --- Tests if the parameter is a trigger entity.
 ---
@@ -142,4 +143,15 @@ function trigger_meta:IsEmpty( demolision )
 	assert( self:IsValid() )
 	local empty, highpoint = IsTriggerEmpty( self.handle, demolision )
 	return empty, highpoint and MakeVector( highpoint )
+end
+
+----------------
+-- Properties implementation
+
+function trigger_meta._C:transform( setter, val )
+	if setter then
+		self:SetTransform( val )
+	else
+		return self:GetTransform()
+	end
 end

@@ -4,8 +4,11 @@
 UMF_REQUIRE "/"
 
 ---@class Vehicle: Entity
+---@field transform Transformation (dynamic property -- readonly)
+---@field body Body (dynamic property -- readonly)
+---@field health number (dynamic property -- readonly)
 local vehicle_meta
-vehicle_meta = global_metatable( "vehicle", "entity" )
+vehicle_meta = global_metatable( "vehicle", "entity", true )
 
 --- Tests if the parameter is a vehicle entity.
 ---
@@ -104,4 +107,25 @@ end
 ---@return Vector
 function vehicle_meta:GetGlobalDriverPos()
 	return self:GetTransform():ToGlobal( self:GetDriverPos() )
+end
+
+----------------
+-- Properties implementation
+
+function vehicle_meta._C:transform( setter, val )
+	if setter then
+		self:SetTransform( val )
+	else
+		return self:GetTransform()
+	end
+end
+
+function vehicle_meta._C:body( setter )
+	assert(not setter, "cannot set body")
+	return self:GetBody()
+end
+
+function vehicle_meta._C:health( setter )
+	assert(not setter, "cannot set health")
+	return self:GetHealth()
 end

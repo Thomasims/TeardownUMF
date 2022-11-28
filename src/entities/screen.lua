@@ -4,8 +4,10 @@
 UMF_REQUIRE "/"
 
 ---@class Screen: Entity
+---@field enabled boolean (dynamic property)
+---@field shape Shape (dynamic property -- readonly)
 local screen_meta
-screen_meta = global_metatable( "screen", "entity" )
+screen_meta = global_metatable( "screen", "entity", true )
 
 --- Tests if the parameter is a screen entity.
 ---
@@ -78,4 +80,20 @@ end
 function screen_meta:IsEnabled()
 	assert( self:IsValid() )
 	return IsScreenEnabled( self.handle )
+end
+
+----------------
+-- Properties implementation
+
+function screen_meta._C:enabled( setter, val )
+	if setter then
+		self:SetEnabled( val )
+	else
+		return self:IsEnabled()
+	end
+end
+
+function screen_meta._C:shape( setter )
+	assert(not setter, "cannot set shape")
+	return self:GetShape()
 end

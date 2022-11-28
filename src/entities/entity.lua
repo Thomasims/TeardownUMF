@@ -6,8 +6,70 @@ UMF_REQUIRE "/"
 ---@class Entity
 ---@field handle number
 ---@field type string
+---@field description string (dynamic property)
+---@field tags table (dynamic property -- readonly)
 local entity_meta
 entity_meta = global_metatable( "entity" )
+
+local properties = {}
+
+-- using these tables as keys to avoid quicksaving them
+local DATA_KEY = {}
+local TAGS_KEY = {}
+
+function entity_meta:__index( k )
+	if properties[k] then return properties[k]( self, false ) end
+	if entity_meta[k] then return entity_meta[k] end
+	local entdata = rawget( self, DATA_KEY )
+	if not entdata then
+		entdata = util.shared_table( "game.umf.entdata." .. self.handle )
+		rawset( self, DATA_KEY, entdata )
+	end
+	return entdata[k]
+end
+
+function entity_meta:__newindex( k, v )
+	if properties[k] then return properties[k]( self, true, v ) end
+	local entdata = rawget( self, DATA_KEY )
+	if not entdata then
+		entdata = util.shared_table( "game.umf.entdata." .. self.handle )
+		rawset( self, DATA_KEY, entdata )
+	end
+	entdata[k] = v
+end
+
+function properties:description( set, val )
+	if set then
+		SetDescription( self.handle, val )
+	else
+		return GetDescription( self.handle )
+	end
+end
+
+local tags_meta = {
+	__index = function( self, k )
+		if HasTag( self.__handle, k ) then
+			return GetTagValue( self.__handle, k )
+		end
+	end,
+	__newindex = function( self, k, v )
+		if v == nil then
+			RemoveTag( self.__handle, k )
+		else
+			SetTag( self.__handle, k, tostring( v ) )
+		end
+	end
+}
+
+function properties:tags( set )
+	if set then error( "cannot set tags key" ) end
+	local enttags = rawget( self, TAGS_KEY )
+	if not enttags then
+		enttags = setmetatable( { __handle = self.handle }, tags_meta )
+		rawset( self, TAGS_KEY, enttags )
+	end
+	return enttags
+end
 
 --- Gets the handle of an entity.
 ---
@@ -78,7 +140,7 @@ end
 ---
 ---@return string type
 function entity_meta:GetType()
-	return self.type or "unknown"
+	return rawget( self, "type" ) or "unknown"
 end
 
 local IsHandleValid = IsHandleValid

@@ -4,8 +4,9 @@
 UMF_REQUIRE "/"
 
 ---@class Location: Entity
+---@field transform Transformation (dynamic property -- readonly)
 local location_meta
-location_meta = global_metatable( "location", "entity" )
+location_meta = global_metatable( "location", "entity", true )
 
 --- Tests if the parameter is a location entity.
 ---
@@ -62,4 +63,12 @@ end
 function location_meta:GetTransform()
 	assert( self:IsValid() )
 	return MakeTransformation( GetLocationTransform( self.handle ) )
+end
+
+----------------
+-- Properties implementation
+
+function location_meta._C:transform( setter )
+	assert(not setter, "cannot set transform")
+	return self:GetTransform()
 end

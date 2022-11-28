@@ -4,8 +4,15 @@
 UMF_REQUIRE "/"
 
 ---@class Shape: Entity
+---@field transform Transformation (dynamic property)
+---@field emissive number (dynamic property -- writeonly)
+---@field body Body (dynamic property -- readonly)
+---@field joints Joint[] (dynamic property -- readonly)
+---@field lights Light[] (dynamic property -- readonly)
+---@field size Vector (dynamic property -- readonly)
+---@field broken boolean (dynamic property -- readonly)
 local shape_meta
-shape_meta = global_metatable( "shape", "entity" )
+shape_meta = global_metatable( "shape", "entity", true )
 
 --- Tests if the parameter is a shape entity.
 ---
@@ -242,4 +249,45 @@ end
 function shape_meta:IsTouching( shape )
 	assert( self:IsValid() )
 	return IsShapeTouching( self.handle, GetEntityHandle( shape ) )
+end
+
+----------------
+-- Properties implementation
+
+function shape_meta._C:transform( setter, val )
+	if setter then
+		self:SetLocalTransform( val )
+	else
+		return self:GetLocalTransform()
+	end
+end
+
+function shape_meta._C:emissive( setter, val )
+	assert(setter, "cannot get emissive")
+	self:SetEmissiveScale( val )
+end
+
+function shape_meta._C:body( setter )
+	assert(not setter, "cannot set body")
+	return self:GetBody()
+end
+
+function shape_meta._C:joints( setter )
+	assert(not setter, "cannot set joints")
+	return self:GetJoints()
+end
+
+function shape_meta._C:lights( setter )
+	assert(not setter, "cannot set lights")
+	return self:GetLights()
+end
+
+function shape_meta._C:size( setter )
+	assert(not setter, "cannot set size")
+	return Vector( self:GetSize() )
+end
+
+function shape_meta._C:broken( setter )
+	assert(not setter, "cannot set broken")
+	return self:IsBroken()
 end

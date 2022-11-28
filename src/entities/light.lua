@@ -4,8 +4,13 @@
 UMF_REQUIRE "/"
 
 ---@class Light: Entity
+---@field enabled boolean (dynamic property)
+---@field color Vector (dynamic property -- writeonly)
+---@field intensity number (dynamic property -- writeonly)
+---@field transform Transformation (dynamic property -- readonly)
+---@field shape Shape (dynamic property -- readonly)
 local light_meta
-light_meta = global_metatable( "light", "entity" )
+light_meta = global_metatable( "light", "entity", true )
 
 --- Tests if the parameter is a light entity.
 ---
@@ -113,4 +118,35 @@ end
 function light_meta:IsPointAffectedByLight( point )
 	assert( self:IsValid() )
 	return IsPointAffectedByLight( self.handle, point )
+end
+
+----------------
+-- Properties implementation
+
+function light_meta._C:enabled( setter, val )
+	if setter then
+		self:SetEnabled( val )
+	else
+		return self:IsActive()
+	end
+end
+
+function light_meta._C:color( setter, val )
+	assert(setter, "cannot get color")
+	return self:SetColor( val[1], val[2], val[3] )
+end
+
+function light_meta._C:intensity( setter, val )
+	assert(setter, "cannot get intensity")
+	return self:SetIntensity( val )
+end
+
+function light_meta._C:transform( setter )
+	assert(not setter, "cannot set transform")
+	return self:GetTransform()
+end
+
+function light_meta._C:shape( setter )
+	assert(not setter, "cannot set shape")
+	return self:GetShape()
 end

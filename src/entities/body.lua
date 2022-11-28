@@ -4,8 +4,17 @@
 UMF_REQUIRE "/"
 
 ---@class Body: Entity
+---@field transform Transformation (dynamic property)
+---@field velocity Vector (dynamic property)
+---@field angularVelocity Vector (dynamic property)
+---@field active boolean (dynamic property)
+---@field dynamic boolean (dynamic property)
+---@field broken boolean (dynamic property -- readonly)
+---@field mass number (dynamic property -- readonly)
+---@field shapes Shape[] (dynamic property -- readonly)
+---@field vehicle Vehicle (dynamic property -- readonly)
 local body_meta
-body_meta = global_metatable( "body", "entity" )
+body_meta = global_metatable( "body", "entity", true )
 
 --- Tests if the parameter is a body entity.
 ---
@@ -282,4 +291,67 @@ end
 function body_meta:IsJointedToStatic()
 	assert( self:IsValid() )
 	return IsBodyJointedToStatic( self.handle )
+end
+
+----------------
+-- Properties implementation
+
+function body_meta._C:transform( setter, val )
+	if setter then
+		self:SetTransform( val )
+	else
+		return self:GetTransform()
+	end
+end
+
+function body_meta._C:velocity( setter, val )
+	if setter then
+		self:SetVelocity( val )
+	else
+		return self:GetVelocity()
+	end
+end
+
+function body_meta._C:angularVelocity( setter, val )
+	if setter then
+		self:SetVelocity( val )
+	else
+		return self:GetVelocity()
+	end
+end
+
+function body_meta._C:active( setter, val )
+	if setter then
+		self:SetActive( val )
+	else
+		return self:IsActive()
+	end
+end
+
+function body_meta._C:dynamic( setter, val )
+	if setter then
+		self:SetDynamic( val )
+	else
+		return self:IsDynamic()
+	end
+end
+
+function body_meta._C:broken( setter )
+	assert(not setter, "cannot set broken")
+	return self:IsBroken()
+end
+
+function body_meta._C:mass( setter )
+	assert(not setter, "cannot set mass")
+	return self:GetMass()
+end
+
+function body_meta._C:shapes( setter )
+	assert(not setter, "cannot set shapes")
+	return self:GetShapes()
+end
+
+function body_meta._C:vehicle( setter )
+	assert(not setter, "cannot set vehicle")
+	return self:GetVehicle()
 end
