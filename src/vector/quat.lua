@@ -301,6 +301,17 @@ function quat_meta:ToEuler()
 	return math.deg( bank ), math.deg( heading ), math.deg( attitude )
 end
 
+--- Gets the axis-angle representation of the quaternion.
+--- Note: This returns the values QuatAxisAngle() needs.
+---
+---@return Vector
+---@return number
+function quat_meta:ToAxisAngle()
+	local iw = math.sqrt( 1 - self[4] ^ 2 )
+	if iw <= 0 then return Vector( 0, 0, 0 ), 0 end
+	return Vector( self[1] / iw, self[2] / iw, self[3] / iw ), math.deg( math.asin( iw ) * 2 )
+end
+
 --- Approachs another quaternion by the specified angle.
 ---
 ---@param dest Quaternion
