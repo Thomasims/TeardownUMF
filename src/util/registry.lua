@@ -395,6 +395,7 @@ do
 	gets.string = GetString
 	gets.table = util.shared_table
 
+	sets["nil"] = ClearKey
 	sets.number = SetFloat
 	sets.integer = SetInt
 	sets.boolean = SetBool
