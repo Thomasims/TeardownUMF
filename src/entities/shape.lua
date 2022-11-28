@@ -204,6 +204,21 @@ function shape_meta:GetClosestPoint( origin )
 	return hit, MakeVector( point ), MakeVector( normal )
 end
 
+--- Gets all the shapes touching the shape
+---
+---@return Shape[] shapes
+function shape_meta:GetTouching()
+	local min, max = self:GetWorldBounds()
+	local potential = QueryAabbShapes( min - { 0.1, 0.1, 0.1 }, max + { 0.1, 0.1, 0.1 } )
+	local found = {}
+	for i = 1, #potential do
+		if potential[i] ~= self.handle and self:IsTouching( potential[i] ) then
+			found[#found+1] = Shape( potential[i] )
+		end
+	end
+	return found
+end
+
 --- Gets if the shape is currently visible.
 ---
 ---@param maxDist number
@@ -219,4 +234,12 @@ end
 ---@return boolean
 function shape_meta:IsBroken()
 	return not self:IsValid() or IsShapeBroken( self.handle )
+end
+
+--- Gets if the shape is touching a given shape.
+---
+---@return boolean
+function shape_meta:IsTouching( shape )
+	assert( self:IsValid() )
+	return IsShapeTouching( self.handle, GetEntityHandle( shape ) )
 end
