@@ -25,7 +25,7 @@ end
 --- Gets the current stacktrack.
 ---
 ---@param start number starting stack depth
----@return string
+---@return table
 function util.stacktrace( start )
 	start = (start or 0) + 3
 	local stack, last = {}, nil
