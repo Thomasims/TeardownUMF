@@ -22,7 +22,7 @@ end
 ---@return Location?
 function Location( handle )
 	if handle > 0 then
-		return setmetatable( { handle = handle, type = "location" }, location_meta )
+		return instantiate_global_metatable( "location", { handle = handle, type = "location" } )
 	end
 end
 

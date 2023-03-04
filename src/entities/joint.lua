@@ -23,7 +23,7 @@ end
 ---@return Joint?
 function Joint( handle )
 	if handle > 0 then
-		return setmetatable( { handle = handle, type = "joint" }, joint_meta )
+		return instantiate_global_metatable( "joint", { handle = handle, type = "joint" } )
 	end
 end
 

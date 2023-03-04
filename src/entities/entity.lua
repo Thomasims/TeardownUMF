@@ -107,12 +107,8 @@ end
 ---@return Entity
 function Entity( handle )
 	if type( handle ) == "number" and handle > 0 then
-		local type, meta = "unknown", entity_meta
-		if GetEntityType then
-			type = GetEntityType( handle )
-			meta = find_global_metatable( type ) or meta
-		end
-		return setmetatable( { handle = handle, type = type }, meta )
+		local type = GetEntityType and GetEntityType( handle )
+		return instantiate_global_metatable( type or "entity", { handle = handle, type = type or "unknown" } )
 	end
 	return handle
 end

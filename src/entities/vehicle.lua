@@ -24,7 +24,7 @@ end
 ---@return Vehicle?
 function Vehicle( handle )
 	if handle > 0 then
-		return setmetatable( { handle = handle, type = "vehicle" }, vehicle_meta )
+		return instantiate_global_metatable( "vehicle", { handle = handle, type = "vehicle" } )
 	end
 end
 

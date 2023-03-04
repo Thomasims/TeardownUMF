@@ -8,7 +8,7 @@ local player_meta
 player_meta = global_metatable( "player" )
 
 ---@type Player
-PLAYER = setmetatable( {}, player_meta )
+PLAYER = instantiate_global_metatable( "player" )
 
 ---@param data string
 ---@return Player self

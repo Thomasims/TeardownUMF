@@ -22,7 +22,7 @@ end
 ---@return Trigger?
 function Trigger( handle )
 	if handle > 0 then
-		return setmetatable( { handle = handle, type = "trigger" }, trigger_meta )
+		return instantiate_global_metatable( "trigger", { handle = handle, type = "trigger" } )
 	end
 end
 

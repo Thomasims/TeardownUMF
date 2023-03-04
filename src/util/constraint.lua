@@ -79,14 +79,14 @@ end
 local constraint_meta = global_metatable( "constraint" )
 
 function constraint.New( parent, child, joint )
-	return setmetatable( {
+	return instantiate_global_metatable( "constraint", {
 		parent = GetEntityHandle( parent ),
 		child = GetEntityHandle( child ),
 		joint = GetEntityHandle( joint ),
 		solvers = {},
 		tmp = {},
 		active = false,
-	}, constraint_meta )
+	} )
 end
 
 function constraint_meta:Rebuild()
@@ -180,7 +180,7 @@ end
 local solver_ra_sphere_meta = global_metatable( "constraint_ra_sphere_solver", "constraint_solver" )
 
 function constraint_meta:OnSphere( quat, body )
-	local s = setmetatable( {}, solver_ra_sphere_meta )
+	local s = instantiate_global_metatable( "constraint_ra_sphere_solver", {} )
 	s.axis = self.tmp.axis
 	s.quat = constraint.Relative( quat, body )
 	s.max_avel = self.tmp.max_avel
@@ -312,7 +312,7 @@ end
 local solver_quat_quat_meta = global_metatable( "constraint_quat_quat_solver", "constraint_solver" )
 
 function constraint_meta:ToOrientation( quat, body )
-	local s = setmetatable( {}, solver_quat_quat_meta )
+	local s = instantiate_global_metatable( "constraint_quat_quat_solver", {} )
 	s.quat1 = self.tmp.quat
 	s.quat2 = constraint.Relative( quat, body )
 	s.max_avel = self.tmp.max_avel
@@ -361,7 +361,7 @@ end
 local solver_point_point_meta = global_metatable( "constraint_point_point_solver", "constraint_solver" )
 
 function constraint_meta:ToPoint( point, body )
-	local s = setmetatable( {}, solver_point_point_meta )
+	local s = instantiate_global_metatable( "constraint_point_point_solver", {} )
 	s.point1 = self.tmp.point
 	s.point2 = constraint.Relative( point, body )
 	s.max_vel = self.tmp.max_vel
@@ -391,7 +391,7 @@ end
 local solver_point_space_meta = global_metatable( "constraint_point_space_solver", "constraint_solver" )
 
 function constraint_meta:ToSpace( transform, body )
-	local s = setmetatable( {}, solver_point_space_meta )
+	local s = instantiate_global_metatable( "constraint_point_space_solver", {} )
 	s.point = self.tmp.point
 	s.transform = constraint.Relative( transform, body )
 	s.max_vel = self.tmp.max_vel

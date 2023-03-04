@@ -17,7 +17,7 @@ xml_meta = global_metatable( "xmlnode" )
 ---@return fun(attributes: table<string, string>): XMLNode
 XMLTag = function( type )
 	return function( attributes )
-		return setmetatable( { type = type, attributes = attributes }, xml_meta )
+		return instantiate_global_metatable( "xmlnode", { type = type, attributes = attributes } )
 	end
 end
 

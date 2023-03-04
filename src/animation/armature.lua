@@ -275,7 +275,7 @@ function Armature( definition )
 		return b
 	end
 	dobone( armature.root )
-	return setmetatable( armature, armature_meta )
+	return instantiate_global_metatable( "armature", armature )
 end
 
 ---@type Armature

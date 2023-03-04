@@ -22,7 +22,7 @@ end
 ---@param q number[]
 ---@return Quaternion q
 function MakeQuaternion( q )
-	return setmetatable( q, quat_meta )
+	return instantiate_global_metatable( "quaternion", q )
 end
 
 --- Creates a new quaternion.

@@ -26,7 +26,7 @@ end
 ---@return Light?
 function Light( handle )
 	if handle > 0 then
-		return setmetatable( { handle = handle, type = "light" }, light_meta )
+		return instantiate_global_metatable( "light", { handle = handle, type = "light" } )
 	end
 end
 

@@ -33,13 +33,13 @@ end
 
 Animator = {
 	Base = function( easing )
-		local t = setmetatable( {
+		local t = instantiate_global_metatable( "animator", {
 			_state = {},
 			_func = type( easing ) == "table" and easing.update or easing,
 			_init = type( easing ) == "table" and easing.init,
 			_modifier = 1,
 			value = 0,
-		}, animator_meta )
+		} )
 		if t._init then
 			t._init( t._state )
 		end

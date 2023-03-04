@@ -23,7 +23,7 @@ end
 ---@param v number[]
 ---@return Vector v
 function MakeVector( v )
-	return setmetatable( v, vector_meta )
+	return instantiate_global_metatable( "vector", v )
 end
 
 --- Creates a new vector.

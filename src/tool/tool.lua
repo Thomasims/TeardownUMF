@@ -49,7 +49,7 @@ function RegisterToolUMF( id, data, force )
 		end
 		data.model = data.model.path or findvox( xml )
 	end
-	setmetatable( data, tool_meta )
+	instantiate_global_metatable( "tool", data )
 	data.id = id
 	extra_tools[id] = data
 	if not data.group and HasKey( "game.tool." .. id .. ".skin.group" ) then

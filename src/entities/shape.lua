@@ -28,7 +28,7 @@ end
 ---@return Shape?
 function Shape( handle )
 	if handle > 0 then
-		return setmetatable( { handle = handle, type = "shape" }, shape_meta )
+		return instantiate_global_metatable( "shape", { handle = handle, type = "shape" } )
 	end
 end
 

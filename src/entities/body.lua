@@ -30,7 +30,7 @@ end
 ---@return Body?
 function Body( handle )
 	if handle > 0 then
-		return setmetatable( { handle = handle, type = "body" }, body_meta )
+		return instantiate_global_metatable( "body", { handle = handle, type = "body" } )
 	end
 end
 

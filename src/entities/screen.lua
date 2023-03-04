@@ -23,7 +23,7 @@ end
 ---@return Screen?
 function Screen( handle )
 	if handle > 0 then
-		return setmetatable( { handle = handle, type = "screen" }, screen_meta )
+		return instantiate_global_metatable( "screen", { handle = handle, type = "screen" } )
 	end
 end
 

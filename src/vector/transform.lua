@@ -24,9 +24,9 @@ end
 ---@param t { pos: number[] | Vector, rot: number[] | Quaternion }
 ---@return Transformation t
 function MakeTransformation( t )
-	setmetatable( t.pos, vector_meta )
-	setmetatable( t.rot, quat_meta )
-	return setmetatable( t, transform_meta )
+	instantiate_global_metatable( "vector", t.pos )
+	instantiate_global_metatable( "quaternion", t.rot )
+	return instantiate_global_metatable( "transformation", t )
 end
 
 --- Creates a new transformation.

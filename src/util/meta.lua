@@ -14,7 +14,7 @@ local reverse_meta = {}
 function global_metatable( name, parent, usecomputed )
 	local meta = registered_meta[name]
 	if meta then
-		if not parent then
+		if not parent and not usecomputed then
 			return meta
 		end
 	else
@@ -104,33 +104,29 @@ local function findmeta( src, found )
 	return res
 end
 
-if coreloaded then
-	-- I hate this but without a pre-quicksave handler I see no other choice.
-	local previous = -2
-	hook.add( "base.tick", "api.metatables.save", function( ... )
-		if GetTime() - previous > 2 then
-			previous = GetTime()
-			_G.GLOBAL_META_SAVE = findmeta( _G, {} )
-		end
-	end )
+function instantiate_global_metatable( name, base )
+	local t = base or {}
+	t.__UMF_GLOBAL_METATYPE = name
+	setmetatable( t, find_global_metatable( name ) )
+	return t
+end
 
-	local function restoremeta( dst, src )
-		for k, v in pairs( src ) do
-			local dv = dst[k]
-			if type( dv ) == "table" then
-				if v[1] then
-					setmetatable( dv, global_metatable( v[1] ) )
+if coreloaded then
+	local function restoremeta( t, explored )
+		if explored[t] then return end
+		explored[t] = true
+		for _, v in pairs( t ) do
+			if type( v ) == "table" then
+				local meta_type = rawget( v, "__UMF_GLOBAL_METATYPE" )
+				if meta_type then
+					setmetatable( v, global_metatable( meta_type ) )
 				end
-				if v[2] then
-					restoremeta( dv, v[2] )
-				end
+				restoremeta( v, explored )
 			end
 		end
 	end
 
-	hook.add( "base.command.quickload", "api.metatables.restore", function( ... )
-		if GLOBAL_META_SAVE then
-			restoremeta( _G, GLOBAL_META_SAVE )
-		end
+	hook.add( "base.command.quickload", "api.metatables.restore", function()
+		restoremeta( _G, {} )
 	end )
 end
