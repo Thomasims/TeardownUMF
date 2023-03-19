@@ -423,6 +423,13 @@ function constraint_meta:AbovePlane( transform )
 	return self
 end
 
+function constraint_meta:AlongPath( points, radius )
+	local rcenter = constraint.Relative( self.tmp.vsolver.transform )
+	table.insert( self.tmp.vsolver.constraints, { type = "path", center = rcenter, points = points, radius = radius or 0.01 } )
+	return self
+end
+
+
 function solver_point_space_meta:DrawDebug( c, r, g, b )
 	local point = resolve_point( self.point )
 	for i = 1, #self.constraints do
@@ -439,6 +446,13 @@ function solver_point_space_meta:DrawDebug( c, r, g, b )
 		elseif c.type == "sphere" then
 			local tr = Transform( resolve_point( c.center ), Quat() )
 			visual.drawwiresphere( tr, c.radius, 32, { r = r, g = g, b = b } )
+		elseif c.type == "path" then
+			local tr = resolve_transform( c.center )
+			for j = 1, #c.points - 1 do
+				local p1 = TransformToParentPoint( tr, c.points[j] )
+				local p2 = TransformToParentPoint( tr, c.points[j + 1] )
+				visual.drawline( nil, p1, p2, { r = r, g = g, b = b } )
+			end
 		end
 	end
 end
@@ -456,6 +470,24 @@ function solver_point_space_meta:Build()
 		end
 	end
 	return { type = "point_space", point = self.point, constraints = consts, max_vel = self.max_vel or math.huge }
+end
+
+local function segment_dist(a, b, p)
+	local s = VecSub(b, a)
+	local da = VecSub(p, a)
+	local dot = VecDot(s, da)
+	if dot < 0 then
+		return VecLength(da), a
+	else
+		local ds = s[1]^2 + s[2]^2 + s[3]^2
+		if dot > ds then
+			return VecLength(VecSub(p, b)), b
+		else
+			local f = dot/ds
+			local lp = VecAdd(a, VecScale(s, f))
+			return VecLength(VecSub(lp, p)), lp
+		end
+	end
 end
 
 function solvers:point_space( result )
@@ -486,6 +518,27 @@ function solvers:point_space( result )
 			if len > c.radius then
 				resv = VecAdd( resv, VecScale( diff, (len - c.radius) / len ) )
 			end
+		elseif c.type == "path" then
+			local ci, cd, cp = nil, math.huge, nil
+			local tr = resolve_transform( c.center )
+			local lp = TransformToLocalPoint( tr, point )
+			if not c.last_known then
+				for j = 1, #c.points - 1 do
+					local d, p = segment_dist( c.points[j], c.points[j + 1], lp )
+					if d < cd then
+						ci, cd, cp = j, d, p
+					end
+				end
+			else
+				--TODO: optimize for known previous location
+			end
+			local center = TransformToParentPoint( tr, cp )
+			local diff = VecSub( point, center )
+			local len = VecLength( diff )
+			if len > c.radius then
+				resv = VecAdd( resv, VecScale( diff, (len - c.radius) / len ) )
+			end
+			--c.last_known = ci
 		end
 	end
 	if resv then
