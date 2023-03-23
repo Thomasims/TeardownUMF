@@ -111,22 +111,26 @@ function instantiate_global_metatable( name, base )
 	return t
 end
 
-if coreloaded then
-	local function restoremeta( t, explored )
-		if explored[t] then return end
-		explored[t] = true
-		for _, v in pairs( t ) do
-			if type( v ) == "table" then
-				local meta_type = rawget( v, "__UMF_GLOBAL_METATYPE" )
-				if meta_type then
-					setmetatable( v, global_metatable( meta_type ) )
-				end
-				restoremeta( v, explored )
+local function restoremeta( t, explored )
+	if explored[t] then return end
+	explored[t] = true
+	for _, v in pairs( t ) do
+		if type( v ) == "table" then
+			local meta_type = rawget( v, "__UMF_GLOBAL_METATYPE" )
+			if meta_type then
+				setmetatable( v, global_metatable( meta_type ) )
 			end
+			restoremeta( v, explored )
 		end
 	end
+end
 
+function restore_global_metatables()
+	restoremeta( _G, {} )
+end
+
+if coreloaded then
 	hook.add( "base.command.quickload", "api.metatables.restore", function()
-		restoremeta( _G, {} )
+		restore_global_metatables()
 	end )
 end
