@@ -307,7 +307,7 @@ do
 		return setmetatable( base or {}, {
 			__index = function( self, k )
 				local key = tostring( k )
-				local newtypekey = string.format( "%s.%s._type" )
+				local newtypekey = string.format( "%s.%s._type", name, key )
 				local newformat = HasKey( newtypekey )
 				local vtype = GetString( newformat and newtypekey or string.format( "%s.%s.type", name, key ) )
 				if vtype == "" then
