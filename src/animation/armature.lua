@@ -138,9 +138,10 @@ function LoadArmatureFromXML( xml, parts, scale ) -- Example below
 				local name = child.attributes.object
 				local tr = parseTransform( child.attributes )
 				local s = child.attributes.scale and tonumber( child.attributes.scale ) or 1
-				tr.pos = VecSub( tr.pos, VecScale( offsets[name], s ) )
-				tr.rot = QuatRotateQuat( tr.rot, QuatEuler( -90, 0, 0 ) )
-				sub.shapes[name] = tr
+				sub.shapes[name] = TransformToParentTransform( tr, Transform(
+					VecScale( offsets[name], -s ),
+					QuatEuler( -90, 0, 0 )
+				) )
 			elseif child.type == "group" then
 				sub[#sub + 1] = translatebone( child )
 			elseif child.type == "location" then
