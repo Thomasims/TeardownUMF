@@ -62,7 +62,7 @@ end
 --- Executes all hooks associated to an event.
 ---
 ---@param event string
----@return any
+---@return any ...
 function hook.run( event, ... )
 	local hooks = hook_compiled[event]
 	if not hooks then

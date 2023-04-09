@@ -86,7 +86,7 @@ end
 --- Draws the outline of the body.
 ---
 ---@param r number
----@overload fun(r: number, g: number, b: number, a: number)
+---@overload fun(self: Body, r: number, g: number, b: number, a: number)
 function body_meta:DrawOutline( r, ... )
 	assert( self:IsValid() )
 	return DrawBodyOutline( self.handle, r, ... )

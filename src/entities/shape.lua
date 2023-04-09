@@ -66,7 +66,7 @@ end
 --- Draws the outline of the shape.
 ---
 ---@param r number
----@overload fun(r: number, g: number, b: number, a: number)
+---@overload fun(self: Shape, r: number, g: number, b: number, a: number)
 function shape_meta:DrawOutline( r, ... )
 	assert( self:IsValid() )
 	return DrawShapeOutline( self.handle, r, ... )

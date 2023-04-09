@@ -93,8 +93,8 @@ end
 ---
 ---@param o Transformation
 ---@return Transformation
----@overload fun(o: Vector): Vector
----@overload fun(o: Quaternion): Quaternion
+---@overload fun(self: Transformation, o: Vector): Vector
+---@overload fun(self: Transformation, o: Quaternion): Quaternion
 function transform_meta:ToLocal( o )
 	if IsTransformation( o ) then
 		return MakeTransformation( TransformToLocalTransform( self, o ) )
@@ -117,8 +117,8 @@ end
 ---
 ---@param o Transformation
 ---@return Transformation
----@overload fun(o: Vector): Vector
----@overload fun(o: Quaternion): Quaternion
+---@overload fun(self: Transformation, o: Vector): Vector
+---@overload fun(self: Transformation, o: Quaternion): Quaternion
 function transform_meta:ToGlobal( o )
 	if IsTransformation( o ) then
 		return MakeTransformation( TransformToParentTransform( self, o ) )

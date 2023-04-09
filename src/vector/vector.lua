@@ -414,9 +414,8 @@ end
 
 --- Get the minimum value for each vector component.
 ---
----@vararg Vector
+---@vararg Vector|number
 ---@return Vector
----@overload fun(o: number, ...): Vector
 function vector_meta:Min( ... )
 	local n = vector_meta.Clone( self )
 	for i = 1, select( "#", ... ) do
