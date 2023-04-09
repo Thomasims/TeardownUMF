@@ -344,7 +344,7 @@ end
 function armature_meta:GetBoneTransform( bone )
 	local b = self.refs[bone]
 	if not b then
-		return Transform()
+		return Transformation()
 	end
 	return b.transform
 end
@@ -356,7 +356,7 @@ end
 function armature_meta:GetBoneGlobalTransform( bone )
 	local b = self.refs[bone]
 	if not b then
-		return Transform()
+		return Transformation()
 	end
 	if self.dirty then
 		self:ComputeBones()
@@ -388,7 +388,7 @@ end
 ---
 ---@param bone string
 ---@return number jiggle
----@return JiggleConstaint constraints
+---@return JiggleConstaint? constraints
 function armature_meta:GetBoneJiggle( bone )
 	local b = self.refs[bone]
 	if not b then
@@ -437,8 +437,7 @@ end
 ---@param gravity? Vector
 function armature_meta:UpdatePhysics( diff, dt, gravity )
 	dt = dt or 0.01666
-	diff.pos = VecScale( diff.pos, 1 / dt )
-	updatebone( self.root, Transform(), diff, dt, gravity or Vec( 0, -10, 0 ) )
+	updatebone( self.root, Transform(), Transform( VecScale( diff.pos, 1 / dt ), diff.rot ), dt, gravity or Vec( 0, -10, 0 ) )
 end
 
 local function DebugAxis( tr, s )

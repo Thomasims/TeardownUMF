@@ -1,3 +1,4 @@
+---@diagnostic disable: param-type-mismatch
 ----------------
 -- Vector class and related functions
 -- @script vector.vector
@@ -35,6 +36,7 @@ end
 ---@overload fun(v: Vector): Vector
 function Vector( x, y, z )
 	if IsVector( x ) then
+---@diagnostic disable-next-line: need-check-nil
 		x, y, z = x[1], x[2], x[3]
 	end
 	return MakeVector { x or 0, y or 0, z or 0 }
@@ -107,9 +109,11 @@ end
 
 --- Addition operator `v + o`
 ---
----@param a Vector | Transformation | number
----@param b Vector | Transformation | number
+---@param a Vector | number
+---@param b Vector | number
 ---@return Vector
+---@overload fun(a: Transformation, b: Vector): Transformation
+---@overload fun(a: Vector, b: Transformation): Transformation
 function vector_meta.__add( a, b )
 	if not IsVector( a ) then
 		a, b = b, a

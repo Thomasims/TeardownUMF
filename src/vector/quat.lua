@@ -1,3 +1,4 @@
+---@diagnostic disable: param-type-mismatch
 ----------------
 -- Quaternion class and related functions
 -- @script vector.quat
@@ -35,6 +36,7 @@ end
 ---@overload fun(q: Quaternion): Quaternion
 function Quaternion( i, j, k, r )
 	if IsQuaternion( i ) then
+---@diagnostic disable-next-line: need-check-nil
 		i, j, k, r = i[1], i[2], i[3], i[4]
 	end
 	return MakeQuaternion { i or 0, j or 0, k or 0, r or 1 }
@@ -181,7 +183,7 @@ function quat_meta.__mul( a, b )
 		return vector_meta.__mul( b, a )
 	end
 	if IsTransformation( b ) then
-		---@diagnostic disable-next-line: undefined-field
+---@diagnostic disable-next-line: undefined-field
 		return Transformation( vector_meta.Mul( vector_meta.Clone( b.pos ), a ), QuatRotateQuat( b.rot, a ) )
 	end
 	return MakeQuaternion( QuatRotateQuat( a, b ) )

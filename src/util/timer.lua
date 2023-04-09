@@ -81,6 +81,7 @@ function timer.time_left( id )
 	if entry then
 		return entry.time - GetTime()
 	end
+	return -1
 end
 
 --- Gets the number of iterations left on a named timer.
@@ -92,6 +93,7 @@ function timer.iterations_left( id )
 	if entry then
 		return entry.runsleft + 1
 	end
+	return -1
 end
 
 --- Removes a named timer.

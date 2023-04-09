@@ -79,7 +79,7 @@ end
 --- Executes all hooks associated to an event with `pcall`.
 ---
 ---@param event string
----@return any
+---@return any ...
 function hook.saferun( event, ... )
 	local hooks = hook_compiled[event]
 	if not hooks then
@@ -97,7 +97,7 @@ end
 --- Prints the stacktrace as a warning.
 ---
 ---@param event string
----@return any
+---@return any ...
 function hook.saferun_debug( event, ... )
 	local hooks = hook_compiled[event]
 	if not hooks then

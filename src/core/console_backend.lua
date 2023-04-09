@@ -74,8 +74,10 @@ end
 
 --- To be used with `pcall`, checks success value and prints the error if necessary.
 ---
----@param b boolean
----@return any
+---@generic T
+---@param b T
+---@return T
+---@return any ...
 function softassert( b, ... )
 	if not b then
 		printerror( ... )

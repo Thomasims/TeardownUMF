@@ -70,8 +70,8 @@ end
 --- Load a lua file from its mod path.
 ---
 ---@param path string
----@return function
----@return string error_message
+---@return function?
+---@return string? error_message
 function util.load_lua_resource( path )
 	return loadfile( util.resolve_path( path ) )
 end

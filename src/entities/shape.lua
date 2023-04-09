@@ -129,6 +129,7 @@ end
 ---@return Body
 function shape_meta:GetBody()
 	assert( self:IsValid() )
+---@diagnostic disable-next-line: return-type-mismatch
 	return Body( GetShapeBody( self.handle ) )
 end
 
@@ -184,6 +185,7 @@ end
 ---@return number x
 ---@return number y
 ---@return number z
+---@return number scale
 function shape_meta:GetSize()
 	assert( self:IsValid() )
 	return GetShapeSize( self.handle )
@@ -201,8 +203,8 @@ end
 ---
 ---@param origin Vector
 ---@return boolean hit
----@return Vector point
----@return Vector normal
+---@return Vector? point
+---@return Vector? normal
 function shape_meta:GetClosestPoint( origin )
 	local hit, point, normal = GetShapeClosestPoint( self.handle, origin )
 	if not hit then

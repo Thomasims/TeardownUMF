@@ -230,9 +230,9 @@ end
 ---
 ---@param origin Vector
 ---@return boolean hit
----@return Vector point
----@return Vector normal
----@return Shape shape
+---@return Vector? point
+---@return Vector? normal
+---@return Shape? shape
 function body_meta:GetClosestPoint( origin )
 	local hit, point, normal, shape = GetBodyClosestPoint( self.handle, origin )
 	if not hit then

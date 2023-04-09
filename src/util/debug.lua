@@ -6,7 +6,7 @@ util = util or {}
 --- Gets the current line of code.
 ---
 ---@param level number stack depth
----@return string
+---@return string?
 function util.current_line( level )
 	level = (level or 0) + 3
 	local _, line = pcall( error, "-", level )
@@ -17,6 +17,7 @@ function util.current_line( level )
 		end
 		line = "[C]:?"
 	else
+---@diagnostic disable-next-line: need-check-nil
 		line = line:sub( 1, -4 )
 	end
 	return line
@@ -24,7 +25,7 @@ end
 
 --- Gets the current stacktrack.
 ---
----@param start number starting stack depth
+---@param start? number starting stack depth
 ---@return table
 function util.stacktrace( start )
 	start = (start or 0) + 3
@@ -39,6 +40,7 @@ function util.stacktrace( start )
 			if last == "-" then
 				stack[#stack + 1] = "[C]:?"
 			end
+---@diagnostic disable-next-line: need-check-nil
 			stack[#stack + 1] = line:sub( 1, -4 )
 		end
 		last = line

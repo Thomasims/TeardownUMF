@@ -1,3 +1,4 @@
+---@diagnostic disable: param-type-mismatch
 ----------------
 -- Transform class and related functions
 -- @script vector.transform
@@ -31,11 +32,11 @@ end
 
 --- Creates a new transformation.
 ---
----@param pos number[] | Vector
----@param rot number[] | Quaternion
+---@param pos? number[] | Vector
+---@param rot? number[] | Quaternion
 ---@return Transformation
 function Transformation( pos, rot )
-	return MakeTransformation { pos = pos, rot = rot }
+	return MakeTransformation { pos = pos or { 0, 0, 0 }, rot = rot or { 0, 0, 0, 1 } }
 end
 
 ---@type Transformation
@@ -57,7 +58,7 @@ end
 
 --- Clones the transformation.
 ---
----@return Vector clone
+---@return Transformation clone
 function transform_meta:Clone()
 	return MakeTransformation { pos = vector_meta.Clone( self.pos ), rot = quat_meta.Clone( self.rot ) }
 end
