@@ -6,7 +6,12 @@ UMF_REQUIRE "/"
 
 local quat_meta = global_metatable( "quaternion" )
 
----@class Vector
+---@class vector
+---@field [1] number
+---@field [2] number
+---@field [3] number
+
+---@class Vector: vector
 local vector_meta
 vector_meta = global_metatable( "vector" )
 

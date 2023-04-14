@@ -1,4 +1,4 @@
----@diagnostic disable: param-type-mismatch
+---@diagnostic disable: param-type-mismatch, duplicate-doc-field
 ----------------
 -- Transform class and related functions
 -- @script vector.transform
@@ -6,7 +6,12 @@ UMF_REQUIRE "/"
 
 local vector_meta = global_metatable( "vector" )
 local quat_meta = global_metatable( "quaternion" )
----@class Transformation
+
+---@class transform
+---@field pos vector
+---@field rot quaternion
+
+---@class Transformation: transform
 ---@field pos Vector
 ---@field rot Quaternion
 local transform_meta
