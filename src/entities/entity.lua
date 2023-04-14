@@ -22,7 +22,7 @@ function entity_meta:__index( k )
 	if entity_meta[k] then return entity_meta[k] end
 	local entdata = rawget( self, DATA_KEY )
 	if not entdata then
-		entdata = util.shared_table( "game.umf.entdata." .. self.handle )
+		entdata = util.shared_table( "game.umf.entdata." .. rawget( self, "handle" ) )
 		rawset( self, DATA_KEY, entdata )
 	end
 	return entdata[k]
@@ -32,7 +32,7 @@ function entity_meta:__newindex( k, v )
 	if properties[k] then return properties[k]( self, true, v ) end
 	local entdata = rawget( self, DATA_KEY )
 	if not entdata then
-		entdata = util.shared_table( "game.umf.entdata." .. self.handle )
+		entdata = util.shared_table( "game.umf.entdata." .. rawget( self, "handle" ) )
 		rawset( self, DATA_KEY, entdata )
 	end
 	entdata[k] = v
@@ -118,7 +118,7 @@ end
 ---@param data string
 ---@return Entity self
 function entity_meta:__unserialize( data )
-	self.handle = tonumber( data )
+	rawset( self, "handle", tonumber( data ) )
 	return self
 end
 
