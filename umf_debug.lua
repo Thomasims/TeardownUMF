@@ -19,10 +19,12 @@ local function GetCurrentDirectory( level )
 	end
 
 	for i, key in ipairs( ListKeys( "mods.available" ) ) do
-		local path = GetString( "mods.available." .. key .. ".path" )
-		for j, subpath in ipairs( matches ) do
-			if path:sub( -#subpath ) == subpath then
-				return path:sub( 1, -#subpath - 1 ) .. matches[1]
+		if key:match('^local-') then
+			local path = GetString( "mods.available." .. key .. ".path" )
+			for j, subpath in ipairs( matches ) do
+				if path:sub( -#subpath ) == subpath then
+					return path:sub( 1, -#subpath - 1 ) .. matches[1]
+				end
 			end
 		end
 	end
