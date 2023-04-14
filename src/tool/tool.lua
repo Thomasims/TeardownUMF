@@ -210,6 +210,37 @@ local function istoolactive()
 	return GetBool( "game.player.canusetool" )
 end
 
+local function setupshapes( tool )
+	local armature = tool._ARMATURE
+	if not armature then return end
+	local shapes = armature:GetShapeTransforms()
+	if not tool.shapes then
+		tool.shapes = {}
+		for i = 1, #shapes do
+			local shape = shapes[i]
+			local s = tool._SHAPES[shape.num]
+			tool.shapes[shape.attributes.name or shape.id] = s
+			if shape.attributes.tags then
+				for key, value in (shape.attributes.tags .. " "):gmatch("([^= ]*)=?([^= ]*) ") do
+					s:SetTag(key, value)
+				end
+			end
+			if shape.attributes.desc then
+				s:SetDescription(shape.attributes.desc)
+			end
+			if shape.reoffset_scale then
+				local x, y = s:GetSize()
+				shape.transform = TransformToParentTransform( shape.transform, Transform( Vec(
+					-math.floor( x / 2 ) / 10 * shape.reoffset_scale,
+					0,
+					math.floor( y / 2 ) / 10 * shape.reoffset_scale
+				), QuatEuler( -90, 0, 0 ) ) )
+				shape.reoffset_scale = nil
+			end
+		end
+	end
+end
+
 local prev
 hook.add( "api.mouse.wheel", "api.tool_loader", function( ds )
 	if not istoolactive() then
@@ -260,11 +291,15 @@ hook.add( "base.tick", "api.tool_loader", function( dt )
 			if tool._ARMATURE then
 				tool._ARMATURE:ResetJiggle()
 			end
+			tool.shapes = nil
 		end
 		local body = GetToolBody()
-		if not tool._BODY or tool._BODY.handle ~= body then
+		if prev == cur and ( not tool._BODY or tool._BODY.handle ~= body ) then
 			tool._BODY = Body( body )
 			tool._SHAPES = tool._BODY and tool._BODY:GetShapes()
+			if not tool.shapes then
+				setupshapes(tool)
+			end
 		end
 		if tool._BODY then
 			tool._TRANSFORM = tool._BODY:GetTransform()
@@ -274,13 +309,16 @@ hook.add( "base.tick", "api.tool_loader", function( dt )
 				                     Transformation( Vec(), Quat() )
 			-- reverse_diff.pos = VecScale(reverse_diff.pos, 60 * dt)
 			tool._TRANSFORM_FIX = tool._TRANSFORM:ToGlobal( reverse_diff )
-			if tool.Animate then
+			if tool.Animate and prev == cur then
 				softassert( pcall( tool.Animate, tool, tool._BODY, tool._SHAPES ) )
 			end
 			if tool._ARMATURE then
 				tool._ARMATURE:UpdatePhysics( tool:GetTransformDelta(), GetTimeStep(),
 				                              TransformToLocalVec( tool:GetTransform(), Vec( 0, -10, 0 ) ) )
-				tool._ARMATURE:Apply( tool._SHAPES )
+				local shapes = tool._ARMATURE:GetShapeTransforms()
+				for i = 1, #shapes do -- TODO: avoid using num
+					tool._SHAPES[shapes[i].num]:SetLocalTransform( shapes[i].global_transform )
+				end
 			end
 		end
 		if tool._TOOLAMMOSTRING then

@@ -104,10 +104,14 @@ function LoadArmatureFromXML( xml, parts, scale ) -- Example below
 	local shapes = {}
 	local offsets = {}
 	for i = 1, #parts do
-		shapes[i] = parts[i][1]
-		local v = parts[i][2]
-		-- Compensate for the editor placing vox parts relative to the center of the base
-		offsets[parts[i][1]] = Vec( math.floor( v[1] / 2 ) / 10, 0, -math.floor( v[2] / 2 ) / 10 )
+		if type( parts[i] ) == "string" then
+			shapes[i] = parts[i] -- Offset computed at runtime
+		else
+			shapes[i] = parts[i][1]
+			local v = parts[i][2]
+			-- Compensate for the editor placing vox parts relative to the center of the base
+			offsets[parts[i][1]] = Vec( math.floor( v[1] / 2 ) / 10, 0, -math.floor( v[2] / 2 ) / 10 )
+		end
 	end
 
 	local function parseVec( str )
@@ -138,10 +142,20 @@ function LoadArmatureFromXML( xml, parts, scale ) -- Example below
 				local name = child.attributes.object
 				local tr = parseTransform( child.attributes )
 				local s = child.attributes.scale and tonumber( child.attributes.scale ) or 1
-				sub.shapes[name] = TransformToParentTransform( tr, Transform(
-					VecScale( offsets[name], -s ),
-					QuatEuler( -90, 0, 0 )
-				) )
+				local shape = {
+					id = name,
+					attributes = child.attributes,
+				}
+				if offsets[name] then
+					shape.transform = TransformToParentTransform( tr, Transform(
+						VecScale( offsets[name], -s ),
+						QuatEuler( -90, 0, 0 )
+					) )
+				else
+					shape.transform = tr
+					shape.reoffset_scale = s
+				end
+				table.insert( sub.shapes, shape )
 			elseif child.type == "group" then
 				sub[#sub + 1] = translatebone( child )
 			elseif child.type == "location" then
@@ -261,13 +275,12 @@ function Armature( definition )
 			armature.refs[b.name] = b
 		end
 		b.transform = b.transform or Transform()
-		b.shape_offsets = {}
+		b.shapes = b.shapes or {}
 		b.dirty = true
-		if b.shapes then
-			for name, transform in pairs( b.shapes ) do
-				table.insert( b.shape_offsets,
-				              { id = ids[name], tr = Transform( VecScale( transform.pos, definition.scale or 1 ), transform.rot ) } )
-			end
+		for i = 1, #b.shapes do
+			local shape = b.shapes[i]
+			shape.num = ids[shape.id]
+			shape.transform.pos = VecScale( shape.transform.pos, definition.scale or 1 )
 		end
 		b.children = {}
 		for i = 1, #b do
@@ -303,10 +316,10 @@ function armature_meta:ComputeBones()
 end
 
 local function applybone( shapes, bone )
-	for i = 1, #bone.shape_offsets do
-		local offset = bone.shape_offsets[i]
-		SetShapeLocalTransform( GetEntityHandle and GetEntityHandle( shapes[offset.id] ) or shapes[offset.id],
-		                        TransformToParentTransform( bone.g_transform, offset.tr ) )
+	for i = 1, #bone.shapes do
+		local offset = bone.shapes[i]
+		SetShapeLocalTransform( GetEntityHandle and GetEntityHandle( shapes[offset.num] ) or shapes[offset.num],
+		                        TransformToParentTransform( bone.g_transform, offset.transform ) )
 	end
 	for i = 1, #bone.children do
 		applybone( shapes, bone.children[i] )
@@ -315,12 +328,38 @@ end
 
 --- Applies the bone positions to a list of shapes.
 ---
+--- Deprecated: Use `Armature:GetShapeTransforms()` instead.
+---
 ---@param shapes Shape[] | number[]
+---@deprecated
 function armature_meta:Apply( shapes )
 	if self.dirty or self.jiggle then
 		self:ComputeBones()
 	end
 	applybone( shapes, self.root )
+end
+
+local function getshapetransforms( offsets, bone )
+	for i = 1, #bone.shapes do
+		local shape = bone.shapes[i]
+		shape.global_transform = TransformToParentTransform( bone.g_transform, shape.transform )
+		offsets[#offsets + 1] = shape
+	end
+	for i = 1, #bone.children do
+		getshapetransforms( offsets, bone.children[i] )
+	end
+end
+
+--- Get all the global shape transforms from the armature.
+---
+---@return { id: string, global_transform: transform }[] offsets
+function armature_meta:GetShapeTransforms()
+	if self.dirty or self.jiggle then
+		self:ComputeBones()
+	end
+	local offsets = {}
+	getshapetransforms( offsets, self.root )
+	return offsets
 end
 
 --- Sets the local transform of a bone.
@@ -449,7 +488,7 @@ end
 
 --- Draws debug info of the armature at the specified transform.
 ---
----@param transform? Transformation
+---@param transform? transform
 function armature_meta:DrawDebug( transform )
 	transform = transform or Transform()
 	DebugAxis( transform, 0.05 )
@@ -459,8 +498,8 @@ function armature_meta:DrawDebug( transform )
 		for i = 1, #v.children do
 			DebugLine( r.pos, TransformToParentTransform( transform, v.children[i].g_transform ).pos, 1, 1 - g, g, .4 )
 		end
-		for i = 1, #v.shape_offsets do
-			local offset = v.shape_offsets[i]
+		for i = 1, #v.shapes do
+			local offset = v.shapes[i]
 			local p = TransformToParentTransform( transform, TransformToParentTransform( v.g_transform, offset.tr ) )
 			DebugAxis( p, 0.03 )
 			DebugLine( r.pos, p.pos, 0, 1, 1, .4 )
