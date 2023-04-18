@@ -15,6 +15,7 @@ UMF_REQUIRE "animation/armature.lua"
 ---@field armature Armature
 ---@field _SHAPES Shape[]
 ---@field _OBJECTS table[]
+---@field _OBJECTS_R table<string, number>
 ---@field _C table
 ---@field model string
 ---@field printname string
@@ -36,6 +37,10 @@ function RegisterToolUMF( id, data, force )
 		data.armature = arm
 		data._ARMATURE = arm
 		data._OBJECTS = data.model.objects
+		data._OBJECTS_R = {}
+		for i = 1, #data._OBJECTS do
+			data._OBJECTS_R[data._OBJECTS[i]] = #data._OBJECTS - i + 1
+		end
 		local function findvox( xml )
 			if xml.type == "vox" then
 				return xml.attributes["file"]
@@ -316,8 +321,8 @@ hook.add( "base.tick", "api.tool_loader", function( dt )
 				tool._ARMATURE:UpdatePhysics( tool:GetTransformDelta(), GetTimeStep(),
 				                              TransformToLocalVec( tool:GetTransform(), Vec( 0, -10, 0 ) ) )
 				local shapes = tool._ARMATURE:GetShapeTransforms()
-				for i = 1, #shapes do -- TODO: avoid using num
-					tool._SHAPES[shapes[i].num]:SetLocalTransform( shapes[i].global_transform )
+				for i = 1, #shapes do
+					tool._SHAPES[tool._OBJECTS_R[shapes[i].id]]:SetLocalTransform( shapes[i].global_transform )
 				end
 			end
 		end
