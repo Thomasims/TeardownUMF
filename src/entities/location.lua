@@ -3,10 +3,13 @@
 -- @script entities.location
 UMF_REQUIRE "/"
 
+---@class location_handle: integer
+
 ---@class Location: Entity
+---@field handle location_handle
+---@field private _C table property contrainer (internal)
 ---@field transform Transformation (dynamic property -- readonly)
-local location_meta
-location_meta = global_metatable( "location", "entity", true )
+local location_meta = global_metatable( "location", "entity", true )
 
 --- Tests if the parameter is a location entity.
 ---
@@ -52,6 +55,7 @@ end
 
 ---@type Location
 
+---@param self Location
 ---@return string
 function location_meta:__tostring()
 	return string.format( "Location[%d]", self.handle )
@@ -59,6 +63,7 @@ end
 
 --- Gets the transform of the location.
 ---
+---@param self Location
 ---@return Transformation
 function location_meta:GetTransform()
 	assert( self:IsValid() )
@@ -68,6 +73,9 @@ end
 ----------------
 -- Properties implementation
 
+---@param self Location
+---@param setter boolean
+---@return Transformation
 function location_meta._C:transform( setter )
 	assert(not setter, "cannot set transform")
 	return self:GetTransform()

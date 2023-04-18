@@ -1,4 +1,4 @@
----@diagnostic disable: param-type-mismatch, duplicate-doc-field
+---@diagnostic disable: duplicate-doc-field
 ----------------
 -- Transform class and related functions
 -- @script vector.transform
@@ -27,7 +27,7 @@ end
 
 --- Makes the parameter transform into a transformation.
 ---
----@param t { pos: number[] | Vector, rot: number[] | Quaternion }
+---@param t transform
 ---@return Transformation t
 function MakeTransformation( t )
 	instantiate_global_metatable( "vector", t.pos )
@@ -37,8 +37,8 @@ end
 
 --- Creates a new transformation.
 ---
----@param pos? number[] | Vector
----@param rot? number[] | Quaternion
+---@param pos? vector
+---@param rot? quaternion
 ---@return Transformation
 function Transformation( pos, rot )
 	return MakeTransformation { pos = pos or { 0, 0, 0 }, rot = rot or { 0, 0, 0, 1 } }
@@ -81,26 +81,28 @@ local TransformToParentPoint = TransformToParentPoint
 local TransformToParentTransform = TransformToParentTransform
 local TransformToParentVec = TransformToParentVec
 
----@param a Transformation
----@param b Transformation | Vector | Quaternion
+---@param a transform
+---@param b transform | vector | quaternion
 ---@return Transformation
 function transform_meta.__add( a, b )
 	if not IsTransformation( b ) then
 		if IsVector( b ) then
+			---@cast b vector
 			b = Transformation( b, QUAT_ZERO )
 		elseif IsQuaternion( b ) then
+			---@cast b quaternion
 			b = Transformation( VEC_ZERO, b )
 		end
 	end
+	---@cast b transform
 	return MakeTransformation( TransformToParentTransform( a, b ) )
 end
 
 --- Gets the local representation of a world-space transform, point or rotation
 ---
----@param o Transformation
----@return Transformation
----@overload fun(self: Transformation, o: Vector): Vector
----@overload fun(self: Transformation, o: Quaternion): Quaternion
+---@generic T : transform | vector | quaternion
+---@param o T
+---@return T
 function transform_meta:ToLocal( o )
 	if IsTransformation( o ) then
 		return MakeTransformation( TransformToLocalTransform( self, o ) )
@@ -113,7 +115,7 @@ end
 
 --- Gets the local representation of a world-space direction
 ---
----@param o Vector
+---@param o vector
 ---@return Vector
 function transform_meta:ToLocalDir( o )
 	return MakeVector( TransformToLocalVec( self, o ) )
@@ -121,10 +123,9 @@ end
 
 --- Gets the global representation of a local-space transform, point or rotation
 ---
----@param o Transformation
----@return Transformation
----@overload fun(self: Transformation, o: Vector): Vector
----@overload fun(self: Transformation, o: Quaternion): Quaternion
+---@generic T : transform | vector | quaternion
+---@param o T
+---@return T
 function transform_meta:ToGlobal( o )
 	if IsTransformation( o ) then
 		return MakeTransformation( TransformToParentTransform( self, o ) )
@@ -137,7 +138,7 @@ end
 
 --- Gets the global representation of a local-space direction
 ---
----@param o Vector
+---@param o vector
 ---@return Vector
 function transform_meta:ToGlobalDir( o )
 	return MakeVector( TransformToParentVec( self, o ) )

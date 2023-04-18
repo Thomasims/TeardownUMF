@@ -3,7 +3,11 @@
 -- @script entities.shape
 UMF_REQUIRE "/"
 
+---@class shape_handle: integer
+
 ---@class Shape: Entity
+---@field handle shape_handle
+---@field private _C table property contrainer (internal)
 ---@field transform Transformation (dynamic property)
 ---@field emissive number (dynamic property -- writeonly)
 ---@field body Body (dynamic property -- readonly)
@@ -58,6 +62,7 @@ end
 
 ---@type Shape
 
+---@param self Shape
 ---@return string
 function shape_meta:__tostring()
 	return string.format( "Shape[%d]", self.handle )
@@ -65,6 +70,7 @@ end
 
 --- Draws the outline of the shape.
 ---
+---@param self Shape
 ---@param r number
 ---@overload fun(self: Shape, r: number, g: number, b: number, a: number)
 function shape_meta:DrawOutline( r, ... )
@@ -74,6 +80,7 @@ end
 
 --- Draws a highlight of the shape.
 ---
+---@param self Shape
 ---@param amount number
 function shape_meta:DrawHighlight( amount )
 	assert( self:IsValid() )
@@ -82,7 +89,8 @@ end
 
 --- Sets the transform of the shape relative to its body.
 ---
----@param transform Transformation
+---@param self Shape
+---@param transform transform
 function shape_meta:SetLocalTransform( transform )
 	assert( self:IsValid() )
 	return SetShapeLocalTransform( self.handle, transform )
@@ -90,6 +98,7 @@ end
 
 --- Sets the emmissivity scale of the shape.
 ---
+---@param self Shape
 ---@param scale number
 function shape_meta:SetEmissiveScale( scale )
 	assert( self:IsValid() )
@@ -102,6 +111,7 @@ end
 --- (A.layer & B.mask) && (B.layer & A.mask)
 --- ```
 ---
+---@param self Shape
 ---@param layer? number bit array (8 bits, 0-255)
 ---@param mask? number bit mask (8 bits, 0-255)
 function shape_meta:SetCollisionFilter( layer, mask )
@@ -110,6 +120,7 @@ end
 
 --- Gets the transform of the shape relative to its body.
 ---
+---@param self Shape
 ---@return Transformation
 function shape_meta:GetLocalTransform()
 	assert( self:IsValid() )
@@ -118,6 +129,7 @@ end
 
 --- Gets the transform of the shape.
 ---
+---@param self Shape
 ---@return Transformation
 function shape_meta:GetWorldTransform()
 	assert( self:IsValid() )
@@ -126,6 +138,7 @@ end
 
 --- Gets the body of this shape.
 ---
+---@param self Shape
 ---@return Body
 function shape_meta:GetBody()
 	assert( self:IsValid() )
@@ -135,6 +148,7 @@ end
 
 --- Gets the joints attached to this shape.
 ---
+---@param self Shape
 ---@return Joint[]
 function shape_meta:GetJoints()
 	assert( self:IsValid() )
@@ -147,6 +161,7 @@ end
 
 --- Gets the lights attached to this shape.
 ---
+---@param self Shape
 ---@return Light[]
 function shape_meta:GetLights()
 	assert( self:IsValid() )
@@ -159,6 +174,7 @@ end
 
 --- Gets the bounds of the shape.
 ---
+---@param self Shape
 ---@return Vector min
 ---@return Vector max
 function shape_meta:GetWorldBounds()
@@ -169,7 +185,8 @@ end
 
 --- Gets the material and color of the shape at the specified position.
 ---
----@param pos Vector
+---@param self Shape
+---@param pos vector
 ---@return string type
 ---@return number r
 ---@return number g
@@ -182,6 +199,7 @@ end
 
 --- Gets the size of the shape in voxels.
 ---
+---@param self Shape
 ---@return number x
 ---@return number y
 ---@return number z
@@ -193,6 +211,7 @@ end
 
 --- Gets the count of voxels in the shape.
 ---
+---@param self Shape
 ---@return number
 function shape_meta:GetVoxelCount()
 	assert( self:IsValid() )
@@ -201,7 +220,8 @@ end
 
 --- Gets the closest point to the shape from a given origin.
 ---
----@param origin Vector
+---@param self Shape
+---@param origin vector
 ---@return boolean hit
 ---@return Vector? point
 ---@return Vector? normal
@@ -215,6 +235,7 @@ end
 
 --- Gets all the shapes touching the shape
 ---
+---@param self Shape
 ---@return Shape[] shapes
 function shape_meta:GetTouching()
 	local min, max = self:GetWorldBounds()
@@ -230,6 +251,7 @@ end
 
 --- Gets if the shape is currently visible.
 ---
+---@param self Shape
 ---@param maxDist number
 ---@param rejectTransparent? boolean
 ---@return boolean
@@ -240,6 +262,7 @@ end
 
 --- Gets if the shape has been broken.
 ---
+---@param self Shape
 ---@return boolean
 function shape_meta:IsBroken()
 	return not self:IsValid() or IsShapeBroken( self.handle )
@@ -247,15 +270,23 @@ end
 
 --- Gets if the shape is touching a given shape.
 ---
+---@param self Shape
+---@param shape Shape | integer
 ---@return boolean
 function shape_meta:IsTouching( shape )
 	assert( self:IsValid() )
-	return IsShapeTouching( self.handle, GetEntityHandle( shape ) )
+	local shapeHandle = GetEntityHandle( shape )
+	---@cast shapeHandle shape_handle
+	return IsShapeTouching( self.handle, shapeHandle )
 end
 
 ----------------
 -- Properties implementation
 
+---@param self Shape
+---@param setter boolean
+---@param val transform
+---@return Transformation?
 function shape_meta._C:transform( setter, val )
 	if setter then
 		self:SetLocalTransform( val )
@@ -264,31 +295,49 @@ function shape_meta._C:transform( setter, val )
 	end
 end
 
+---@param self Shape
+---@param setter boolean
+---@param val number
 function shape_meta._C:emissive( setter, val )
 	assert(setter, "cannot get emissive")
 	self:SetEmissiveScale( val )
 end
 
+---@param self Shape
+---@param setter boolean
+---@return Body
 function shape_meta._C:body( setter )
 	assert(not setter, "cannot set body")
 	return self:GetBody()
 end
 
+---@param self Shape
+---@param setter boolean
+---@return Joint[]
 function shape_meta._C:joints( setter )
 	assert(not setter, "cannot set joints")
 	return self:GetJoints()
 end
 
+---@param self Shape
+---@param setter boolean
+---@return Light[]
 function shape_meta._C:lights( setter )
 	assert(not setter, "cannot set lights")
 	return self:GetLights()
 end
 
+---@param self Shape
+---@param setter boolean
+---@return Vector
 function shape_meta._C:size( setter )
 	assert(not setter, "cannot set size")
 	return Vector( self:GetSize() )
 end
 
+---@param self Shape
+---@param setter boolean
+---@return boolean
 function shape_meta._C:broken( setter )
 	assert(not setter, "cannot set broken")
 	return self:IsBroken()

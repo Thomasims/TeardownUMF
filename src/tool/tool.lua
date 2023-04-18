@@ -119,7 +119,7 @@ end
 
 --- Draws the tool in the world instead of the player view.
 ---
----@param transform Transformation
+---@param transform transform
 function tool_meta:DrawInWorld( transform )
 	SetToolTransform( TransformToLocalTransform( GetCameraTransform(), transform ) )
 end
@@ -287,6 +287,7 @@ hook.add( "base.tick", "api.tool_loader", function( dt )
 		end
 	end
 
+	---@type Tool
 	local tool = extra_tools[cur]
 	if tool then
 		if prev ~= cur then
@@ -301,12 +302,12 @@ hook.add( "base.tick", "api.tool_loader", function( dt )
 		local body = GetToolBody()
 		if prev == cur and ( not tool._BODY or tool._BODY.handle ~= body ) then
 			tool._BODY = Body( body )
-			tool._SHAPES = tool._BODY and tool._BODY:GetShapes()
+			tool._SHAPES = tool._BODY:GetShapes()
 			if not tool.shapes then
 				setupshapes(tool)
 			end
 		end
-		if tool._BODY then
+		if IsValid( tool._BODY ) then
 			tool._TRANSFORM = tool._BODY:GetTransform()
 			tool._TRANSFORM_DIFF = tool._TRANSFORM_OLD and tool._TRANSFORM:ToLocal( tool._TRANSFORM_OLD ) or
 				                       Transformation( Vec(), Quat() )

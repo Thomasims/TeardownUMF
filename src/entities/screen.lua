@@ -3,7 +3,11 @@
 -- @script entities.screen
 UMF_REQUIRE "/"
 
+---@class screen_handle: integer
+
 ---@class Screen: Entity
+---@field handle screen_handle
+---@field private _C table property contrainer (internal)
 ---@field enabled boolean (dynamic property)
 ---@field shape Shape (dynamic property -- readonly)
 local screen_meta
@@ -53,6 +57,7 @@ end
 
 ---@type Screen
 
+---@param self Screen
 ---@return string
 function screen_meta:__tostring()
 	return string.format( "Screen[%d]", self.handle )
@@ -60,6 +65,7 @@ end
 
 --- Sets if the screen is enabled.
 ---
+---@param self Screen
 ---@param enabled boolean
 function screen_meta:SetEnabled( enabled )
 	assert( self:IsValid() )
@@ -68,14 +74,18 @@ end
 
 --- Gets the shape the screen is attached to.
 ---
+---@param self Screen
 ---@return Shape
 function screen_meta:GetShape()
 	assert( self:IsValid() )
-	return Shape( GetScreenShape( self.handle ) )
+	local shape = Shape( GetScreenShape( self.handle ) )
+	---@cast shape Shape
+	return shape
 end
 
 --- Gets if the screen is enabled.
 ---
+---@param self Screen
 ---@return boolean
 function screen_meta:IsEnabled()
 	assert( self:IsValid() )
@@ -85,6 +95,10 @@ end
 ----------------
 -- Properties implementation
 
+---@param self Screen
+---@param setter boolean
+---@param val boolean
+---@return boolean?
 function screen_meta._C:enabled( setter, val )
 	if setter then
 		self:SetEnabled( val )
@@ -93,6 +107,9 @@ function screen_meta._C:enabled( setter, val )
 	end
 end
 
+---@param self Screen
+---@param setter boolean
+---@return Shape
 function screen_meta._C:shape( setter )
 	assert(not setter, "cannot set shape")
 	return self:GetShape()

@@ -1,4 +1,3 @@
----@diagnostic disable: param-type-mismatch
 ----------------
 -- Vector class and related functions
 -- @script vector.vector
@@ -38,7 +37,7 @@ end
 ---@param y? number
 ---@param z? number
 ---@return Vector
----@overload fun(v: Vector): Vector
+---@overload fun(v: vector): Vector
 function Vector( x, y, z )
 	if IsVector( x ) then
 ---@diagnostic disable-next-line: need-check-nil
@@ -97,7 +96,7 @@ end
 
 --- Adds to the vector.
 ---
----@param o Vector | number
+---@param o vector | number
 ---@return Vector self
 function vector_meta:Add( o )
 	if IsVector( o ) then
@@ -114,16 +113,19 @@ end
 
 --- Addition operator `v + o`
 ---
----@param a Vector | number
----@param b Vector | number
+---@param a vector | number
+---@param b vector | number
 ---@return Vector
----@overload fun(a: Transformation, b: Vector): Transformation
----@overload fun(a: Vector, b: Transformation): Transformation
+---@overload fun(a: transform, b: Vector): Transformation
+---@overload fun(a: Vector, b: transform): Transformation
 function vector_meta.__add( a, b )
 	if not IsVector( a ) then
 		a, b = b, a
 	end
+	---@cast a vector
 	if IsTransformation( b ) then
+		---@diagnostic disable-next-line: cast-type-mismatch
+		---@cast b transform
 		return Transformation( vector_meta.Add( vector_meta.Clone( a ), b.pos ), quat_meta.Clone( b.rot ) )
 	end
 	return vector_meta.Add( vector_meta.Clone( a ), b )
@@ -131,7 +133,7 @@ end
 
 --- Subtracts from the vector.
 ---
----@param o Vector | number
+---@param o vector | number
 ---@return Vector self
 function vector_meta:Sub( o )
 	if IsVector( o ) then
@@ -148,19 +150,20 @@ end
 
 --- Subtraction operator `v - o`
 ---
----@param a Vector | number
----@param b Vector | number
+---@param a vector | number
+---@param b vector | number
 ---@return Vector
 function vector_meta.__sub( a, b )
 	if not IsVector( a ) then
 		a, b = b, a
 	end
+	---@cast a vector
 	return vector_meta.Sub( vector_meta.Clone( a ), b )
 end
 
 --- Multiplies the vector.
 ---
----@param o Vector | Quaternion | number
+---@param o vector | quaternion | number
 ---@return Vector self
 function vector_meta:Mul( o )
 	if IsVector( o ) then
@@ -192,13 +195,14 @@ end
 
 --- Multiplication operator `v * o`
 ---
----@param a Vector | Quaternion | number
----@param b Vector | Quaternion | number
+---@param a vector | quaternion | number
+---@param b vector | quaternion | number
 ---@return Vector
 function vector_meta.__mul( a, b )
 	if not IsVector( a ) then
 		a, b = b, a
 	end
+	---@cast a vector
 	return vector_meta.Mul( vector_meta.Clone( a ), b )
 end
 
@@ -215,8 +219,8 @@ end
 
 --- Division operator `v / o`
 ---
----@param a Vector | number
----@param b Vector | number
+---@param a vector
+---@param b number
 ---@return Vector
 function vector_meta.__div( a, b )
 	return vector_meta.Div( vector_meta.Clone( a ), b )
@@ -235,8 +239,8 @@ end
 
 --- Modulo operator `v % o`
 ---
----@param a Vector | number
----@param b Vector | number
+---@param a vector
+---@param b number
 ---@return Vector
 function vector_meta.__mod( a, b )
 	return vector_meta.Mod( vector_meta.Clone( a ), b )
@@ -255,7 +259,7 @@ end
 
 --- Power operator `v ^ o`
 ---
----@param a Vector
+---@param a vector
 ---@param b number
 ---@return Vector
 function vector_meta.__pow( a, b )
@@ -264,8 +268,8 @@ end
 
 --- Equality comparison operator `v == o`
 ---
----@param a Vector
----@param b Vector
+---@param a vector
+---@param b vector
 ---@return boolean
 function vector_meta.__eq( a, b )
 	return a[1] == b[1] and a[2] == b[2] and a[3] == b[3]
@@ -273,8 +277,8 @@ end
 
 --- Strict inequality comparison operator `v < o`
 ---
----@param a Vector
----@param b Vector
+---@param a vector
+---@param b vector
 ---@return boolean
 function vector_meta.__lt( a, b )
 	return a[1] < b[1] or (a[1] == b[1] and (a[2] < b[2] or (a[2] == b[2] and (a[3] < b[3]))))
@@ -282,8 +286,8 @@ end
 
 --- Inequality comparison operator `v <= o`
 ---
----@param a Vector
----@param b Vector
+---@param a vector
+---@param b vector
 ---@return boolean
 function vector_meta.__le( a, b )
 	return a[1] < b[1] or (a[1] == b[1] and (a[2] < b[2] or (a[2] == b[2] and (a[3] <= b[3]))))
@@ -292,7 +296,7 @@ end
 local VecDot = VecDot
 --- Computes the dot product with another vector.
 ---
----@param b Vector
+---@param b vector
 ---@return number
 function vector_meta:Dot( b )
 	return VecDot( self, b )
@@ -301,7 +305,7 @@ end
 local VecCross = VecCross
 --- Computes the cross product with another vector.
 ---
----@param b Vector
+---@param b vector
 ---@return Vector
 function vector_meta:Cross( b )
 	return MakeVector( VecCross( self, b ) )
@@ -325,7 +329,7 @@ end
 local VecLerp = VecLerp
 --- Lerps from the vector to another one.
 ---
----@param o Vector
+---@param o vector
 ---@param n number
 ---@return Vector
 function vector_meta:Lerp( o, n )
@@ -349,7 +353,7 @@ end
 
 --- Gets the squared distance to another vector.
 ---
----@param o Vector
+---@param o vector
 ---@return number
 function vector_meta:DistSquare( o )
 	return (self[1] - o[1]) ^ 2 + (self[2] - o[2]) ^ 2 + (self[3] - o[3]) ^ 2
@@ -357,7 +361,7 @@ end
 
 --- Gets the distance to another vector.
 ---
----@param o Vector
+---@param o vector
 ---@return number
 function vector_meta:Distance( o )
 	return math.sqrt( vector_meta.DistSquare( self, o ) )
@@ -365,7 +369,7 @@ end
 
 --- Gets the rotation to another vector.
 ---
----@param o Vector
+---@param o vector
 ---@return Quaternion
 function vector_meta:LookAt( o )
 	return MakeQuaternion( QuatLookAt( self, o ) )
@@ -374,7 +378,7 @@ end
 --- Convert the direction vector into a Quaternion using an optional up vector.
 --- This function behaves similarly to QuatLookAt, so "forward" is -z
 ---
----@param target_up? Vector
+---@param target_up? vector
 ---@return Quaternion
 function vector_meta:ToQuaternion( target_up )
 	local forward = VecScale( self, -1 / VecLength( self ) )
@@ -410,13 +414,13 @@ end
 
 --- Approachs another vector by the specified distance.
 ---
----@param dest Vector
+---@param dest vector
 ---@param rate number
 ---@return Vector
 function vector_meta:Approach( dest, rate )
 	local dist = vector_meta.Distance( self, dest )
 	if dist < rate then
-		return dest
+		return MakeVector( dest )
 	end
 	return vector_meta.Lerp( self, dest, rate / dist )
 end
@@ -466,11 +470,13 @@ end
 
 --- Clamp the vector components.
 ---
----@param min Vector | number
----@param max Vector | number
+---@param min vector | number
+---@param max vector | number
 ---@return Vector
 function vector_meta:Clamp( min, max )
 	if type( min ) == "number" then
+		---@cast min number
+		---@cast max number
 		return Vector( math.max( math.min( self[1], max ), min ), math.max( math.min( self[2], max ), min ),
 		               math.max( math.min( self[3], max ), min ) )
 	else

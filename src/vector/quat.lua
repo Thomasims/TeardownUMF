@@ -1,4 +1,3 @@
----@diagnostic disable: param-type-mismatch
 ----------------
 -- Quaternion class and related functions
 -- @script vector.quat
@@ -40,7 +39,7 @@ end
 ---@param k? number
 ---@param r? number
 ---@return Quaternion
----@overload fun(q: Quaternion): Quaternion
+---@overload fun(q: quaternion): Quaternion
 function Quaternion( i, j, k, r )
 	if IsQuaternion( i ) then
 ---@diagnostic disable-next-line: need-check-nil
@@ -104,7 +103,7 @@ end
 
 --- Adds to the quaternion.
 ---
----@param o Quaternion | number
+---@param o quaternion | number
 ---@return Quaternion self
 function quat_meta:Add( o )
 	if IsQuaternion( o ) then
@@ -121,19 +120,20 @@ function quat_meta:Add( o )
 	return self
 end
 
----@param a Quaternion | number
----@param b Quaternion | number
+---@param a quaternion | number
+---@param b quaternion | number
 ---@return Quaternion
 function quat_meta.__add( a, b )
 	if not IsQuaternion( a ) then
 		a, b = b, a
 	end
+	---@cast a quaternion
 	return quat_meta.Add( quat_meta.Clone( a ), b )
 end
 
 --- Subtracts from the quaternion.
 ---
----@param o Quaternion | number
+---@param o quaternion | number
 ---@return Quaternion self
 function quat_meta:Sub( o )
 	if IsQuaternion( o ) then
@@ -150,19 +150,20 @@ function quat_meta:Sub( o )
 	return self
 end
 
----@param a Quaternion | number
----@param b Quaternion | number
+---@param a quaternion | number
+---@param b quaternion | number
 ---@return Quaternion
 function quat_meta.__sub( a, b )
 	if not IsQuaternion( a ) then
 		a, b = b, a
 	end
+	---@cast a quaternion
 	return quat_meta.Sub( quat_meta.Clone( a ), b )
 end
 
 --- Multiplies (~rotate) the quaternion.
 ---
----@param o Quaternion
+---@param o quaternion
 ---@return Quaternion self
 function quat_meta:Mul( o )
 	local i1, j1, k1, r1 = self[1], self[2], self[3], self[4]
@@ -174,15 +175,16 @@ function quat_meta:Mul( o )
 	return self
 end
 
----@param a Quaternion | number
----@param b Quaternion | number
+---@param a quaternion | number
+---@param b quaternion | number
 ---@return Quaternion
----@overload fun(a: Quaternion, b: Vector): Vector
----@overload fun(a: Quaternion, b: Transformation): Transformation
+---@overload fun(a: Quaternion, b: vector): Vector
+---@overload fun(a: Quaternion, b: transform): Transformation
 function quat_meta.__mul( a, b )
 	if not IsQuaternion( a ) then
 		a, b = b, a
 	end
+	---@cast a quaternion
 	if type( b ) == "number" then
 		return Quaternion( a[1] * b, a[2] * b, a[3] * b, a[4] * b )
 	end
@@ -190,7 +192,8 @@ function quat_meta.__mul( a, b )
 		return vector_meta.__mul( b, a )
 	end
 	if IsTransformation( b ) then
----@diagnostic disable-next-line: undefined-field
+		---@diagnostic disable-next-line: cast-type-mismatch
+		---@cast b transform
 		return Transformation( vector_meta.Mul( vector_meta.Clone( b.pos ), a ), QuatRotateQuat( b.rot, a ) )
 	end
 	return MakeQuaternion( QuatRotateQuat( a, b ) )
@@ -212,8 +215,8 @@ function quat_meta:Div( o )
 	return self
 end
 
----@param a Quaternion | number
----@param b Quaternion | number
+---@param a Quaternion
+---@param b number
 ---@return Quaternion
 function quat_meta.__div( a, b )
 	return quat_meta.Div( quat_meta.Clone( a ), b )
@@ -243,7 +246,7 @@ end
 local QuatSlerp = QuatSlerp
 --- S-lerps from the quaternion to another one.
 ---
----@param o Quaternion
+---@param o quaternion
 ---@param n number
 ---@return Quaternion
 function quat_meta:Slerp( o, n )
@@ -323,7 +326,7 @@ end
 
 --- Approachs another quaternion by the specified angle.
 ---
----@param dest Quaternion
+---@param dest quaternion
 ---@param rate number
 ---@return Quaternion
 function quat_meta:Approach( dest, rate )

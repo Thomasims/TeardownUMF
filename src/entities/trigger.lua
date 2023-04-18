@@ -3,7 +3,11 @@
 -- @script entities.trigger
 UMF_REQUIRE "/"
 
+---@class trigger_handle: integer
+
 ---@class Trigger: Entity
+---@field handle trigger_handle
+---@field private _C table property contrainer (internal)
 ---@field transform Transformation (dynamic property)
 local trigger_meta
 trigger_meta = global_metatable( "trigger", "entity", true )
@@ -52,6 +56,7 @@ end
 
 ---@type Trigger
 
+---@param self Trigger
 ---@return string
 function trigger_meta:__tostring()
 	return string.format( "Trigger[%d]", self.handle )
@@ -59,7 +64,8 @@ end
 
 --- Sets the transform of the trigger.
 ---
----@param transform Transformation
+---@param self Trigger
+---@param transform transform
 function trigger_meta:SetTransform( transform )
 	assert( self:IsValid() )
 	return SetTriggerTransform( self.handle, transform )
@@ -67,6 +73,7 @@ end
 
 --- Gets the transform of the trigger.
 ---
+---@param self Trigger
 ---@return Transformation
 function trigger_meta:GetTransform()
 	assert( self:IsValid() )
@@ -76,20 +83,23 @@ end
 --- Gets the distance to the trigger from a given origin.
 --- Negative values indicate the origin is inside the trigger.
 ---
----@param origin Vector
-function trigger_meta:GetDistance(origin)
-	return GetTriggerDistance(self.handle, origin)
+---@param self Trigger
+---@param origin vector
+function trigger_meta:GetDistance( origin )
+	return GetTriggerDistance( self.handle, origin )
 end
 
 --- Gets the closest point to the trigger from a given origin.
 ---
----@param origin Vector
-function trigger_meta:GetClosestPoint(origin)
-	return MakeVector(GetTriggerDistance(self.handle, origin))
+---@param self Trigger
+---@param origin vector
+function trigger_meta:GetClosestPoint( origin )
+	return MakeVector( GetTriggerClosestPoint( self.handle, origin ) )
 end
 
 --- Gets the bounds of the trigger.
 ---
+---@param self Trigger
 ---@return Vector min
 ---@return Vector max
 function trigger_meta:GetWorldBounds()
@@ -100,34 +110,44 @@ end
 
 --- Gets if the specified body is in the trigger.
 ---
+---@param self Trigger
 ---@param handle Body | number
 ---@return boolean
 function trigger_meta:IsBodyInTrigger( handle )
 	assert( self:IsValid() )
-	return IsBodyInTrigger( self.handle, GetEntityHandle( handle ) )
+	local bodyHandle = GetEntityHandle( handle )
+	---@cast bodyHandle body_handle
+	return IsBodyInTrigger( self.handle, bodyHandle )
 end
 
 --- Gets if the specified vehicle is in the trigger.
 ---
+---@param self Trigger
 ---@param handle Vehicle | number
 ---@return boolean
 function trigger_meta:IsVehicleInTrigger( handle )
 	assert( self:IsValid() )
-	return IsVehicleInTrigger( self.handle, GetEntityHandle( handle ) )
+	local vehicleHandle = GetEntityHandle( handle )
+	---@cast vehicleHandle vehicle_handle
+	return IsVehicleInTrigger( self.handle, vehicleHandle )
 end
 
 --- Gets if the specified shape is in the trigger.
 ---
+---@param self Trigger
 ---@param handle Shape | number
 ---@return boolean
 function trigger_meta:IsShapeInTrigger( handle )
 	assert( self:IsValid() )
-	return IsShapeInTrigger( self.handle, GetEntityHandle( handle ) )
+	local shapeHandle = GetEntityHandle( handle )
+	---@cast shapeHandle shape_handle
+	return IsShapeInTrigger( self.handle, shapeHandle )
 end
 
 --- Gets if the specified point is in the trigger.
 ---
----@param point Vector
+---@param self Trigger
+---@param point vector
 ---@return boolean
 function trigger_meta:IsPointInTrigger( point )
 	assert( self:IsValid() )
@@ -136,6 +156,7 @@ end
 
 --- Gets if the trigger is empty.
 ---
+---@param self Trigger
 ---@param demolision boolean
 ---@return boolean empty
 ---@return Vector? highpoint
@@ -148,6 +169,10 @@ end
 ----------------
 -- Properties implementation
 
+---@param self Trigger
+---@param setter boolean
+---@param val transform
+---@return Transformation?
 function trigger_meta._C:transform( setter, val )
 	if setter then
 		self:SetTransform( val )

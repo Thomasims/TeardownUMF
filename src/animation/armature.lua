@@ -318,8 +318,9 @@ end
 local function applybone( shapes, bone )
 	for i = 1, #bone.shapes do
 		local offset = bone.shapes[i]
-		SetShapeLocalTransform( GetEntityHandle and GetEntityHandle( shapes[offset.num] ) or shapes[offset.num],
-		                        TransformToParentTransform( bone.g_transform, offset.transform ) )
+		local handle = GetEntityHandle and GetEntityHandle( shapes[offset.num] ) or shapes[offset.num]
+		---@cast handle shape_handle
+		SetShapeLocalTransform( handle, TransformToParentTransform( bone.g_transform, offset.transform ) )
 	end
 	for i = 1, #bone.children do
 		applybone( shapes, bone.children[i] )
@@ -365,7 +366,7 @@ end
 --- Sets the local transform of a bone.
 ---
 ---@param bone string
----@param transform Transformation
+---@param transform transform
 function armature_meta:SetBoneTransform( bone, transform )
 	local b = self.refs[bone]
 	if not b then
@@ -471,9 +472,9 @@ end
 
 --- Updates the physics of the armature.
 ---
----@param diff Transformation
+---@param diff transform
 ---@param dt number
----@param gravity? Vector
+---@param gravity? vector
 function armature_meta:UpdatePhysics( diff, dt, gravity )
 	dt = dt or 0.01666
 	updatebone( self.root, Transform(), Transform( VecScale( diff.pos, 1 / dt ), diff.rot ), dt, gravity or Vec( 0, -10, 0 ) )

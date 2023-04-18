@@ -3,13 +3,15 @@
 -- @script entities.entity
 UMF_REQUIRE "/"
 
+---@class entity_handle: integer
+
 ---@class Entity
----@field handle number
+---@field handle entity_handle
 ---@field type string
+---@field private _C table property contrainer (internal)
 ---@field description string (dynamic property)
 ---@field tags table (dynamic property -- readonly)
-local entity_meta
-entity_meta = global_metatable( "entity" )
+local entity_meta = global_metatable( "entity" )
 
 local properties = {}
 
@@ -73,12 +75,13 @@ end
 
 --- Gets the handle of an entity.
 ---
----@param e Entity | number
----@return number
+---@param e Entity | integer
+---@return entity_handle
 function GetEntityHandle( e )
 	if IsEntity( e ) then
 		return e.handle
 	end
+	---@cast e entity_handle
 	return e
 end
 
@@ -103,18 +106,21 @@ end
 
 --- Wraps the given handle with the entity class.
 ---
----@param handle number
+---@param handle integer | Entity
 ---@return Entity
 function Entity( handle )
 	if type( handle ) == "number" and handle > 0 then
+		---@cast handle entity_handle
 		local type = GetEntityType and GetEntityType( handle )
 		return instantiate_global_metatable( type or "entity", { handle = handle, type = type or "unknown" } )
 	end
+	---@cast handle Entity
 	return handle
 end
 
 ---@type Entity
 
+---@param self Entity
 ---@param data string
 ---@return Entity self
 function entity_meta:__unserialize( data )
@@ -122,11 +128,13 @@ function entity_meta:__unserialize( data )
 	return self
 end
 
+---@param self Entity
 ---@return string data
 function entity_meta:__serialize()
 	return tostring( self.handle )
 end
 
+---@param self Entity
 ---@return string
 function entity_meta:__tostring()
 	return string.format( "Entity[%d]", self.handle )
@@ -134,6 +142,7 @@ end
 
 --- Gets the type of the entity.
 ---
+---@param self Entity
 ---@return string type
 function entity_meta:GetType()
 	return rawget( self, "type" ) or "unknown"
@@ -142,6 +151,7 @@ end
 local IsHandleValid = IsHandleValid
 --- Gets the validity of the entity.
 ---
+---@param self Entity
 ---@return boolean
 function entity_meta:IsValid()
 	return IsHandleValid( self.handle )
@@ -150,6 +160,7 @@ end
 local SetTag = SetTag
 --- Sets a tag value on the entity.
 ---
+---@param self Entity
 ---@param tag string
 ---@param value string
 function entity_meta:SetTag( tag, value )
@@ -160,6 +171,7 @@ end
 local SetDescription = SetDescription
 --- Sets the description of the entity.
 ---
+---@param self Entity
 ---@param description string
 function entity_meta:SetDescription( description )
 	assert( self:IsValid() )
@@ -169,6 +181,7 @@ end
 local RemoveTag = RemoveTag
 --- Removes a tag from the entity.
 ---
+---@param self Entity
 ---@param tag string
 function entity_meta:RemoveTag( tag )
 	assert( self:IsValid() )
@@ -178,6 +191,7 @@ end
 local HasTag = HasTag
 --- Gets if the entity has a tag.
 ---
+---@param self Entity
 ---@param tag string
 ---@return boolean
 function entity_meta:HasTag( tag )
@@ -188,6 +202,7 @@ end
 local GetTagValue = GetTagValue
 --- Gets the value of a tag.
 ---
+---@param self Entity
 ---@param tag string
 ---@return string
 function entity_meta:GetTagValue( tag )
@@ -198,6 +213,7 @@ end
 local GetDescription = GetDescription
 --- Gets the description of the entity.
 ---
+---@param self Entity
 ---@return string
 function entity_meta:GetDescription()
 	assert( self:IsValid() )
@@ -206,6 +222,7 @@ end
 
 local Delete = Delete
 --- Deletes the entity.
+---@param self Entity
 function entity_meta:Delete()
 	return Delete( self.handle )
 end

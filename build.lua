@@ -1,5 +1,6 @@
 #!/usr/bin/lua
 
+---@diagnostic disable: undefined-global
 --------------------------------------------------------------------------------
 -- This script is used to compile multiple lua files down into one package.
 --

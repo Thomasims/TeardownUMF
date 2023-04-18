@@ -3,7 +3,11 @@
 -- @script entities.body
 UMF_REQUIRE "/"
 
+---@class body_handle: integer
+
 ---@class Body: Entity
+---@field handle body_handle
+---@field private _C table property contrainer (internal)
 ---@field transform Transformation (dynamic property)
 ---@field velocity Vector (dynamic property)
 ---@field angularVelocity Vector (dynamic property)
@@ -13,8 +17,7 @@ UMF_REQUIRE "/"
 ---@field mass number (dynamic property -- readonly)
 ---@field shapes Shape[] (dynamic property -- readonly)
 ---@field vehicle Vehicle (dynamic property -- readonly)
-local body_meta
-body_meta = global_metatable( "body", "entity", true )
+local body_meta = global_metatable( "body", "entity", true )
 
 --- Tests if the parameter is a body entity.
 ---
@@ -60,6 +63,7 @@ end
 
 ---@type Body
 
+---@param self Body
 ---@return string
 function body_meta:__tostring()
 	return string.format( "Body[%d]", self.handle )
@@ -67,8 +71,9 @@ end
 
 --- Applies a force to the body at the specified world-space point.
 ---
----@param pos Vector World-space position
----@param vel Vector World-space force and direction
+---@param self Body
+---@param pos vector World-space position
+---@param vel vector World-space force and direction
 function body_meta:ApplyImpulse( pos, vel )
 	assert( self:IsValid() )
 	return ApplyBodyImpulse( self.handle, pos, vel )
@@ -76,8 +81,9 @@ end
 
 --- Applies a force to the body at the specified object-space point.
 ---
----@param pos Vector Object-space position
----@param vel Vector Object-space force and direction
+---@param self Body
+---@param pos vector Object-space position
+---@param vel vector Object-space force and direction
 function body_meta:ApplyLocalImpulse( pos, vel )
 	local transform = self:GetTransform()
 	return self:ApplyImpulse( transform:ToGlobal( pos ), transform:ToGlobalDir( vel ) )
@@ -85,6 +91,7 @@ end
 
 --- Draws the outline of the body.
 ---
+---@param self Body
 ---@param r number
 ---@overload fun(self: Body, r: number, g: number, b: number, a: number)
 function body_meta:DrawOutline( r, ... )
@@ -94,6 +101,7 @@ end
 
 --- Draws a highlight of the body.
 ---
+---@param self Body
 ---@param amount number
 function body_meta:DrawHighlight( amount )
 	assert( self:IsValid() )
@@ -102,7 +110,8 @@ end
 
 --- Sets the transform of the body.
 ---
----@param tr Transformation
+---@param self Body
+---@param tr transform
 function body_meta:SetTransform( tr )
 	assert( self:IsValid() )
 	return SetBodyTransform( self.handle, tr )
@@ -110,6 +119,7 @@ end
 
 --- Sets if the body should be simulated.
 ---
+---@param self Body
 ---@param bool boolean
 function body_meta:SetActive( bool )
 	assert( self:IsValid() )
@@ -118,6 +128,7 @@ end
 
 --- Sets if the body should move.
 ---
+---@param self Body
 ---@param bool boolean
 function body_meta:SetDynamic( bool )
 	assert( self:IsValid() )
@@ -126,7 +137,8 @@ end
 
 --- Sets the velocity of the body.
 ---
----@param vel Vector
+---@param self Body
+---@param vel vector
 function body_meta:SetVelocity( vel )
 	assert( self:IsValid() )
 	return SetBodyVelocity( self.handle, vel )
@@ -134,7 +146,8 @@ end
 
 --- Sets the angular velocity of the body.
 ---
----@param avel Vector
+---@param self Body
+---@param avel vector
 function body_meta:SetAngularVelocity( avel )
 	assert( self:IsValid() )
 	return SetBodyAngularVelocity( self.handle, avel )
@@ -142,6 +155,7 @@ end
 
 --- Gets the transform of the body.
 ---
+---@param self Body
 ---@return Transformation
 function body_meta:GetTransform()
 	assert( self:IsValid() )
@@ -150,6 +164,7 @@ end
 
 --- Gets the mass of the body.
 ---
+---@param self Body
 ---@return number
 function body_meta:GetMass()
 	assert( self:IsValid() )
@@ -158,6 +173,7 @@ end
 
 --- Gets the velocity of the body.
 ---
+---@param self Body
 ---@return Vector
 function body_meta:GetVelocity()
 	assert( self:IsValid() )
@@ -166,7 +182,8 @@ end
 
 --- Gets the velocity at the position on the body.
 ---
----@param pos Vector
+---@param self Body
+---@param pos vector
 ---@return Vector
 function body_meta:GetVelocityAtPos( pos )
 	assert( self:IsValid() )
@@ -175,6 +192,7 @@ end
 
 --- Gets the angular velocity of the body.
 ---
+---@param self Body
 ---@return Vector
 function body_meta:GetAngularVelocity()
 	assert( self:IsValid() )
@@ -183,6 +201,7 @@ end
 
 --- Gets the shape of the body.
 ---
+---@param self Body
 ---@return Shape[]
 function body_meta:GetShapes()
 	assert( self:IsValid() )
@@ -195,6 +214,7 @@ end
 
 --- Gets the vehicle of the body.
 ---
+---@param self Body
 ---@return Vehicle?
 function body_meta:GetVehicle()
 	assert( self:IsValid() )
@@ -203,6 +223,7 @@ end
 
 --- Gets the bounds of the body.
 ---
+---@param self Body
 ---@return Vector min
 ---@return Vector max
 function body_meta:GetWorldBounds()
@@ -213,6 +234,7 @@ end
 
 --- Gets the center of mas in object-space.
 ---
+---@param self Body
 ---@return Vector
 function body_meta:GetLocalCenterOfMass()
 	assert( self:IsValid() )
@@ -221,6 +243,7 @@ end
 
 --- Gets the center of mass in world-space.
 ---
+---@param self Body
 ---@return Vector
 function body_meta:GetWorldCenterOfMass()
 	return self:GetTransform():ToGlobal( self:GetLocalCenterOfMass() )
@@ -228,7 +251,8 @@ end
 
 --- Gets the closest point to the body from a given origin.
 ---
----@param origin Vector
+---@param self Body
+---@param origin vector
 ---@return boolean hit
 ---@return Vector? point
 ---@return Vector? normal
@@ -244,6 +268,7 @@ end
 --- Gets all the dynamic bodies in the jointed structure.
 --- The result will include the current body.
 ---
+---@param self Body
 ---@return Body[] jointed
 function body_meta:GetJointedBodies()
 	local list = GetJointedBodies( self.handle )
@@ -255,6 +280,7 @@ end
 
 --- Gets if the body is currently being simulated.
 ---
+---@param self Body
 ---@return boolean
 function body_meta:IsActive()
 	assert( self:IsValid() )
@@ -263,6 +289,7 @@ end
 
 --- Gets if the body is dynamic.
 ---
+---@param self Body
 ---@return boolean
 function body_meta:IsDynamic()
 	assert( self:IsValid() )
@@ -271,6 +298,7 @@ end
 
 --- Gets if the body is visble on screen.
 ---
+---@param self Body
 ---@param maxdist number
 ---@return boolean
 function body_meta:IsVisible( maxdist )
@@ -280,6 +308,7 @@ end
 
 --- Gets if the body has been broken.
 ---
+---@param self Body
 ---@return boolean
 function body_meta:IsBroken()
 	return not self:IsValid() or IsBodyBroken( self.handle )
@@ -287,6 +316,7 @@ end
 
 --- Gets if the body somehow attached to something static.
 ---
+---@param self Body
 ---@return boolean
 function body_meta:IsJointedToStatic()
 	assert( self:IsValid() )
@@ -296,6 +326,10 @@ end
 ----------------
 -- Properties implementation
 
+---@param self Body
+---@param setter boolean
+---@param val transform
+---@return Transformation?
 function body_meta._C:transform( setter, val )
 	if setter then
 		self:SetTransform( val )
@@ -304,6 +338,10 @@ function body_meta._C:transform( setter, val )
 	end
 end
 
+---@param self Body
+---@param setter boolean
+---@param val vector
+---@return Vector?
 function body_meta._C:velocity( setter, val )
 	if setter then
 		self:SetVelocity( val )
@@ -312,14 +350,22 @@ function body_meta._C:velocity( setter, val )
 	end
 end
 
+---@param self Body
+---@param setter boolean
+---@param val vector
+---@return Vector?
 function body_meta._C:angularVelocity( setter, val )
 	if setter then
-		self:SetVelocity( val )
+		self:SetAngularVelocity( val )
 	else
-		return self:GetVelocity()
+		return self:GetAngularVelocity()
 	end
 end
 
+---@param self Body
+---@param setter boolean
+---@param val boolean
+---@return boolean?
 function body_meta._C:active( setter, val )
 	if setter then
 		self:SetActive( val )
@@ -328,6 +374,10 @@ function body_meta._C:active( setter, val )
 	end
 end
 
+---@param self Body
+---@param setter boolean
+---@param val boolean
+---@return boolean?
 function body_meta._C:dynamic( setter, val )
 	if setter then
 		self:SetDynamic( val )
@@ -336,21 +386,33 @@ function body_meta._C:dynamic( setter, val )
 	end
 end
 
+---@param self Body
+---@param setter boolean
+---@return boolean
 function body_meta._C:broken( setter )
 	assert(not setter, "cannot set broken")
 	return self:IsBroken()
 end
 
+---@param self Body
+---@param setter boolean
+---@return number
 function body_meta._C:mass( setter )
 	assert(not setter, "cannot set mass")
 	return self:GetMass()
 end
 
+---@param self Body
+---@param setter boolean
+---@return Shape[]
 function body_meta._C:shapes( setter )
 	assert(not setter, "cannot set shapes")
 	return self:GetShapes()
 end
 
+---@param self Body
+---@param setter boolean
+---@return Vehicle?
 function body_meta._C:vehicle( setter )
 	assert(not setter, "cannot set vehicle")
 	return self:GetVehicle()

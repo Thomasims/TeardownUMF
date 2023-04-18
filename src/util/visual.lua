@@ -65,7 +65,7 @@ if DrawSprite then
 	--- Draws a sprite facing the camera.
 	---
 	---@param sprite number
-	---@param source Vector
+	---@param source vector
 	---@param radius number
 	---@param info table
 	function visual.drawsprite( sprite, source, radius, info )
@@ -97,7 +97,7 @@ if DrawSprite then
 	--- Draws sprites facing the camera.
 	---
 	---@param sprites number[]
-	---@param sources Vector[]
+	---@param sources vector[]
 	---@param radius number
 	---@param info table
 	function visual.drawsprites( sprites, sources, radius, info )
@@ -113,8 +113,8 @@ if DrawSprite then
 	--- Draws a line using a sprite.
 	---
 	---@param sprite number
-	---@param source Vector
-	---@param destination Vector
+	---@param source vector
+	---@param destination vector
 	---@param info table
 	function visual.drawline( sprite, source, destination, info )
 		local r, g, b, a
@@ -156,7 +156,7 @@ if DrawSprite then
 	--- Draws lines using a sprite.
 	---
 	---@param sprites number[] | number
-	---@param sources Vector[]
+	---@param sources vector[]
 	---@param connect boolean
 	---@param info table
 	function visual.drawlines( sprites, sources, connect, info )
@@ -177,8 +177,8 @@ if DrawSprite then
 
 	--- Draws a debug axis.
 	---
-	---@param transform Transformation
-	---@param quat? Quaternion
+	---@param transform transform
+	---@param quat? quaternion
 	---@param radius number
 	---@param writeZ boolean
 	function visual.drawaxis( transform, quat, radius, writeZ )
@@ -196,7 +196,7 @@ if DrawSprite then
 
 	--- Draws a polygon.
 	---
-	---@param transform Transformation
+	---@param transform transform
 	---@param radius number
 	---@param rotation number
 	---@param sides number
@@ -243,9 +243,9 @@ if DrawSprite then
 
 	--- Draws a 3D box.
 	---
-	---@param transform Transformation
-	---@param min Vector
-	---@param max Vector
+	---@param transform transform
+	---@param min vector
+	---@param max vector
 	---@param info table
 	function visual.drawbox( transform, min, max, info )
 		local r, g, b, a
@@ -287,7 +287,7 @@ if DrawSprite then
 
 	--- Draws a prism.
 	---
-	---@param transform Transformation
+	---@param transform transform
 	---@param radius number
 	---@param depth number
 	---@param rotation number
@@ -332,7 +332,7 @@ if DrawSprite then
 
 	--- Draws a sphere.
 	---
-	---@param transform Transformation
+	---@param transform transform
 	---@param radius number
 	---@param rotation number
 	---@param samples number
@@ -377,7 +377,7 @@ if DrawSprite then
 
 	--- Draws a wireframe sphere.
 	---
-	---@param transform Transformation
+	---@param transform transform
 	---@param radius number
 	---@param points number
 	---@param info table
