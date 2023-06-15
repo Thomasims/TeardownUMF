@@ -107,7 +107,19 @@ end
 function instantiate_global_metatable( name, base )
 	local t = base or {}
 	t.__UMF_GLOBAL_METATYPE = name
-	setmetatable( t, find_global_metatable( name ) )
+	local meta = find_global_metatable( name )
+	if meta then
+		setmetatable( t, meta )
+		if meta._C then
+			for k, f in pairs( meta._C ) do
+				local v = rawget( t, k )
+				if v ~= nil then
+					rawset( t, k, nil )
+					f( t, v )
+				end
+			end
+		end
+	end
 	return t
 end
 
