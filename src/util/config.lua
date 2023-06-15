@@ -80,14 +80,14 @@ function OptionsMenu.Columns( def )
 	end
 
 	return function()
-		local mw, mh = UiWidth(), 0
+		local mw, mh = def.width or UiWidth(), 0
 		UiPush()
-			UiTranslate(UiWidth() * ( - 0.5 + 0.5 / #elements ), 0)
+			UiTranslate(mw * ( - 0.5 + 0.5 / #elements ), 0)
 			for i = 1, #elements do
 				UiPush()
 					local _, gh = elements[i]()
 				UiPop()
-				UiTranslate(UiWidth() * ( 1 / #elements ), 0)
+				UiTranslate(mw * ( 1 / #elements ), 0)
 				mh = math.max( mh, gh )
 			end
 		UiPop()
@@ -305,6 +305,87 @@ function OptionsMenu.Toggle( def )
 		if UiTextButton( value and "Enabled" or "Disabled" ) then
 			value = not value
 			setvalue( def.id, value, SetBool )
+		end
+		return lw + 100, fheight + padt + padb
+	end
+end
+
+local opened_color
+--- Color value
+---
+---@param def table
+function OptionsMenu.Color( def )
+	local text = def.name or def.id
+	local size = def.size or 30
+	local padt = def.pad_top or 0
+	local padb = def.pad_bottom or 5
+	local value = getvalue( def.id, def.default, GetString )
+	local open = false
+	local condition = def.condition
+	return function()
+		if condition and not condition() then
+			return 0, 0
+		end
+		UiTranslate( -4, padt )
+		UiFont( "regular.ttf", size )
+		local fheight = UiFontHeight()
+		UiAlign( "right top" )
+		local lw, lh = UiText( text )
+		UiTranslate( 8, 0 )
+		UiAlign( "left top" )
+		local val = getvalue( def.id )
+		local r, g, b = (val or def.default):match("([%d.]+);([%d.]+);([%d.]+)")
+		r, g, b = tonumber(r) or 1, tonumber(g) or 1, tonumber(b) or 1
+		UiPush()
+			UiColor( r, g, b )
+			UiRect( size, size )
+		UiPop()
+		if val then
+			UiPush()
+				UiTranslate( size + 8, 0 )
+				UiColor( 0.5, 0.8, 1 )
+				if UiTextButton( "Reset" ) then
+					value = def.default
+					setvalue( def.id )
+				end
+			UiPop()
+		end
+		if UiBlankButton( size, size ) then
+			if opened_color == def.id then
+				opened_color = nil
+			else
+				opened_color = def.id
+			end
+			open = not open
+		end
+		if opened_color == def.id then
+			fheight = fheight + size + 8
+			UiTranslate(-4, 6 + size * 1.5)
+			UiAlign( "center middle" )
+			UiPush()
+				UiTranslate(0, 0)
+				UiScale(100/64, size/64)
+				UiTranslate(-64 - 12*size/64, 0)
+				UiColor( 1, 0, 0 )
+				UiImage("ui/common/hgradient-right-64.png")
+				UiTranslate(64 + 12*size/64, 0)
+				UiColor( 0, 1, 0 )
+				UiImage("ui/common/hgradient-right-64.png")
+				UiTranslate(64 + 12*size/64, 0)
+				UiColor( 0, 0, 1 )
+				UiImage("ui/common/hgradient-right-64.png")
+			UiPop()
+			UiPush()
+				UiScale(2,30/size)
+				UiTranslate(-25 - 56, 0)
+				r = UiSlider( "ui/hud/meterline.png", "x", r*50, 0, 50 ) / 50
+				UiTranslate(56, 0)
+				g = UiSlider( "ui/hud/meterline.png", "x", g*50, 0, 50 ) / 50
+				UiTranslate(56, 0)
+				b = UiSlider( "ui/hud/meterline.png", "x", b*50, 0, 50 ) / 50
+			UiPop()
+			value = string.format("%f;%f;%f", r, g, b)
+			setvalue( def.id, value, SetString )
 		end
 		return lw + 100, fheight + padt + padb
 	end
