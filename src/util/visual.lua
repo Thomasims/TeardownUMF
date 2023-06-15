@@ -145,7 +145,12 @@ if DrawSprite then
 			local transform = Transform( middle, QuatRotateQuat( QuatLookAt( source, destination ), QuatEuler( -90, 0, 0 ) ) )
 			local target_local = TransformToLocalPoint( transform, target )
 			target_local[2] = 0
-			local transform_fixed = TransformToParentTransform( transform, Transform( nil, QuatLookAt( target_local, nil ) ) )
+			local trlook = Transform( nil, QuatLookAt( target_local, nil ) )
+			if info and info.turn then
+				trlook.rot = QuatRotateQuat(trlook.rot, QuatEuler(0,0,90))
+				width, len = len, width
+			end
+			local transform_fixed = TransformToParentTransform( transform, trlook )
 
 			DrawSprite( sprite, transform_fixed, width, len, r, g, b, a, writeZ, additive )
 		else
