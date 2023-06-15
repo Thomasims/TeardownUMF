@@ -78,6 +78,7 @@ local function translatebone( node, isLocation, modelinfo )
 	return t, modelinfo
 end
 
+_UMFSpawnedToolModels = {}
 local function load_xml( xml )
 	local dt = ParseXML( xml )
 	local root = dt.type == "prefab" and dt.children[1] or dt
@@ -89,7 +90,9 @@ local function load_xml( xml )
 	for i = 1, #modelinfo.vox do
 		missingvox[modelinfo.vox[i].id] = modelinfo.vox[i]
 	end
-	local spawned = Spawn( root:Render(), Transform( Vec( 10000, 10000, 10000 ) ), true, false )
+	local rendered = root:Render()
+	local spawned = _UMFSpawnedToolModels[rendered] or Spawn( rendered, Transform( Vec( 10000, 10000, 10000 ) ), true, false )
+	_UMFSpawnedToolModels[rendered] = spawned
 	local shapes = {}
 	for i = 1, #spawned do
 		if GetEntityType( spawned[i] ) == "shape" then
@@ -140,7 +143,7 @@ local function attach_armature( armature, tool_body )
 		local _, _, _, s = GetShapeSize( shape )
 		local xml = string.format( "<vox file=\"tool/wire.vox\" scale=\"%f\" collide=\"false\"/>", s * 10 )
 		local dst = Spawn( xml, Transform(), true, false )[1]
-		if HasTag(shape, "collider") then
+		if HasTag( shape, "collider" ) then
 			last = dst
 		else
 			SetShapeBody( dst, tool_body )
@@ -336,8 +339,21 @@ end
 hook.add( "base.init", "api.tool_loader", function()
 	for _, tool in pairs( UMF_tools ) do
 		tool:Register()
+		if tool.xml and not tool.armature then
+			tool.armature = load_xml( tool.xml )
+			tool:Emit( "SetupModel", tool.armature.body, tool.armature.shapes )
+		end
 	end
 	post_init = true
+end )
+
+hook.add( "base.command.quickload", "api.tool_loader", function()
+	for _, tool in pairs( UMF_tools ) do
+		if tool.xml then
+			tool.armature = load_xml( tool.xml )
+			tool:Emit( "SetupModel", tool.armature.body, tool.armature.shapes )
+		end
+	end
 end )
 
 hook.add( "api.mouse.wheel", "api.tool_loader", function( ds )
@@ -458,19 +474,15 @@ end )
 function RegisterToolUMF( id, tool, immediateRegister )
 	tool.id = id
 	UMF_tools[id] = tool
-
-	local xml
+	
 	if type( tool.model ) == "string" then
 		if tool.model:match( "^[\r\n\t ]*<" ) then
-			xml = tool.model
+			tool.xml = tool.model
 			tool.model = "vox/tool/wire.vox"
 		end
 	elseif type( tool.model ) == "table" and tool.model.prefab then
-		xml = tool.model.prefab
+		tool.xml = tool.model.prefab
 		tool.model = "vox/tool/wire.vox"
-	end
-	if xml then
-		tool.armature = load_xml( xml )
 	end
 
 	if not tool.group and HasKey( "game.tool." .. id .. ".skin.group" ) then
@@ -481,10 +493,6 @@ function RegisterToolUMF( id, tool, immediateRegister )
 
 	if post_init or immediateRegister then
 		tool:Register()
-	end
-
-	if tool.armature then
-		tool:Emit( "SetupModel", tool.armature.body, tool.armature.shapes )
 	end
 
 	return tool
