@@ -78,7 +78,6 @@ local function translatebone( node, isLocation, modelinfo )
 	return t, modelinfo
 end
 
-_UMFSpawnedToolModels = {}
 local function load_xml( xml )
 	local dt = ParseXML( xml )
 	local root = dt.type == "prefab" and dt.children[1] or dt
