@@ -85,36 +85,49 @@ local function load_xml( xml )
 	assert( root and root.type == "group", "Invalid Tool XML" )
 	local root_bone, modelinfo = translatebone( root )
 	root_bone.name = "root"
-
-	local missingvox = {}
-	for i = 1, #modelinfo.vox do
-		missingvox[modelinfo.vox[i].id] = modelinfo.vox[i]
-	end
-	local rendered = root:Render()
-	local spawned = _UMFSpawnedToolModels[rendered] or Spawn( rendered, Transform( Vec( 10000, 10000, 10000 ) ), true, false )
-	_UMFSpawnedToolModels[rendered] = spawned
-	local shapes = {}
-	for i = 1, #spawned do
-		if GetEntityType( spawned[i] ) == "shape" then
-			local id = tonumber( GetTagValue( spawned[i], "__UMF_TOOL_SHAPE_ID" ) )
-			shapes[id] = spawned[i]
-			missingvox[id] = nil
-		end
-	end
-	if next( missingvox ) then
-		local missingfiles = {}
-		for _, vox in pairs( missingvox ) do
-			missingfiles[vox.file or ""] = true
-		end
-		for name in pairs( missingfiles ) do
-			DebugPrint( string.format( "[UMF] Unknown tool model \"%s\", are you sure the XML is valid?", name ) )
-		end
-	end
+	root_bone.transform = Transform() -- root bone is always at the "origin"
 
 	local armature = Armature { shapes = {}, bones = root_bone }
 	armature:ComputeBones()
-	armature.body = spawned[1]
-	armature.shapes = shapes
+	armature.spawnable = root:Render()
+
+	return armature, root
+end
+
+local function attach_armature( armature, tool_body )
+	if not armature or not armature.spawnable then
+		return
+	end
+
+	local tool_shapes = GetBodyShapes( tool_body )
+	for i = 1, #tool_shapes do
+		Delete( tool_shapes[i] )
+	end
+
+	armature.shapes = {}
+	local spawned = Spawn( armature.spawnable, Transform( Vec( 10000, 10000, 10000 ) ), true, false )
+	local last
+	local removelist = {}
+	for i = 1, #spawned do
+		if GetEntityType( spawned[i] ) == "shape" then
+			local id = tonumber( GetTagValue( spawned[i], "__UMF_TOOL_SHAPE_ID" ) )
+			if id then
+				armature.shapes[id] = spawned[i]
+				if HasTag( spawned[i], "collider" ) and not last then
+					last = spawned[i]
+				else
+					SetShapeBody( spawned[i], tool_body )
+				end
+			else
+				removelist[#removelist + 1] = i
+			end
+		else
+			removelist[#removelist + 1] = i
+		end
+	end
+	if last then
+		SetShapeBody( last, tool_body )
+	end
 
 	local shapes_data = armature:GetShapeTransforms()
 	for i = 1, #shapes_data do
@@ -123,41 +136,23 @@ local function load_xml( xml )
 		if data.editor_transform then
 			local shape = armature.shapes[data.id]
 			data.transform = offset_shape( data.editor_transform, data.scale, GetShapeSize( shape ) )
+			-- data.editor_transform = nil
 		end
 	end
 
-	return armature, root
+	for i = 1, #removelist do
+		Delete( spawned[removelist[i]] )
+	end
 end
 
-local function attach_armature( armature, tool_body )
-	if not armature then
+local function detach_armature( armature )
+	if not armature or not armature.shapes then
 		return
 	end
-	local tool_shapes = GetBodyShapes( tool_body )
-	for i = 1, #tool_shapes do
-		Delete( tool_shapes[i] )
-	end
-	armature.active_shapes = {}
-	local last
 	for key, shape in pairs( armature.shapes ) do
-		local _, _, _, s = GetShapeSize( shape )
-		local xml = string.format( "<vox file=\"tool/wire.vox\" scale=\"%f\" collide=\"false\"/>", s * 10 )
-		local dst = Spawn( xml, Transform(), true, false )[1]
-		if HasTag( shape, "collider" ) then
-			last = dst
-		else
-			SetShapeBody( dst, tool_body )
-		end
-		CopyShapeContent( shape, dst )
-		CopyShapePalette( shape, dst )
-		for _, tag in ipairs( ListTags( shape ) ) do
-			SetTag( dst, tag, GetTagValue( shape, tag ) )
-		end
-		armature.active_shapes[key] = dst
+		Delete( shape )
 	end
-	if last then
-		SetShapeBody( last, tool_body )
-	end
+	armature.shapes = nil
 end
 
 local function apply_armature( armature )
@@ -166,7 +161,7 @@ local function apply_armature( armature )
 	end
 	local shapes_data = armature:GetShapeTransforms()
 	for i = 1, #shapes_data do
-		SetShapeLocalTransform( armature.active_shapes[shapes_data[i].id], shapes_data[i].global_transform )
+		SetShapeLocalTransform( armature.shapes[shapes_data[i].id], shapes_data[i].global_transform )
 	end
 end
 
@@ -341,7 +336,6 @@ hook.add( "base.init", "api.tool_loader", function()
 		tool:Register()
 		if tool.xml and not tool.armature then
 			tool.armature = load_xml( tool.xml )
-			tool:Emit( "SetupModel", tool.armature.body, tool.armature.shapes )
 		end
 	end
 	post_init = true
@@ -351,7 +345,6 @@ hook.add( "base.command.quickload", "api.tool_loader", function()
 	for _, tool in pairs( UMF_tools ) do
 		if tool.xml then
 			tool.armature = load_xml( tool.xml )
-			tool:Emit( "SetupModel", tool.armature.body, tool.armature.shapes )
 		end
 	end
 end )
@@ -393,6 +386,7 @@ hook.add( "base.tick", "api.tool_loader", function( dt )
 		end
 		if previous ~= cur then
 			prevtool:Emit( "Holster" )
+			detach_armature( prevtool.armature )
 			prevtool._BODY = nil
 			prevtool._SHAPES = nil
 		end
@@ -403,6 +397,7 @@ hook.add( "base.tick", "api.tool_loader", function( dt )
 		local body = GetToolBody()
 		if (GetPlayerVehicle() ~= 0 or GetBool( "game.map.enabled" )) and tool._BODY then
 			tool:Emit( "Holster" )
+			detach_armature( tool.armature )
 			tool._BODY = nil
 			tool._SHAPES = nil
 			return
@@ -413,6 +408,7 @@ hook.add( "base.tick", "api.tool_loader", function( dt )
 		if previous == cur and (not tool._BODY or tool._BODY.handle ~= body) then
 			tool._BODY = Body( body )
 			attach_armature( tool.armature, body )
+			tool:Emit( "SetupModel", body, GetBodyShapes( body ) )
 			tool._SHAPES = tool._BODY:GetShapes()
 			tool:Emit( "Deploy" )
 			if tool.armature then
@@ -474,7 +470,7 @@ end )
 function RegisterToolUMF( id, tool, immediateRegister )
 	tool.id = id
 	UMF_tools[id] = tool
-	
+
 	if type( tool.model ) == "string" then
 		if tool.model:match( "^[\r\n\t ]*<" ) then
 			tool.xml = tool.model
