@@ -5,7 +5,7 @@ UMF_REQUIRE "meta.lua"
 
 ---@class XMLNode
 ---@field __call fun(children: XMLNode[]): XMLNode
----@field attributes table<string, string> | nil
+---@field attributes table<string, string|nil> | nil
 ---@field children XMLNode[] | nil
 ---@field type string
 local xml_meta
@@ -14,7 +14,7 @@ xml_meta = global_metatable( "xmlnode" )
 --- Defines an XML node.
 ---
 ---@param type string
----@return fun(attributes: table<string, string>): XMLNode
+---@return fun(attributes: table<string, string|nil>): XMLNode
 XMLTag = function( type )
 	return function( attributes )
 		return instantiate_global_metatable( "xmlnode", { type = type, attributes = attributes } )
@@ -54,12 +54,13 @@ ParseXML = function( xml )
 
 	local rt = { n = "\n", t = "\t", r = "\r", ["0"] = "\0", ["\\"] = "\\", ["\""] = "\"" }
 	readstring = function()
-		if not expect( "^\"" ) then
+		local c = expect( "^([\"'])" )
+		if not c then
 			return false
 		end
 		local start = pos
 		while true do
-			local s = assert( xml:find( "[\\\"]", pos ), "Invalid string" )
+			local s = assert( xml:find( "[\\" .. c .. "]", pos ), "Invalid string" )
 			if xml:sub( s, s ) == "\\" then
 				pos = s + 2
 			else
