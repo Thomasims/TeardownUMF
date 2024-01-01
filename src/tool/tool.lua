@@ -89,10 +89,12 @@ local function load_xml( xml )
 	local armature = Armature { shapes = {}, bones = root_bone }
 	armature:ComputeBones()
 	armature.spawnable = root:Render()
+	armature.modelinfo = modelinfo
 
 	return armature, root
 end
 
+local allowed_types = { screen = true, light = true }
 local function attach_armature( armature, tool_body )
 	if not armature or not armature.spawnable then
 		return
@@ -108,7 +110,8 @@ local function attach_armature( armature, tool_body )
 	local last
 	local removelist = {}
 	for i = 1, #spawned do
-		if GetEntityType( spawned[i] ) == "shape" then
+		local etype = GetEntityType( spawned[i] )
+		if etype == "shape" then
 			local id = tonumber( GetTagValue( spawned[i], "__UMF_TOOL_SHAPE_ID" ) )
 			if id then
 				armature.shapes[id] = spawned[i]
@@ -120,7 +123,7 @@ local function attach_armature( armature, tool_body )
 			else
 				removelist[#removelist + 1] = i
 			end
-		else
+		elseif not allowed_types[etype] then
 			removelist[#removelist + 1] = i
 		end
 	end
