@@ -69,42 +69,53 @@ end )
 -- Quicksaving stores a copy of the global table without functions, so libraries get corrupted on quickload
 -- This code prevents this by overriding them back
 
-local saved = {}
+local savedtypes = { ["function"] = true, ["userdata"] = true, ["thread"] = true }
+local saved
 
-local function hasfunction( t, bck )
-	if bck[t] then
-		return
-	end
+local function searchtable(t, bck)
+	if bck[t] then return end
 	bck[t] = true
-	for k, v in pairs( t ) do
-		if type( v ) == "function" then
-			return true
+	local rt, dosave = {}, false
+	for k, v in pairs(t) do
+		local vt = type(v)
+		if vt == "table" then
+			local st = searchtable(v, bck)
+			if st then
+				dosave = true
+				rt[k] = st
+			end
+		elseif savedtypes[vt] then
+			dosave = true
+			rt[k] = v
 		end
-		if type( v ) == "table" and hasfunction( v, bck ) then
-			return true
+	end
+	bck[t] = false
+	if dosave then
+		return rt
+	end
+end
+
+local function restoretable(t, dst)
+	if not t then return end
+	for k, v in pairs(t) do
+		if type(v) == "table" then
+			dst[k] = dst[k] or {}
+			restoretable(v, dst[k])
+		else
+			dst[k] = v
 		end
 	end
 end
 
 --- Updates the list of libraries known by the Quickload Patch.
 function UpdateQuickloadPatch()
-	for k, v in pairs( _G ) do
-		if k ~= "_G" and type( v ) == "table" and hasfunction( v, {} ) then
-			saved[k] = v
-		end
-	end
-end
-
-local quickloadfix = function()
-	for k, v in pairs( saved ) do
-		_G[k] = v
-	end
+	saved = searchtable(_G, {})
 end
 
 DETOUR( "handleCommand", function( original )
 	return function( command, ... )
 		if command == "quickload" then
-			quickloadfix()
+			restoretable(saved, _G)
 		end
 		hook.saferun( "base.command." .. command, ... )
 		return original( command, ... )
