@@ -449,6 +449,24 @@ hook.add( "base.draw", "api.tool_loader", function( dt )
 	end
 end )
 
+hook.add( "base.postUpdate", "api.tool_loader", function( dt )
+	current_hook = "postUpdate"
+	current_hook_updated = false
+	local tool = active_tool()
+	if tool then
+		tool:Emit( "PostUpdate", dt )
+	end
+end )
+
+hook.add( "base.render", "api.tool_loader", function( dt )
+	current_hook = "render"
+	current_hook_updated = false
+	local tool = active_tool()
+	if tool then
+		tool:Emit( "Render", dt )
+	end
+end )
+
 hook.add( "api.mouse.pressed", "api.tool_loader", function( button )
 	local tool = active_tool()
 	if tool then

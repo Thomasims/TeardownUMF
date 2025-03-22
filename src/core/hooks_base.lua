@@ -30,6 +30,8 @@ local detours = {
 	"init", -- "base.init" (runs before init())
 	"tick", -- "base.tick" (runs before tick())
 	"update", -- "base.update" (runs before update())
+	"render",
+	"postUpdate",
 }
 for i = 1, #detours do
 	simple_detour( detours[i] )

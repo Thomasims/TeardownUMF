@@ -104,6 +104,15 @@ local function findmeta( src, found )
 	return res
 end
 
+-- AVF patch
+_ORIG_setmetatable = _ORIG_setmetatable or setmetatable
+function setmetatable(t, meta)
+	if not meta or reverse_meta[meta] then
+		rawset(t, "__UMF_GLOBAL_METATYPE", meta and reverse_meta[meta])
+	end
+	return _ORIG_setmetatable(t, meta)
+end
+
 function instantiate_global_metatable( name, base )
 	local t = base or {}
 	t.__UMF_GLOBAL_METATYPE = name
